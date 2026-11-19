@@ -117,6 +117,7 @@ private fun WinsPhotoApp() {
     fun commitEdit(edited:Bitmap,previousComposite:Bitmap,flatten:Boolean=false) {
         editHistory=(editHistory+previousComposite).takeLast(5);redoHistory=emptyList()
         val selected=layers.firstOrNull{it.id==selectedLayerId}
+        if(!flatten && selected?.locked==true){exportStatus="Selected layer is locked. Unlock it in Layers before editing.";return}
         if(!flatten && selected!=null) {
             val updated=layers.map{if(it.id==selected.id)it.copy(bitmap=edited) else it}
             scope.launch {
