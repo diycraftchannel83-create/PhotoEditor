@@ -49,7 +49,7 @@ fun LayersScreen(
             itemsIndexed(working.asReversed(),key={_,l->l.id}) { reverseIndex, layer ->
                 val index=working.lastIndex-reverseIndex
                 var rename by remember(layer.id){mutableStateOf(layer.name)}
-                var blendMenu by remember(layer.id){mutableStateOf(false)}
+                var blendMenu by remember(layer.id){mutableStateOf(false)}\n                var groupBlendMenu by remember(layer.id){mutableStateOf(false)}
                 Card(colors=CardDefaults.cardColors(containerColor=if(selectedId==layer.id)Color(0xFF263B38) else Color(0xFF20242A))) {
                     Column(Modifier.fillMaxWidth().padding(10.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) {
                         Row(verticalAlignment=Alignment.CenterVertically) {
@@ -70,6 +70,12 @@ fun LayersScreen(
                         }
                         if(layer.groupId!=null) {
                             Text("Group: ${layer.groupName?: "Group"}",color=Color(0xFF77D7C0),style=MaterialTheme.typography.labelSmall)
+                            Row(verticalAlignment=Alignment.CenterVertically){
+                                TextButton(onClick={groupBlendMenu=true}){Text("Group blend: ${(layer.groupBlendMode?:EditorBlendMode.NORMAL).name}")}
+                                DropdownMenu(expanded=groupBlendMenu,onDismissRequest={groupBlendMenu=false}){
+                                    EditorBlendMode.entries.forEach{mode->DropdownMenuItem(text={Text(mode.name)},onClick={working=working.map{if(it.groupId==layer.groupId)it.copy(groupBlendMode=mode)else it};groupBlendMenu=false})}
+                                }
+                            }
                             Row(verticalAlignment=Alignment.CenterVertically) {
                                 Text("Group opacity ${(layer.groupOpacity*100).toInt()}%",color=Color.LightGray,style=MaterialTheme.typography.labelSmall)
                                 Slider(value=layer.groupOpacity,onValueChange={v->working=working.map{if(it.groupId==layer.groupId)it.copy(groupOpacity=v)else it}},modifier=Modifier.weight(1f))
