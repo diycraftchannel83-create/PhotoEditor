@@ -79,7 +79,7 @@ class ProjectStore(context: Context) {
             val originalPath=layer.originalBitmap?.let{original->val path="assets/original_$index.png";File(folder,path).outputStream().use{if(!original.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write original layer $index")};path}
             val operationJson=if(layer.operations.isNotEmpty())NonDestructiveEditStack(layer.originalBitmap?:layer.bitmap,layer.operations).toJson()else null
             val maskPath=layer.mask?.let{mask->val path="assets/mask_$index.png";File(folder,path).outputStream().use{if(!mask.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write mask $index")};path}
-            layerArray.put(JSONObject().put("id",layer.id).put("name",layer.name).put("visible",layer.visible).put("opacity",layer.opacity).put("blendMode",layer.blendMode.name).put("locked",layer.locked).put("alphaLocked",layer.alphaLocked).put("groupId",layer.groupId).put("groupName",layer.groupName).put("groupOpacity",layer.groupOpacity).put("clipToBelow",layer.clipToBelow).put("asset",assetPath).put("originalAsset",originalPath).put("operations",operationJson).put("maskAsset",maskPath))
+            layerArray.put(JSONObject().put("id",layer.id).put("name",layer.name).put("visible",layer.visible).put("opacity",layer.opacity).put("blendMode",layer.blendMode.name).put("locked",layer.locked).put("alphaLocked",layer.alphaLocked).put("groupId",layer.groupId).put("groupName",layer.groupName).put("groupOpacity",layer.groupOpacity).put("groupBlendMode",layer.groupBlendMode?.name).put("clipToBelow",layer.clipToBelow).put("asset",assetPath).put("originalAsset",originalPath).put("operations",operationJson).put("maskAsset",maskPath))
         }
         val manifest=JSONObject().put("schemaVersion",4).put("projectId",id).put("name",projectName.trim().ifBlank{"Untitled Project"})
             .put("canvasWidth",canvasWidth).put("canvasHeight",canvasHeight).put("createdAt",System.currentTimeMillis()).put("updatedAt",System.currentTimeMillis())
@@ -108,7 +108,7 @@ class ProjectStore(context: Context) {
                 visible=item.optBoolean("visible",true),opacity=item.optDouble("opacity",1.0).toFloat().coerceIn(0f,1f),blendMode=mode,
                 locked=item.optBoolean("locked",false),alphaLocked=item.optBoolean("alphaLocked",false),
                 groupId=item.optString("groupId").takeIf{it.isNotBlank()},groupName=item.optString("groupName").takeIf{it.isNotBlank()},
-                groupOpacity=item.optDouble("groupOpacity",1.0).toFloat().coerceIn(0f,1f),clipToBelow=item.optBoolean("clipToBelow",false),
+                groupOpacity=item.optDouble("groupOpacity",1.0).toFloat().coerceIn(0f,1f),groupBlendMode=item.optString("groupBlendMode").takeIf{it.isNotBlank()}?.let{runCatching{EditorBlendMode.valueOf(it)}.getOrNull()},clipToBelow=item.optBoolean("clipToBelow",false),
                 mask=mask,originalBitmap=original,operations=operations)
         }
         if(layers.isEmpty()){val snapshot=loadSnapshot(projectFolder)?:return null;layers+=EditorLayer(name=name,bitmap=snapshot)}
