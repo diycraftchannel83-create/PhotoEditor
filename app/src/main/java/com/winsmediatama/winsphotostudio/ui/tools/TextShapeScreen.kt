@@ -48,10 +48,10 @@ fun TextShapeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
             Image(source.asImageBitmap(),null,Modifier.fillMaxSize())
             Canvas(Modifier.fillMaxSize()) {
                 val nc=drawContext.canvas.nativeCanvas
-                val p=AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply { color=overlayColor.copy(alpha=opacity).toArgb();textSize=fontSize*size.width/source.width;strokeWidth=(fontSize*size.width/source.width).coerceAtLeast(2f);style=if(kind==OverlayKind.TEXT&&!outline) AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE;typeface=Typeface.create(Typeface.DEFAULT,(if(bold)Typeface.BOLD else Typeface.NORMAL) or (if(italic)Typeface.ITALIC else 0));textAlign=when(alignment){TextAlignment.LEFT->AndroidPaint.Align.LEFT;TextAlignment.CENTER->AndroidPaint.Align.CENTER;TextAlignment.RIGHT->AndroidPaint.Align.RIGHT} }
+                val p=AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply { color=overlayColor.copy(alpha=opacity).toArgb();textSize=fontSize*size.width/source.width;strokeWidth=(if(kind==OverlayKind.TEXT&&outline)outlineWidth*size.width/source.width else (fontSize*size.width/source.width)/24f).coerceAtLeast(1f);style=if(kind==OverlayKind.TEXT&&!outline) AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE;typeface=Typeface.create(Typeface.DEFAULT,(if(bold)Typeface.BOLD else Typeface.NORMAL) or (if(italic)Typeface.ITALIC else 0));textAlign=when(alignment){TextAlignment.LEFT->AndroidPaint.Align.LEFT;TextAlignment.CENTER->AndroidPaint.Align.CENTER;TextAlignment.RIGHT->AndroidPaint.Align.RIGHT} }
                 val cx=x*size.width;val cy=y*size.height
                 when(kind) {
-                    OverlayKind.TEXT -> { p.style=AndroidPaint.Style.FILL;nc.drawText(text,cx,cy,p) }
+                    OverlayKind.TEXT -> { p.style=if(outline)AndroidPaint.Style.STROKE else AndroidPaint.Style.FILL;nc.drawText(text,cx,cy,p) }
                     OverlayKind.RECTANGLE -> nc.drawRect(cx-size.width*.12f,cy-size.height*.08f,cx+size.width*.12f,cy+size.height*.08f,p)
                     OverlayKind.ELLIPSE -> nc.drawOval(RectF(cx-size.width*.12f,cy-size.height*.08f,cx+size.width*.12f,cy+size.height*.08f),p)
                     OverlayKind.LINE -> nc.drawLine(cx-size.width*.15f,cy,cx+size.width*.15f,cy,p)
@@ -84,7 +84,7 @@ private fun renderOverlay(source:Bitmap,kind:OverlayKind,text:String,color:Color
     val p=AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply { this.color=color.copy(alpha=opacity).toArgb();textSize=fontSize;strokeWidth=outlineWidth.coerceAtLeast(1f);style=if(kind==OverlayKind.TEXT&&!outline) AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE;typeface=Typeface.create(Typeface.DEFAULT,(if(bold)Typeface.BOLD else Typeface.NORMAL) or (if(italic)Typeface.ITALIC else 0));textAlign=when(alignment){TextAlignment.LEFT->AndroidPaint.Align.LEFT;TextAlignment.CENTER->AndroidPaint.Align.CENTER;TextAlignment.RIGHT->AndroidPaint.Align.RIGHT} }
     val cx=x*source.width;val cy=y*source.height
     when(kind) {
-        OverlayKind.TEXT->{p.style=AndroidPaint.Style.FILL;canvas.drawText(text,cx,cy,p)}
+        OverlayKind.TEXT->{p.style=if(outline)AndroidPaint.Style.STROKE else AndroidPaint.Style.FILL;canvas.drawText(text,cx,cy,p)}
         OverlayKind.RECTANGLE->canvas.drawRect(cx-source.width*.12f,cy-source.height*.08f,cx+source.width*.12f,cy+source.height*.08f,p)
         OverlayKind.ELLIPSE->canvas.drawOval(RectF(cx-source.width*.12f,cy-source.height*.08f,cx+source.width*.12f,cy+source.height*.08f),p)
         OverlayKind.LINE->canvas.drawLine(cx-source.width*.15f,cy,cx+source.width*.15f,cy,p)
