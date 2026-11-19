@@ -25,7 +25,7 @@ class RecoveryStore(context:Context) {
             val asset="assets/layer_$index.png"
             File(staging,asset).outputStream().use{layer.bitmap.compress(Bitmap.CompressFormat.PNG,100,it)}
             val maskAsset=layer.mask?.let{mask->val path="assets/mask_$index.png";File(staging,path).outputStream().use{mask.compress(Bitmap.CompressFormat.PNG,100,it)};path}
-            entries.put(JSONObject().put("id",layer.id).put("name",layer.name).put("visible",layer.visible).put("opacity",layer.opacity).put("blendMode",layer.blendMode.name).put("locked",layer.locked).put("asset",asset).apply{if(maskAsset!=null)put("maskAsset",maskAsset)})
+            entries.put(JSONObject().put("id",layer.id).put("name",layer.name).put("visible",layer.visible).put("opacity",layer.opacity).put("blendMode",layer.blendMode.name).put("locked",layer.locked).put("alphaLocked",layer.alphaLocked).put("asset",asset).apply{if(maskAsset!=null)put("maskAsset",maskAsset)})
         }
         val json=JSONObject().put("schemaVersion",1).put("canvasWidth",canvasWidth).put("canvasHeight",canvasHeight).put("selectedLayerId",selectedLayerId).put("updatedAt",System.currentTimeMillis()).put("layers",entries)
         File(staging,"recovery.json").writeText(json.toString(2))
@@ -45,7 +45,7 @@ class RecoveryStore(context:Context) {
             val bitmap=BitmapFactory.decodeFile(File(folder,item.optString("asset")).absolutePath)?:continue
             val mask=item.optString("maskAsset").takeIf{it.isNotBlank()}?.let{BitmapFactory.decodeFile(File(folder,it).absolutePath)}
             val mode=runCatching{EditorBlendMode.valueOf(item.optString("blendMode","NORMAL"))}.getOrDefault(EditorBlendMode.NORMAL)
-            layers+=EditorLayer(item.optString("id"),item.optString("name","Layer ${i+1}"),bitmap,item.optBoolean("visible",true),item.optDouble("opacity",1.0).toFloat().coerceIn(0f,1f),mode,mask,item.optBoolean("locked",false))
+            layers+=EditorLayer(item.optString("id"),item.optString("name","Layer ${i+1}"),bitmap,item.optBoolean("visible",true),item.optDouble("opacity",1.0).toFloat().coerceIn(0f,1f),mode,mask,item.optBoolean("locked",false),item.optBoolean("alphaLocked",false))
         }
         if(layers.isEmpty())return@runCatching null
         Recovered(json.optInt("canvasWidth",layers.first().bitmap.width),json.optInt("canvasHeight",layers.first().bitmap.height),layers,json.optString("selectedLayerId").takeIf{it.isNotBlank()})
