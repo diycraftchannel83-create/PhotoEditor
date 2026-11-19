@@ -35,6 +35,7 @@ object BasicAdjustmentProcessor {
             r=((r-127.5f)*contrast+127.5f+brightness)*exposure+temperature
             g=((g-127.5f)*contrast+127.5f+brightness)*exposure+tint
             b=((b-127.5f)*contrast+127.5f+brightness)*exposure-temperature
+            r+=values.redBalance.coerceIn(-1f,1f)*40f;g+=values.greenBalance.coerceIn(-1f,1f)*40f;b+=values.blueBalance.coerceIn(-1f,1f)*40f
             var lum=(0.2126f*r+0.7152f*g+0.0722f*b).coerceIn(0f,255f)
             val shadowWeight=(1f-lum/255f).pow(2f)
             val highlightWeight=(lum/255f).pow(2f)
