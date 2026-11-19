@@ -43,8 +43,11 @@ fun LayerMaskPaintScreen(mask:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
 }
 private fun paintAt(x:Float,y:Float,viewWidth:Int,viewHeight:Int,bitmap:Bitmap,reveal:Boolean,radius:Float) {
     if(viewWidth<=0||viewHeight<=0)return
-    val sx=bitmap.width.toFloat()/viewWidth;val sy=bitmap.height.toFloat()/viewHeight
-    val px=x*sx;val py=y*sy
+    val scale=minOf(viewWidth.toFloat()/bitmap.width,viewHeight.toFloat()/bitmap.height)
+    val drawWidth=bitmap.width*scale;val drawHeight=bitmap.height*scale
+    val offsetX=(viewWidth-drawWidth)/2f;val offsetY=(viewHeight-drawHeight)/2f
+    if(x<offsetX||y<offsetY||x>offsetX+drawWidth||y>offsetY+drawHeight)return
+    val px=(x-offsetX)/scale;val py=(y-offsetY)/scale
     val paint=AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply{color=if(reveal)android.graphics.Color.WHITE else android.graphics.Color.BLACK;style=AndroidPaint.Style.FILL}
-    AndroidCanvas(bitmap).drawCircle(px,py,radius*minOf(sx,sy),paint)
+    AndroidCanvas(bitmap).drawCircle(px,py,radius,paint)
 }
