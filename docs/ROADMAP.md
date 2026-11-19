@@ -108,7 +108,8 @@
 - [ ] Full migrations, corrupt/missing asset handling
 - [x] Duplicate, rename and delete APIs are implemented; lifecycle tests authored (verification pending)
 - [x] Non-destructive operation-project save/load/replay regression tests authored (verification pending)
-- [x] Save-as UI (save current with a new project name)\n- [ ] Recent projects and unsaved-changes protection
+- [x] Save-as UI (save current with a new project name)
+- [ ] Recent projects and unsaved-changes protection
 - [ ] Operation stack/live adjustment persistence and full editable-state recovery
 
 ## Phase 11 — Render/export and performance
