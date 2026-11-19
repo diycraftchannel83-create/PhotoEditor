@@ -243,7 +243,7 @@ private fun WinsPhotoApp() {
                 onApply={edited -> commitEdit(edited,current);hslOpen=false}
             )
             else if (perspectiveOpen) PerspectiveScreen(source=current,onCancel={perspectiveOpen=false},onApply={edited->commitEdit(edited,current,flatten=true);perspectiveOpen=false})
-            else if (backgroundReplaceOpen) BackgroundReplaceScreen(source=selectedBitmap,onCancel={backgroundReplaceOpen=false},onApply={edited->commitEdit(edited,current,flatten=true);backgroundReplaceOpen=false})
+            else if (backgroundReplaceOpen) BackgroundReplaceScreen(source=current,onCancel={backgroundReplaceOpen=false},onApply={edited->commitEdit(edited,current,flatten=true);backgroundReplaceOpen=false})
             else if (maskPaintOpen) {
                 val maskLayer=layers.firstOrNull{it.id==maskPaintLayerId}
                 val activeMask=maskLayer?.mask
