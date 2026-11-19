@@ -42,7 +42,8 @@ fun CropTransformScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) 
     var widthText by remember { mutableStateOf(source.width.toString()) }
     var heightText by remember { mutableStateOf(source.height.toString()) }
     var showResize by remember { mutableStateOf(false) }
-    val preview by produceState<Bitmap?>(null,source,settings) { value?.takeIf { it !== source }?.recycle(); value=null; value=withContext(Dispatchers.IO){renderCropTransform(source,settings)} }\n    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==source}?.recycle()}}
+    val preview by produceState<Bitmap?>(null,source,settings) { value?.takeIf { it !== source }?.recycle(); value=null; value=withContext(Dispatchers.IO){renderCropTransform(source,settings)} }
+    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==source}?.recycle()}}
     val sourceRatio=source.width.toFloat()/source.height.coerceAtLeast(1)
 
     fun updateCrop(l:Float,t:Float,r:Float,b:Float,markFree:Boolean=true) {
