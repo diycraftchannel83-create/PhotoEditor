@@ -48,7 +48,7 @@ fun AiBackgroundRemoveScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->U
         value=withContext(Dispatchers.IO){segmentation.result?.let{applyAiMask(source,it,threshold,softness)}}
     }
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
-        Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24).padding(10.dp),verticalAlignment=Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(10.dp),verticalAlignment=Alignment.CenterVertically) {
             Text("AI Background Removal",Modifier.weight(1f),color=Color.White)
             TextButton(onClick=onCancel){Text("Cancel")}
             Button(enabled=preview!=null,onClick={preview?.let(onApply)}){Text("Apply")}
