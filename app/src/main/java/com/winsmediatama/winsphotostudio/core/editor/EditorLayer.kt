@@ -18,5 +18,6 @@ data class EditorLayer(
     val alphaLocked:Boolean=false,
     val groupId:String?=null,
     val groupName:String?=null,
-    val groupOpacity:Float=1f
+    val groupOpacity:Float=1f,
+    val clipToBelow:Boolean=false
 )
