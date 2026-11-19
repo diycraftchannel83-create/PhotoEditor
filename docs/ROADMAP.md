@@ -1,68 +1,65 @@
 # WinsPhoto Studio Roadmap
 
 ## Phase 0 — Repository and engineering foundation
-- [x] Repository initialized
-- [x] Project goals and architecture documented
-- [x] Android project scaffold
-- [x] Build/CI baseline (debug build workflow; lint still pending)
-- [ ] Dependency/license inventory
+- [x] Repository initialized and architecture documented
+- [x] Android Kotlin/Compose scaffold
+- [x] CI workflow configured (verification intentionally deferred until feature pass completes)
+- [ ] Dependency/license inventory and final audit
 
-## Phase 1 — Core editor MVP
-- [ ] Home/recent projects
-- [x] Image import (SAF)
-- [x] Initial editor workspace and image canvas preview (editing canvas engine pending)
-- [x] Pinch zoom and pan preview
-- [ ] Crop, rotate, flip
-- [ ] Resize
-- [ ] Basic adjustments UI (CPU reference processor implemented: brightness, contrast, exposure, saturation, temperature, tint)
-- [ ] Undo/redo command history
-- [ ] JPEG/PNG/WebP export
-- [ ] Autosave/recovery (local project manifest/storage foundation added)
+## Phase 1 — Editor canvas and transform
+- [x] SAF photo import
+- [x] Preview canvas and pinch zoom/pan
+- [x] Crop presets (Original, Free, 1:1, 4:3, 3:2, 16:9, 9:16)
+- [x] Free crop size and position
+- [x] Rotate 90° increments and flip H/V
+- [x] Resize and transform preview/apply
+- [x] JPEG/PNG export, JPEG quality and transparent-canvas background options
 
-## Phase 2 — Professional tonal tools
-- [ ] Histogram
-- [ ] Levels UI (RGB and per-channel reference processor implemented)
-- [ ] Curves (RGB and per-channel)
-- [ ] White balance
-- [ ] Color balance
-- [ ] Shadows/highlights
-- [ ] Vibrance and HSL
+## Phase 2 — Tonal and color tools
+- [x] Adjustment UI and CPU preview renderer
+- [x] Brightness, contrast, exposure, saturation, hue
+- [x] Temperature, tint and RGB balance
+- [x] Highlights, shadows, whites, blacks, vibrance, clarity and sharpen
+- [x] Composite/RGB Levels with input, gamma and output controls
+- [x] Composite and RGB Curves with draggable control points
+- [ ] Histogram and HSL-specific controls
 
 ## Phase 3 — Layer engine
-- [ ] Image layers
-- [ ] Add/duplicate/delete/rename/reorder
-- [ ] Visibility and lock
-- [ ] Opacity
-- [ ] Blend modes
-- [ ] Groups
-- [ ] Layer masks
-- [ ] Adjustment layers
-- [ ] Merge and flatten
+- [x] Bitmap layer stack
+- [x] Import photo layer, add transparent layer
+- [x] Duplicate, delete, rename, select and reorder
+- [x] Visibility and opacity
+- [x] Blend modes (Normal, Multiply, Screen, Overlay, Darken, Lighten, Add, Difference)
+- [ ] Groups, layer masks and true adjustment layers
+- [ ] Full editable layer document persistence (currently project snapshots are flattened)
 
-## Phase 4 — AI and selections
-- [ ] On-device model integration and licensing review
-- [ ] Background removal
-- [ ] Subject selection
-- [ ] Mask refinement (feather, edge, expand/contract)
-- [ ] Background replacement
-- [ ] Object removal / AI upscale evaluation
+## Phase 4 — Selections and retouching
+- [x] Rectangle and ellipse selection
+- [x] Crop selection and alpha mask selection
+- [x] Brush and eraser with size/color controls
+- [x] Blur and pixelate retouch
+- [x] Clone stamp with source offset
+- [ ] Healing, dodge/burn, advanced mask refinement
 
-## Phase 5 — Advanced creative tools
-- [ ] Brush and eraser
-- [ ] Clone and healing
-- [ ] Dodge/burn
-- [ ] Text and shapes
-- [ ] Gradients
-- [ ] Selection tools
-- [ ] Filters and effects
-- [ ] LUT support
-- [ ] Layer effects
+## Phase 5 — AI and background tools
+- [x] Bundled on-device ML Kit person segmentation/background removal
+- [x] Threshold/edge softness controls
+- [x] Color-key background removal with sampling/tolerance/feather
+- [ ] General-object segmentation, subject selection and background replacement
+- [ ] AI object removal/upscale model evaluation
 
-## Phase 6 — Production hardening
-- [ ] Large-image/memory tests
-- [ ] Device compatibility
-- [ ] Accessibility
-- [ ] Localization
-- [ ] Crash recovery validation
-- [ ] Export quality/metadata validation
-- [ ] Release build and Play Store readiness
+## Phase 6 — Creative tools
+- [x] Text overlay
+- [x] Rectangle, ellipse and line overlays
+- [x] Filter presets (Vivid, Warm, Cool, Vintage, Cinematic, Soft, Mono, Fade)
+- [ ] Fonts, stroke/fill controls, gradients, LUT support, layer effects
+
+## Phase 7 — Project and production hardening
+- [x] Local snapshot project save/open
+- [x] Bounded undo history for applied edits
+- [ ] Full non-destructive parameter/layer document persistence
+- [ ] Autosave/recovery and crash recovery
+- [ ] Large-image, memory and device compatibility testing
+- [ ] Accessibility and localization
+- [ ] Metadata/export quality audit
+- [ ] **Final build, CI verification, compile fixes and release audit (deferred by request)**
