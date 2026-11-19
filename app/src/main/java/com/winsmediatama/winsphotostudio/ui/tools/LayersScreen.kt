@@ -17,15 +17,16 @@ import androidx.compose.ui.unit.dp
 import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
 
 @Composable
-fun LayersScreen(layers:List<EditorLayer>,onCancel:()->Unit,onAddImage:()->Unit,onApply:(List<EditorLayer>)->Unit) {
+fun LayersScreen(layers:List<EditorLayer>,selectedLayerId:String?,onCancel:()->Unit,onAddImage:()->Unit,onApply:(List<EditorLayer>,String?)->Unit) {
     var working by remember(layers) { mutableStateOf(layers) }
+    var selectedId by remember(layers,selectedLayerId) { mutableStateOf(selectedLayerId ?: layers.lastOrNull()?.id) }
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
             Text("Layers",Modifier.weight(1f),color=Color.White)
-            TextButton(onClick={working=working+EditorLayer(name="Layer ${working.size+1}",bitmap=Bitmap.createBitmap(working.firstOrNull()?.bitmap?.width ?: 1,working.firstOrNull()?.bitmap?.height ?: 1,Bitmap.Config.ARGB_8888))}){Text("+ Empty")}
+            TextButton(onClick={val newLayer=EditorLayer(name="Layer ${working.size+1}",bitmap=Bitmap.createBitmap(working.firstOrNull()?.bitmap?.width ?: 1,working.firstOrNull()?.bitmap?.height ?: 1,Bitmap.Config.ARGB_8888));working=working+newLayer;selectedId=newLayer.id}){Text("+ Empty")}
             TextButton(onClick=onAddImage){Text("+ Photo")}
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(onClick={onApply(working)}){Text("Apply")}
+            Button(onClick={onApply(working,selectedId)}){Text("Apply")}
         }
         Text("Bottom-to-top stacking • Tap visibility • Adjust opacity",color=Color.LightGray,modifier=Modifier.padding(12.dp),style=MaterialTheme.typography.bodySmall)
         LazyColumn(Modifier.weight(1f),contentPadding=PaddingValues(8.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
@@ -41,6 +42,7 @@ fun LayersScreen(layers:List<EditorLayer>,onCancel:()->Unit,onAddImage:()->Unit,
                                 Text(if(layer.visible)"Visible" else "Hidden",color=Color.LightGray,style=MaterialTheme.typography.labelSmall)
                             }
                             TextButton(onClick={working=working.toMutableList().also{it[index]=layer.copy(name=rename)}}){Text("Rename")}
+                            TextButton(onClick={selectedId=layer.id}){Text(if(selectedId==layer.id)"Selected" else "Select")}
                             Checkbox(checked=layer.visible,onCheckedChange={v->working=working.toMutableList().also{it[index]=layer.copy(visible=v)}})
                         }
                         Row(verticalAlignment=Alignment.CenterVertically) {
@@ -50,8 +52,8 @@ fun LayersScreen(layers:List<EditorLayer>,onCancel:()->Unit,onAddImage:()->Unit,
                         Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) {
                             OutlinedButton(enabled=index<working.lastIndex,onClick={working=working.toMutableList().also{val item=it.removeAt(index);it.add(index+1,item)}},modifier=Modifier.weight(1f)){Text("Up")}
                             OutlinedButton(enabled=index>0,onClick={working=working.toMutableList().also{val item=it.removeAt(index);it.add(index-1,item)}},modifier=Modifier.weight(1f)){Text("Down")}
-                            OutlinedButton(onClick={val duplicate=layer.copy(id=java.util.UUID.randomUUID().toString(),name=layer.name+" Copy",bitmap=layer.bitmap.copy(Bitmap.Config.ARGB_8888,true));working=working.toMutableList().also{it.add(index+1,duplicate)}},modifier=Modifier.weight(1f)){Text("Duplicate")}
-                            OutlinedButton(enabled=working.size>1,onClick={working=working.toMutableList().also{it.removeAt(index)}},modifier=Modifier.weight(1f)){Text("Delete")}
+                            OutlinedButton(onClick={val duplicate=layer.copy(id=java.util.UUID.randomUUID().toString(),name=layer.name+" Copy",bitmap=layer.bitmap.copy(Bitmap.Config.ARGB_8888,true));working=working.toMutableList().also{it.add(index+1,duplicate)};selectedId=duplicate.id},modifier=Modifier.weight(1f)){Text("Duplicate")}
+                            OutlinedButton(enabled=working.size>1,onClick={working=working.toMutableList().also{it.removeAt(index)};if(selectedId==layer.id)selectedId=working.lastOrNull()?.id},modifier=Modifier.weight(1f)){Text("Delete")}
                         }
                     }
                 }
