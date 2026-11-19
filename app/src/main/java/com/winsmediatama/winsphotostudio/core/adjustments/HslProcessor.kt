@@ -2,8 +2,6 @@ package com.winsmediatama.winsphotostudio.core.adjustments
 
 import android.graphics.Bitmap
 import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
 
 enum class HslColorRange(val label:String,val center:Float) {
     RED("Red",0f),ORANGE("Orange",30f),YELLOW("Yellow",60f),GREEN("Green",120f),
@@ -39,7 +37,7 @@ object HslProcessor {
         val l=(maxChannel+minChannel)/2f
         if(delta==0f)return floatArrayOf(0f,0f,l)
         val s=delta/(1f-abs(2f*l-1f))
-        var h=when(max) {
+        var h=when(maxChannel) {
             r->60f*(((g-b)/delta)%6f)
             g->60f*((b-r)/delta+2f)
             else->60f*((r-g)/delta+4f)
