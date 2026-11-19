@@ -122,11 +122,14 @@ private fun blend(a:Int,b:Int,t:Float):Int {
     return (a and -0x1000000) or (ch(16) shl 16) or (ch(8) shl 8) or ch(0)
 }
 private fun boxBlur(p:IntArray,w:Int,h:Int,r:Int):IntArray {
-    val out=IntArray(p.size)
-    for(y in 0 until h)for(x in 0 until w) {
-        var rs=0;var gs=0;var bs=0;var n=0
-        for(dy in -r..r)for(dx in -r..r) {val nx=(x+dx).coerceIn(0,w-1);val ny=(y+dy).coerceIn(0,h-1);val q=p[ny*w+nx];rs+=(q shr 16)and 255;gs+=(q shr 8)and 255;bs+=q and 255;n++}
-        out[y*w+x]=(p[y*w+x] and -0x1000000) or ((rs/n) shl 16) or ((gs/n) shl 8) or (bs/n)
+    val radius=r.coerceIn(1,16);val temp=IntArray(p.size);val out=IntArray(p.size)
+    for(y in 0 until h)for(x in 0 until w){var rs=0;var gs=0;var bs=0;var n=0
+        for(dx in -radius..radius){val q=p[y*w+(x+dx).coerceIn(0,w-1)];rs+=(q shr 16)and 255;gs+=(q shr 8)and 255;bs+=q and 255;n++}
+        temp[y*w+x]=(p[y*w+x] and -0x1000000)or((rs/n) shl 16)or((gs/n) shl 8)or(bs/n)
+    }
+    for(y in 0 until h)for(x in 0 until w){var rs=0;var gs=0;var bs=0;var n=0
+        for(dy in -radius..radius){val q=temp[(y+dy).coerceIn(0,h-1)*w+x];rs+=(q shr 16)and 255;gs+=(q shr 8)and 255;bs+=q and 255;n++}
+        out[y*w+x]=(p[y*w+x] and -0x1000000)or((rs/n) shl 16)or((gs/n) shl 8)or(bs/n)
     }
     return out
 }
