@@ -276,7 +276,7 @@ private fun WinsPhotoApp() {
                 onCancel={hslOpen=false},
                 onApply={edited,values -> commitOperation(edited,current,EditOperation.Hsl(values=values));hslOpen=false}
             )
-            else if (perspectiveOpen) PerspectiveScreen(source=current,onCancel={perspectiveOpen=false},onApply={edited->commitEdit(edited,current,flatten=true);perspectiveOpen=false})
+            else if (perspectiveOpen) PerspectiveScreen(source=current,onCancel={perspectiveOpen=false},onApply={edited,quad->commitOperation(edited,current,EditOperation.Perspective(quad=quad,outputWidth=edited.width,outputHeight=edited.height),flatten=true);perspectiveOpen=false})
             else if (backgroundReplaceOpen) BackgroundReplaceScreen(source=current,onCancel={backgroundReplaceOpen=false},onApply={edited->commitEdit(edited,current,flatten=true);backgroundReplaceOpen=false})
             else if (maskPaintOpen) {
                 val maskLayer=layers.firstOrNull{it.id==maskPaintLayerId}
