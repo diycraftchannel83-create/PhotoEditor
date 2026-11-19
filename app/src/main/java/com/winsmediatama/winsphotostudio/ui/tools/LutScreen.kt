@@ -20,7 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @Composable
-fun LutScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
+fun LutScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,String)->Unit) {
     val context=LocalContext.current
     var lutText by remember{mutableStateOf<String?>(null)}
     var title by remember{mutableStateOf("No LUT loaded")}
@@ -43,7 +43,7 @@ fun LutScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically){
             Text("LUT Import",Modifier.weight(1f),color=Color.White)
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true))}}){Text("Apply")}
+            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true),lutText.orEmpty())}}){Text("Apply")}
         }
         Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D)),contentAlignment=Alignment.Center){
             preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize().padding(8.dp),contentScale=ContentScale.Fit)}?:Text("Import a .cube LUT to preview",color=Color.LightGray)
