@@ -55,7 +55,7 @@ import com.winsmediatama.winsphotostudio.ui.tools.GradientScreen
 import com.winsmediatama.winsphotostudio.ui.tools.RetouchScreen
 import com.winsmediatama.winsphotostudio.ui.tools.BackgroundRemoveScreen
 import com.winsmediatama.winsphotostudio.ui.tools.AiBackgroundRemoveScreen
-import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
+import com.winsmediatama.winsphotostudio.core.editor.EditorLayer\nimport com.winsmediatama.winsphotostudio.core.history.EditOperation\nimport com.winsmediatama.winsphotostudio.core.history.NonDestructiveEditStack
 import com.winsmediatama.winsphotostudio.core.editor.LayerCompositeRenderer
 import com.winsmediatama.winsphotostudio.core.editor.AlphaLockProcessor
 import com.winsmediatama.winsphotostudio.core.storage.RecoveryStore
@@ -127,7 +127,7 @@ private fun WinsPhotoApp() {
         recordUndo(previousComposite,"Edit")
         if(!flatten && selected!=null) {
             val finalEdited=if(selected.alphaLocked)AlphaLockProcessor.apply(selected.bitmap,edited) else edited
-            val updated=layers.map{if(it.id==selected.id)it.copy(bitmap=finalEdited) else it}
+            val updated=layers.map{if(it.id==selected.id)it.copy(bitmap=finalEdited,originalBitmap=null,operations=emptyList()) else it}
             scope.launch {
                 val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,previousComposite.width,previousComposite.height)}
                 layers=updated;selectedLayerId=selected.id;bitmap=composite
@@ -136,6 +136,21 @@ private fun WinsPhotoApp() {
             val backup=EditorLayer(name="Previous composite (hidden)",bitmap=previousComposite,visible=false)
             val resultLayer=EditorLayer(name="Applied edit",bitmap=edited)
             layers=listOf(backup,resultLayer);selectedLayerId=resultLayer.id;bitmap=edited
+        }
+    }
+    fun commitOperation(edited:Bitmap,previousComposite:Bitmap,operation:EditOperation) {
+        val selected=layers.firstOrNull{it.id==selectedLayerId}
+        if(selected==null){commitEdit(edited,previousComposite);return}
+        if(selected.locked){edited.recycle();exportStatus="Selected layer is locked. Unlock it before applying adjustments.";return}
+        recordUndo(previousComposite,operation.label)
+        val original=selected.originalBitmap?:selected.bitmap.copy(Bitmap.Config.ARGB_8888,true)
+        val stack=NonDestructiveEditStack(original,selected.operations).apply{append(operation)}
+        edited.recycle()
+        scope.launch{
+            val rendered=withContext(Dispatchers.IO){stack.render()}
+            val updated=layers.map{if(it.id==selected.id)it.copy(bitmap=rendered,originalBitmap=original,operations=stack.operations)else it}
+            val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,previousComposite.width,previousComposite.height)}
+            layers=updated;selectedLayerId=selected.id;bitmap=composite
         }
     }
     val jpegExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/jpeg")) { uri ->
@@ -324,7 +339,7 @@ private fun WinsPhotoApp() {
             else if (adjustmentOpen) AdjustmentScreen(
                 source = selectedBitmap,
                 onCancel = { adjustmentOpen = false },
-                onApply = { edited -> commitEdit(edited,current);adjustmentOpen = false }
+                onApply = { edited,values -> commitOperation(edited,current,EditOperation.BasicAdjust(values=values));adjustmentOpen = false }
             )
             else if (cropTransformOpen) CropTransformScreen(
                 source = current,
