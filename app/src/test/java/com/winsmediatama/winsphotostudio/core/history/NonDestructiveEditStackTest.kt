@@ -133,6 +133,19 @@ DOMAIN_MAX 1 1 1
         assertEquals(2,restored.render().width)
         output.recycle();source.recycle()
     }
+    @Test fun backgroundReplacementOperationSerializesAndReplays() {
+        val source=Bitmap.createBitmap(2,2,Bitmap.Config.ARGB_8888).apply{setPixel(0,0,Color.TRANSPARENT);setPixel(1,0,Color.TRANSPARENT);setPixel(0,1,Color.RED);setPixel(1,1,Color.RED)}
+        val stack=NonDestructiveEditStack(source).apply{append(EditOperation.BackgroundReplace(mode="solid",startColor=Color.BLUE))}
+        val rendered=stack.render()
+        assertEquals(Color.BLUE,rendered.getPixel(0,0))
+        assertEquals(Color.RED,rendered.getPixel(0,1))
+        val restored=NonDestructiveEditStack.fromJson(source,stack.toJson())
+        assertTrue(restored.operations.first() is EditOperation.BackgroundReplace)
+        assertEquals(stack.toJson().toString(),restored.toJson().toString())
+        assertTrue(restored.toggle(restored.operations.first().id,false))
+        assertEquals(Color.TRANSPARENT,restored.render().getPixel(0,0))
+        rendered.recycle();source.recycle()
+    }
     @Test fun stackSupportsInsertAndReorder() {
         val src=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
         val first=EditOperation.BasicAdjust(values=BasicAdjustmentValues(brightness=.1f))
