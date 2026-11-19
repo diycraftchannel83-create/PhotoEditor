@@ -11,6 +11,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -93,6 +96,9 @@ private fun HomeScreen(loading: Boolean, error: String?, onImport: () -> Unit) {
 
 @Composable
 private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit) {
+    var zoom by remember { mutableFloatStateOf(1f) }
+    var panX by remember { mutableFloatStateOf(0f) }
+    var panY by remember { mutableFloatStateOf(0f) }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().background(StudioSurface).padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = "Back") }
@@ -100,10 +106,16 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
                 Text("Editor Preview", fontWeight = FontWeight.SemiBold)
                 Text("${bitmap.width} × ${bitmap.height}px", style = MaterialTheme.typography.labelSmall, color = Color.LightGray)
             }
+            TextButton(onClick = { zoom = 1f; panX = 0f; panY = 0f }) { Text("Fit") }
             TextButton(onClick = onImportAnother) { Text("Replace") }
         }
-        Box(Modifier.weight(1f).fillMaxWidth().background(Color(0xFF25282D)).padding(12.dp), contentAlignment = Alignment.Center) {
-            Image(bitmap.asImageBitmap(), contentDescription = "Imported photo", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
+        Box(Modifier.weight(1f).fillMaxWidth().background(Color(0xFF25282D)).padding(12.dp).pointerInput(bitmap) {
+            detectTransformGestures { _, pan, gestureZoom, _ ->
+                zoom = (zoom * gestureZoom).coerceIn(1f, 8f)
+                if (zoom > 1f) { panX += pan.x; panY += pan.y } else { panX = 0f; panY = 0f }
+            }
+        }, contentAlignment = Alignment.Center) {
+            Image(bitmap.asImageBitmap(), contentDescription = "Imported photo", modifier = Modifier.fillMaxSize().graphicsLayer { scaleX = zoom; scaleY = zoom; translationX = panX; translationY = panY }, contentScale = ContentScale.Fit)
         }
         Column(Modifier.fillMaxWidth().background(StudioSurface).padding(16.dp)) {
             Text("Foundation build", fontWeight = FontWeight.Bold, color = StudioAccent)
