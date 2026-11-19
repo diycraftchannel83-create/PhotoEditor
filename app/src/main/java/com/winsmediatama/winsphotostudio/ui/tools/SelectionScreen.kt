@@ -36,9 +36,9 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->U
     var featherRadius by remember{mutableFloatStateOf(0f)}
     var expandRadius by remember{mutableFloatStateOf(0f)}
     var invertSelection by remember{mutableStateOf(false)}
-    val selectionOverlay by produceState<Bitmap?>(null,source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint){
+    val selectionOverlay by produceState<Bitmap?>(null,source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection){
         value?.takeIf{it!==source}?.recycle();value=null
-        value=withContext(Dispatchers.Default){runCatching{buildSelectionOverlay(source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint)}.getOrNull()}
+        value=withContext(Dispatchers.Default){runCatching{buildSelectionOverlay(source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection)}.getOrNull()}
     }
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))){
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(10.dp)){
@@ -89,7 +89,7 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->U
     }
 }
 
-private fun buildSelectionOverlay(source:Bitmap,shape:SelectionShape,rect:Rect,points:List<Pair<Float,Float>>,sampleColor:Int,tolerance:Float,softness:Float,seed:Pair<Float,Float>):Bitmap? {
+private fun buildSelectionOverlay(source:Bitmap,shape:SelectionShape,rect:Rect,points:List<Pair<Float,Float>>,sampleColor:Int,tolerance:Float,softness:Float,seed:Pair<Float,Float>,featherRadius:Float,expandRadius:Float,invertSelection:Boolean):Bitmap? {
     val processor=com.winsmediatama.winsphotostudio.core.tools.SelectionMaskProcessor
     val mask=when(shape){
         SelectionShape.RECTANGLE->processor.rectangle(source.width,source.height,rect.left,rect.top,rect.right,rect.bottom)
@@ -98,7 +98,7 @@ private fun buildSelectionOverlay(source:Bitmap,shape:SelectionShape,rect:Rect,p
         SelectionShape.COLOR_RANGE->processor.colorRange(source,sampleColor,tolerance,softness)
         SelectionShape.MAGIC_WAND->processor.magicWand(source,(seed.first*source.width).toInt(),(seed.second*source.height).toInt(),tolerance)
     }
-    val values=IntArray(source.width*source.height);mask.getPixels(values,0,source.width,0,0,source.width,source.height);mask.recycle()
+    var processed=mask\n    if(invertSelection)processed=processor.invert(processed)\n    if(expandRadius.toInt()!=0){val next=processor.expandContract(processed,expandRadius.toInt());if(processed!==mask)processed.recycle();processed=next}\n    if(featherRadius.toInt()>0){val next=processor.feather(processed,featherRadius.toInt());if(processed!==mask)processed.recycle();processed=next}\n    val values=IntArray(source.width*source.height);processed.getPixels(values,0,source.width,0,0,source.width,source.height);if(processed!==mask)processed.recycle();mask.recycle()
     val overlay=IntArray(values.size){i->val alpha=(android.graphics.Color.red(values[i])*.3f).toInt().coerceIn(0,255);android.graphics.Color.argb(alpha,119,215,192)}
     return Bitmap.createBitmap(source.width,source.height,Bitmap.Config.ARGB_8888).apply{setPixels(overlay,0,source.width,0,0,source.width,source.height)}
 }
