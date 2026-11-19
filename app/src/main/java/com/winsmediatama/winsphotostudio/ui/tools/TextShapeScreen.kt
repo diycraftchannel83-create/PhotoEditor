@@ -35,7 +35,7 @@ fun TextShapeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
     var bold by remember { mutableStateOf(false) }
     var italic by remember { mutableStateOf(false) }
     var outline by remember { mutableStateOf(false) }
-    var outlineWidth by remember { mutableFloatStateOf(4f) }
+    var outlineWidth by remember { mutableFloatStateOf(4f) }\n    var outlineColor by remember{mutableStateOf(Color.Black)}\n    var rotation by remember{mutableFloatStateOf(0f}
     var alignment by remember { mutableStateOf(TextAlignment.CENTER) }
     var fontFamily by remember{mutableStateOf("sans-serif")}
     var shadow by remember{mutableStateOf(false)}
@@ -49,7 +49,7 @@ fun TextShapeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(10.dp)) {
             Text("Text & Shapes",Modifier.weight(1f),color=Color.White)
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(onClick={onApply(renderOverlay(source,kind,text,overlayColor,fontSize,x,y,opacity,bold,italic,outline,outlineWidth,alignment,fontFamily,shadow,shadowRadius,shapeFill,shapeWidth,shapeHeight))}){Text("Apply")}
+            Button(onClick={onApply(renderOverlay(source,kind,text,overlayColor,fontSize,x,y,opacity,bold,italic,outline,outlineWidth,outlineColor,alignment,fontFamily,shadow,shadowRadius,shapeFill,shapeWidth,shapeHeight,rotation))}){Text("Apply")}
         }
         Box(Modifier.weight(1f).fillMaxWidth().aspectRatio(source.width.toFloat()/source.height).padding(12.dp).background(Color(0xFF25282D))) {
             Image(source.asImageBitmap(),null,Modifier.fillMaxSize())
@@ -76,18 +76,18 @@ fun TextShapeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
                     Checkbox(checked=outline,onCheckedChange={outline=it});Text("Outline",color=Color.White)
                 }
                 Row(horizontalArrangement=Arrangement.spacedBy(4.dp)) { TextAlignment.entries.forEach { a->FilterChip(selected=alignment==a,onClick={alignment=a},label={Text(a.name)}) } }
-                if(outline){Text("Stroke width ${outlineWidth.toInt()} px",color=Color.LightGray);Slider(value=outlineWidth,onValueChange={outlineWidth=it},valueRange=1f..24f)}
+                if(outline){Text("Stroke width ${outlineWidth.toInt()} px",color=Color.LightGray);Slider(value=outlineWidth,onValueChange={outlineWidth=it},valueRange=1f..24f);Text("Outline color",color=Color.LightGray);Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){palette.forEach{col->Button(onClick={outlineColor=col},colors=ButtonDefaults.buttonColors(containerColor=col),modifier=Modifier.size(30.dp),contentPadding=PaddingValues(0.dp)){} }}}
             }
             if(kind!=OverlayKind.TEXT){Row(verticalAlignment=androidx.compose.ui.Alignment.CenterVertically){Checkbox(checked=shapeFill,onCheckedChange={shapeFill=it});Text("Filled shape",color=Color.White)};Text("Shape width ${(shapeWidth*100).toInt()}%",color=Color.LightGray);Slider(value=shapeWidth,onValueChange={shapeWidth=it},valueRange=.05f..1f);Text("Shape height ${(shapeHeight*100).toInt()}%",color=Color.LightGray);Slider(value=shapeHeight,onValueChange={shapeHeight=it},valueRange=.05f..1f)}
             Text("Size ${fontSize.toInt()} px",color=Color.LightGray);Slider(value=fontSize,onValueChange={fontSize=it},valueRange=12f..240f)
-            Text("Horizontal position ${(x*100).toInt()}%",color=Color.LightGray);Slider(value=x,onValueChange={x=it},valueRange=0f..1f)
+            Text("Rotation ${rotation.toInt()}°",color=Color.LightGray);Slider(value=rotation,onValueChange={rotation=it},valueRange=-180f..180f)\n            Text("Horizontal position ${(x*100).toInt()}%",color=Color.LightGray);Slider(value=x,onValueChange={x=it},valueRange=0f..1f)
             Text("Vertical position ${(y*100).toInt()}%",color=Color.LightGray);Slider(value=y,onValueChange={y=it},valueRange=0f..1f)
             Text("Opacity ${(opacity*100).toInt()}%",color=Color.LightGray);Slider(value=opacity,onValueChange={opacity=it},valueRange=0f..1f)
         }
     }
 }
 
-private fun renderOverlay(source:Bitmap,kind:OverlayKind,text:String,color:Color,fontSize:Float,x:Float,y:Float,opacity:Float,bold:Boolean,italic:Boolean,outline:Boolean,outlineWidth:Float,alignment:TextAlignment,fontFamily:String,shadow:Boolean,shadowRadius:Float,shapeFill:Boolean,shapeWidth:Float,shapeHeight:Float):Bitmap {
+private fun renderOverlay(source:Bitmap,kind:OverlayKind,text:String,color:Color,fontSize:Float,x:Float,y:Float,opacity:Float,bold:Boolean,italic:Boolean,outline:Boolean,outlineWidth:Float,alignment:TextAlignment,fontFamily:String,shadow:Boolean,shadowRadius:Float,shapeFill:Boolean,shapeWidth:Float,shapeHeight:Float,rotation:Float):Bitmap {
     val out=source.copy(Bitmap.Config.ARGB_8888,true);val canvas=AndroidCanvas(out)
     val p=AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply { this.color=color.copy(alpha=opacity).toArgb();textSize=fontSize;strokeWidth=outlineWidth.coerceAtLeast(1f);style=if(kind==OverlayKind.TEXT&&!outline) AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE;typeface=Typeface.create(fontFamily,(if(bold)Typeface.BOLD else Typeface.NORMAL) or (if(italic)Typeface.ITALIC else 0));if(shadow&&kind==OverlayKind.TEXT)setShadowLayer(shadowRadius,2f,2f,android.graphics.Color.BLACK);textAlign=when(alignment){TextAlignment.LEFT->AndroidPaint.Align.LEFT;TextAlignment.CENTER->AndroidPaint.Align.CENTER;TextAlignment.RIGHT->AndroidPaint.Align.RIGHT} }
     val cx=x*source.width;val cy=y*source.height
