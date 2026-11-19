@@ -233,5 +233,5 @@ private fun createCurrentSelectionMask(source:Bitmap,shape:SelectionShape,rect:R
         SelectionShape.COLOR_RANGE->processor.colorRange(source,sampleColor,tolerance,softness)
         SelectionShape.MAGIC_WAND->processor.magicWand(source,(seed.first*source.width).toInt(),(seed.second*source.height).toInt(),tolerance)
     }
-    return processSelectionMask(mask,processor,invertSelection,expandRadius.toInt(),featherRadius.toInt())
+    return processSelectionMask(mask,invertSelection,expandRadius.toInt(),featherRadius.toInt())
 }
