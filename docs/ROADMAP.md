@@ -80,7 +80,7 @@
 - [x] Contiguous magic-wand selection
 - [x] Crop, alpha-mask and copy-selection-as-layer and apply-as-layer-mask output
 - [x] Invert, expand/contract and feather controls
-- [ ] Refine edge, saved selections, copy/cut/paste selection as layers, regression verification
+- [x] App-private saved-selection mask storage API (named masks, load/rename/delete, PNG assets and JSON metadata; UI integration pending)\n- [ ] Refine edge, integrate saved-selection UI, copy/cut/paste selection as layers, regression verification
 
 ## Phase 6 — Retouch and paint
 - [x] Brush and eraser with size, opacity, hardness and straight-line controls UI
