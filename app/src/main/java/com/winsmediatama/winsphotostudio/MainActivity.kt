@@ -41,7 +41,7 @@ import com.winsmediatama.winsphotostudio.ui.tools.CurvesScreen
 import com.winsmediatama.winsphotostudio.ui.tools.LayersScreen
 import com.winsmediatama.winsphotostudio.ui.tools.ProjectScreen
 import com.winsmediatama.winsphotostudio.ui.tools.BrushScreen
-import com.winsmediatama.winsphotostudio.ui.tools.SelectionScreen
+import com.winsmediatama.winsphotostudio.ui.tools.SelectionScreen\nimport com.winsmediatama.winsphotostudio.ui.tools.OperationStackScreen
 import com.winsmediatama.winsphotostudio.ui.tools.TextShapeScreen
 import com.winsmediatama.winsphotostudio.ui.tools.FilterScreen
 import com.winsmediatama.winsphotostudio.ui.tools.EffectsScreen
