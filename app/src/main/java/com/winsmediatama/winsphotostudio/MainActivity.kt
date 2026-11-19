@@ -55,7 +55,9 @@ import com.winsmediatama.winsphotostudio.ui.tools.GradientScreen
 import com.winsmediatama.winsphotostudio.ui.tools.RetouchScreen
 import com.winsmediatama.winsphotostudio.ui.tools.BackgroundRemoveScreen
 import com.winsmediatama.winsphotostudio.ui.tools.AiBackgroundRemoveScreen
-import com.winsmediatama.winsphotostudio.core.editor.EditorLayer\nimport com.winsmediatama.winsphotostudio.core.history.EditOperation\nimport com.winsmediatama.winsphotostudio.core.history.NonDestructiveEditStack
+import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
+import com.winsmediatama.winsphotostudio.core.history.EditOperation
+import com.winsmediatama.winsphotostudio.core.history.NonDestructiveEditStack
 import com.winsmediatama.winsphotostudio.core.editor.LayerCompositeRenderer
 import com.winsmediatama.winsphotostudio.core.editor.AlphaLockProcessor
 import com.winsmediatama.winsphotostudio.core.storage.RecoveryStore
