@@ -15,8 +15,6 @@ import com.winsmediatama.winsphotostudio.core.adjustments.HslAdjustments
 import com.winsmediatama.winsphotostudio.core.adjustments.HslColorRange
 import com.winsmediatama.winsphotostudio.core.adjustments.HslRangeAdjustment
 import com.winsmediatama.winsphotostudio.core.adjustments.HslProcessor
-import com.winsmediatama.winsphotostudio.core.tools.TransformProcessor
-import com.winsmediatama.winsphotostudio.core.tools.TransformSpec
 import com.winsmediatama.winsphotostudio.core.adjustments.TransformProcessor
 
 /**
@@ -136,7 +134,7 @@ class NonDestructiveEditStack(
                 is EditOperation.Curves -> CurvesProcessor.apply(current, operation.values)
                 is EditOperation.Crop -> crop(current, operation)
                 is EditOperation.Hsl -> HslProcessor.apply(current,operation.values)
-                is EditOperation.Transform -> TransformProcessor.apply(current,TransformSpec(operation.left,operation.top,operation.right,operation.bottom,operation.rotationDegrees,operation.flipHorizontal,operation.flipVertical,operation.outputWidth,operation.outputHeight))
+                is EditOperation.Transform -> TransformProcessor.apply(current,operation.left,operation.top,operation.right,operation.bottom,operation.rotationDegrees,operation.flipHorizontal,operation.flipVertical,operation.outputWidth,operation.outputHeight)
             }
             if (next !== current && !current.isRecycled) current.recycle()
             current = next
