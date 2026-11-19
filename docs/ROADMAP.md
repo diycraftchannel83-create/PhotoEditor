@@ -67,9 +67,9 @@
 - [ ] Refine edge, saved selections, copy/cut/paste selection as layers, regression verification
 
 ## Phase 6 — Retouch and paint
-- [x] Brush and eraser with size, opacity, hardness and straight-line controls with size, opacity, hardness and straight-line controls UI
+- [x] Brush and eraser with size, opacity, hardness and straight-line controls UI
 - [x] Blur, pixelate and clone-stamp foundations
-- [x] Spot-heal, dodge/burn and smudge processors (UI integration/verification pending)
+- [x] Spot-heal, dodge/burn and smudge processors (processors implemented; source verification pending)
 - [x] Spot-heal, dodge/burn and smudge UI modes integrated
 - [ ] Healing/retouch on masks, pressure/hardware support, stabilized strokes, brush presets/hardness/spacing
 - [ ] Validate clone source workflow and high-resolution brush performance
@@ -106,11 +106,13 @@
 - [x] Original-source plus replayable operation project persistence foundation
 - [x] Private recovery snapshots and startup recovery/discard prompt
 - [x] Schema version bumps and atomic manifest writes; optional-field backward-compatible loading
-- [ ] Full migrations, corrupt/missing asset handling
+- [x] Editable-project loader validates manifest asset paths, rejects traversal and fails safely on missing/corrupt layer/mask assets (tests authored; verification pending)
+- [ ] Full migrations, corrupt/missing asset handling (schema migration coverage still pending)
 - [x] Duplicate, rename and delete APIs are implemented; lifecycle tests authored (verification pending)
 - [x] Non-destructive operation-project save/load/replay regression tests authored (verification pending)
 - [x] Save-as UI (save current with a new project name)
-- [ ] Recent projects and unsaved-changes protection
+- [x] Recent/saved project list with open, rename, duplicate, delete (existing ProjectScreen; refresh-on-action)
+- [ ] Unsaved-changes protection
 - [ ] Operation stack/live adjustment persistence and full editable-state recovery
 
 ## Phase 11 — Render/export and performance
