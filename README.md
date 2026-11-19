@@ -21,14 +21,14 @@ The roadmap below is the source of truth for continuing development. Update chec
 - RGB and per-channel Curves with draggable control points
 - Layer manager: add transparent/photo layers, duplicate, rename, visibility, opacity, reorder, blend modes, lock/alpha-lock, contiguous groups/group opacity, clipping-to-below, mask creation/inversion/painting
 - Brush and eraser
-- Rectangle, ellipse, polygon, color-range and contiguous magic-wand selections; crop/mask/copy-to-layer, invert, expand/contract and feather controls
+- Rectangle, ellipse, polygon, color-range and contiguous magic-wand selections; crop/mask/copy-to-layer/apply-as-layer-mask, invert, expand/contract and feather controls
 - Text and shape overlays with font families, bold/italic/alignment/outline/shadow, fill/outline shape mode and size controls
 - Linear/radial gradient layers with angle, color stops and opacity
 - Filter presets with adjustable strength; separate blur, motion blur, vignette and grain effects panel; offline .cube LUT import (1D/3D)
-- Retouch: blur, pixelate, clone stamp, spot-heal, dodge/burn and smudge processors (new processors pending verification)
+- Retouch: blur, pixelate, clone stamp, spot-heal, dodge/burn and smudge brush modes (source-level implementation; verification pending)
 - Color-key background removal with sample, tolerance and feather
 - On-device AI person/background removal using bundled ML Kit Selfie Segmentation
-- Local project save/open with editable layer stack, visibility, opacity, blend mode, lock, masks, group metadata, selected layer and PNG assets; separate original+operation-stack project persistence foundation
+- Local project save/open/rename/duplicate/delete with editable layer stack, visibility, opacity, blend mode, lock, masks, group metadata, selected layer and PNG assets; separate original+operation-stack project persistence foundation
 - JPEG and PNG export; JPEG quality and white/black flattening background
 - Bounded undo/redo state history (8 states, memory-conscious) preserving layer stack, selected layer and canvas; History panel can restore prior states
 - Private autosave snapshots and startup session recovery prompt
