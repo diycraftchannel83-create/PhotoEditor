@@ -98,7 +98,11 @@ private fun buildSelectionOverlay(source:Bitmap,shape:SelectionShape,rect:Rect,p
         SelectionShape.COLOR_RANGE->processor.colorRange(source,sampleColor,tolerance,softness)
         SelectionShape.MAGIC_WAND->processor.magicWand(source,(seed.first*source.width).toInt(),(seed.second*source.height).toInt(),tolerance)
     }
-    var processed=mask\n    if(invertSelection)processed=processor.invert(processed)\n    if(expandRadius.toInt()!=0){val next=processor.expandContract(processed,expandRadius.toInt());if(processed!==mask)processed.recycle();processed=next}\n    if(featherRadius.toInt()>0){val next=processor.feather(processed,featherRadius.toInt());if(processed!==mask)processed.recycle();processed=next}\n    val values=IntArray(source.width*source.height);processed.getPixels(values,0,source.width,0,0,source.width,source.height);if(processed!==mask)processed.recycle();mask.recycle()
+    var processed=mask
+    if(invertSelection)processed=processor.invert(processed)
+    if(expandRadius.toInt()!=0){val next=processor.expandContract(processed,expandRadius.toInt());if(processed!==mask)processed.recycle();processed=next}
+    if(featherRadius.toInt()>0){val next=processor.feather(processed,featherRadius.toInt());if(processed!==mask)processed.recycle();processed=next}
+    val values=IntArray(source.width*source.height);processed.getPixels(values,0,source.width,0,0,source.width,source.height);if(processed!==mask)processed.recycle();mask.recycle()
     val overlay=IntArray(values.size){i->val alpha=(android.graphics.Color.red(values[i])*.3f).toInt().coerceIn(0,255);android.graphics.Color.argb(alpha,119,215,192)}
     return Bitmap.createBitmap(source.width,source.height,Bitmap.Config.ARGB_8888).apply{setPixels(overlay,0,source.width,0,0,source.width,source.height)}
 }
