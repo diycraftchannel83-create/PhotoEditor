@@ -13,6 +13,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -303,29 +305,33 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
     var panX by remember { mutableFloatStateOf(0f) }
     var panY by remember { mutableFloatStateOf(0f) }
     Column(Modifier.fillMaxSize()) {
-        Row(Modifier.fillMaxWidth().background(StudioSurface).padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, contentDescription = "Back") }
-            Column(Modifier.weight(1f)) {
-                Text("Editor Preview", fontWeight = FontWeight.SemiBold)
-                Text("${bitmap.width} × ${bitmap.height}px", style = MaterialTheme.typography.labelSmall, color = Color.LightGray)
+        Column(Modifier.fillMaxWidth().background(StudioSurface)) {
+            Row(Modifier.fillMaxWidth().padding(horizontal=8.dp,vertical=4.dp),verticalAlignment=Alignment.CenterVertically) {
+                IconButton(onClick=onBack){Icon(Icons.Default.ArrowBack,contentDescription="Back")}
+                Column(Modifier.weight(1f)) {
+                    Text("Editor Preview",fontWeight=FontWeight.SemiBold)
+                    Text("${bitmap.width} × ${bitmap.height}px",style=MaterialTheme.typography.labelSmall,color=Color.LightGray)
+                }
+                TextButton(onClick={zoom=1f;panX=0f;panY=0f}){Text("Fit")}
+                TextButton(onClick=onUndo,enabled=canUndo){Text("Undo")}
+                TextButton(onClick=onExport){Text("Export")}
             }
-            TextButton(onClick = { zoom = 1f; panX = 0f; panY = 0f }) { Text("Fit") }
-            TextButton(onClick = onUndo, enabled = canUndo) { Text("Undo") }
-            TextButton(onClick = onCropTransform) { Text("Crop / Transform") }
-            TextButton(onClick = onAdjustments) { Text("Adjust") }
-            TextButton(onClick = onLevels) { Text("Levels") }
-            TextButton(onClick = onCurves) { Text("Curves") }
-            TextButton(onClick = onLayers) { Text("Layers") }
-            TextButton(onClick = onProjects) { Text("Project") }
-            TextButton(onClick = onBrush) { Text("Brush") }
-            TextButton(onClick = onSelection) { Text("Select") }
-            TextButton(onClick = onTextShape) { Text("Text / Shape") }
-            TextButton(onClick = onFilters) { Text("Filters") }
-            TextButton(onClick = onRetouch) { Text("Retouch") }
-            TextButton(onClick = onBackgroundRemove) { Text("Color Key") }
-            TextButton(onClick = onAiBackgroundRemove) { Text("AI Remove") }
-            TextButton(onClick = onExport) { Text("Export") }
-            TextButton(onClick = onImportAnother) { Text("Replace") }
+            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal=4.dp)) {
+                TextButton(onClick=onCropTransform){Text("Crop")}
+                TextButton(onClick=onAdjustments){Text("Adjust")}
+                TextButton(onClick=onLevels){Text("Levels")}
+                TextButton(onClick=onCurves){Text("Curves")}
+                TextButton(onClick=onLayers){Text("Layers")}
+                TextButton(onClick=onProjects){Text("Project")}
+                TextButton(onClick=onBrush){Text("Brush")}
+                TextButton(onClick=onSelection){Text("Select")}
+                TextButton(onClick=onTextShape){Text("Text/Shape")}
+                TextButton(onClick=onFilters){Text("Filters")}
+                TextButton(onClick=onRetouch){Text("Retouch")}
+                TextButton(onClick=onBackgroundRemove){Text("Color Key")}
+                TextButton(onClick=onAiBackgroundRemove){Text("AI Remove")}
+                TextButton(onClick=onImportAnother){Text("Replace")}
+            }
         }
         Box(Modifier.weight(1f).fillMaxWidth().background(Color(0xFF25282D)).padding(12.dp).pointerInput(bitmap) {
             detectTransformGestures { _, pan, gestureZoom, _ ->
