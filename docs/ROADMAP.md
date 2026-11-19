@@ -26,7 +26,8 @@
 - [x] Curves composite/RGB processor and UI
 - [x] Selective HSL
 - [x] RGB/luminance histogram processor and UI
-- [x] Unit tests authored for basic adjustment, levels, curves, HSL and histogram (CI verification pending)\n- [x] Histogram large-image sampling bounded to 1,000,000 samples; regression test authored (verification pending)
+- [x] Unit tests authored for basic adjustment, levels, curves, HSL and histogram (CI verification pending)
+- [x] Histogram large-image sampling bounded to 1,000,000 samples; regression test authored (verification pending)
 - [ ] Preset parameter editing/reset and color-management consistency
 - [ ] Live parameter adjustment layers and preview cache
 
@@ -76,7 +77,8 @@
 - [x] Rectangle, ellipse and line overlays
 - [x] Linear/radial gradients
 - [x] System font-family picker and text shadow controls
-- [x] Shape fill/outline and width/height controls\n- [x] Text and shape rotation
+- [x] Shape fill/outline and width/height controls
+- [x] Text and shape rotation
 - [ ] Font import, tracking, line spacing and gradient text
 - [ ] Custom paths, stickers/assets, transform handles and reusable layer styles
 
