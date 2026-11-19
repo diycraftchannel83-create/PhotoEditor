@@ -10,6 +10,14 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[28])
 class SelectionMaskProcessorTest {
+    @Test fun magicWandSelectsContiguousColorRegionOnly() {
+        val source=android.graphics.Bitmap.createBitmap(3,1,android.graphics.Bitmap.Config.ARGB_8888)
+        source.setPixel(0,0,Color.RED);source.setPixel(1,0,Color.RED);source.setPixel(2,0,Color.BLUE)
+        val mask=SelectionMaskProcessor.magicWand(source,0,0,.05f)
+        assertEquals(255,Color.red(mask.getPixel(0,0)))
+        assertEquals(255,Color.red(mask.getPixel(1,0)))
+        assertEquals(0,Color.red(mask.getPixel(2,0)))
+    }
     @Test fun polygonSelectionIncludesInteriorAndExcludesOutside() {
         val mask=SelectionMaskProcessor.polygon(10,10,listOf(.2f to .2f,.8f to .2f,.8f to .8f,.2f to .8f))
         assertEquals(255,Color.red(mask.getPixel(5,5)))
