@@ -64,7 +64,7 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
                 if(shape==SelectionShape.POLYGON||shape==SelectionShape.COLOR_RANGE||shape==SelectionShape.MAGIC_WAND) detectTapGestures{tap->
                     val nx=(tap.x/size.width).coerceIn(0f,1f);val ny=(tap.y/size.height).coerceIn(0f,1f)
                     if(shape==SelectionShape.POLYGON)polygonPoints=polygonPoints+(nx to ny)
-                    else {seedPoint=nx to ny;sampleColor=source.getPixel((nx*source.width).toInt().coerceIn(0,source.width-1),(ny*source.height).toInt().coerceIn(0,source.height-1)}
+                    else {seedPoint=nx to ny;sampleColor=source.getPixel((nx*source.width).toInt().coerceIn(0,source.width-1),(ny*source.height).toInt().coerceIn(0,source.height-1))}
                 }
             }
         ){
