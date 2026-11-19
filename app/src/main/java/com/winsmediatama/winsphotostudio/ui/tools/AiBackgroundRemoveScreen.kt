@@ -45,6 +45,9 @@ fun AiBackgroundRemoveScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->U
         }
     }
     val preview by produceState<Bitmap?>(null,source,segmentation.result,threshold,softness) {
+        value?.takeIf { it !== source }?.recycle()
+        value=null
+        value?.takeIf { it !== source }?.recycle()
         value=null
         value=withContext(Dispatchers.IO){segmentation.result?.let{applyAiMask(source,it,threshold,softness)}}
     }
