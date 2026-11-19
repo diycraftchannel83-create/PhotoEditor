@@ -22,8 +22,8 @@ class RecoveryStore(context:Context) {
         val entries=JSONArray()
         layers.forEachIndexed{index,layer->
             val asset="assets/layer_$index.png"
-            File(staging,asset).outputStream().use{layer.bitmap.compress(Bitmap.CompressFormat.PNG,100,it)}
-            val maskAsset=layer.mask?.let{mask->val path="assets/mask_$index.png";File(staging,path).outputStream().use{mask.compress(Bitmap.CompressFormat.PNG,100,it)};path}
+            File(staging,asset).outputStream().use{if(!layer.bitmap.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write recovery layer $index")}
+            val maskAsset=layer.mask?.let{mask->val path="assets/mask_$index.png";File(staging,path).outputStream().use{if(!mask.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write recovery mask $index")};path}
             entries.put(JSONObject().put("id",layer.id).put("name",layer.name).put("visible",layer.visible).put("opacity",layer.opacity).put("blendMode",layer.blendMode.name).put("locked",layer.locked).put("alphaLocked",layer.alphaLocked).put("groupId",layer.groupId).put("groupName",layer.groupName).put("groupOpacity",layer.groupOpacity).put("clipToBelow",layer.clipToBelow).put("asset",asset).apply{if(maskAsset!=null)put("maskAsset",maskAsset)})
         }
         val json=JSONObject().put("schemaVersion",2).put("canvasWidth",canvasWidth).put("canvasHeight",canvasHeight).put("selectedLayerId",selectedLayerId).put("updatedAt",System.currentTimeMillis()).put("layers",entries)
