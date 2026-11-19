@@ -30,7 +30,7 @@ fun LayerMaskPaintScreen(mask:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
             Button(onClick={onApply(working)}){Text("Apply")}
         }
         Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D)),contentAlignment=Alignment.Center){
-            Image(working.asImageBitmap(),null,Modifier.fillMaxSize().pointerInput(working,reveal,radius){
+            Image(remember(working,revision){working.asImageBitmap()},null,Modifier.fillMaxSize().pointerInput(working,reveal,radius){
                 detectDragGestures(onDragStart={paintAt(it.x,it.y,size.width,size.height,working,reveal,radius);revision++},onDragEnd={},onDragCancel={}){change,_->paintAt(change.position.x,change.position.y,size.width,size.height,working,reveal,radius);revision++}
             },contentScale=ContentScale.Fit)
         }
