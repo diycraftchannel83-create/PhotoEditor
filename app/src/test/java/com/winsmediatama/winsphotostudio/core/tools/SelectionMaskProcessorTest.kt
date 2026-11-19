@@ -51,7 +51,7 @@ class SelectionMaskProcessorTest {
         val expanded=SelectionMaskProcessor.expandContract(m,1)
         assertTrue(Color.red(expanded.getPixel(1,1))>0)
     }
-    @Test fun featherProducesIntermediateValues() {
+    @Test fun morphologyAndFeatherRemainBoundedAtImageEdges() {\n        val mask=SelectionMaskProcessor.rectangle(3,3,0f,0f,.34f,.34f)\n        val expanded=SelectionMaskProcessor.expandContract(mask,2)\n        assertEquals(255,Color.red(expanded.getPixel(0,0)))\n        assertEquals(0,Color.red(expanded.getPixel(2,2)))\n        val feather=SelectionMaskProcessor.feather(mask,2)\n        assertTrue(Color.red(feather.getPixel(0,0)) in 1..255)\n        assertEquals(0,Color.red(feather.getPixel(2,2)))\n    }\n    @Test fun featherProducesIntermediateValues() {
         val m=SelectionMaskProcessor.rectangle(8,8,.25f,.25f,.75f,.75f)
         val feathered=SelectionMaskProcessor.feather(m,1)
         assertTrue(Color.red(feathered.getPixel(1,3)) in 1..254)
