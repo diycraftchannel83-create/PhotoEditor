@@ -46,7 +46,7 @@ class FullResolutionEditReplayTest {
     }
 
     @Test
-    fun replayReturnsNewBitmapAndPreservesSource() {
+    fun rejectsSourceAndOperationDimensionsOverPixelBudget() {\n        assertTrue(runCatching {\n            FullResolutionEditReplay.ReplayDimensions(100,100,5000,5000)\n        }.isFailure)\n        val dimensions=FullResolutionEditReplay.ReplayDimensions(100,100,400,400)\n        val oversized=EditOperation.CanvasSize(width=10000,height=10000)\n        assertTrue(runCatching { FullResolutionEditReplay.scaleOperations(listOf(oversized),dimensions) }.isFailure)\n    }\n\n    @Test\n    fun replayReturnsNewBitmapAndPreservesSource() {
         val source=Bitmap.createBitmap(8,6,Bitmap.Config.ARGB_8888)
         source.eraseColor(android.graphics.Color.GREEN)
         val rendered=FullResolutionEditReplay.render(source, emptyList(),4,3)
