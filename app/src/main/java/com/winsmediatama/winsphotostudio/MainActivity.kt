@@ -47,6 +47,7 @@ import com.winsmediatama.winsphotostudio.ui.tools.FilterScreen
 import com.winsmediatama.winsphotostudio.ui.tools.EffectsScreen
 import com.winsmediatama.winsphotostudio.ui.tools.LutScreen
 import com.winsmediatama.winsphotostudio.ui.tools.CanvasSizeScreen
+import com.winsmediatama.winsphotostudio.ui.tools.LayerMaskPaintScreen
 import com.winsmediatama.winsphotostudio.ui.tools.HslScreen
 import com.winsmediatama.winsphotostudio.ui.tools.GradientScreen
 import com.winsmediatama.winsphotostudio.ui.tools.RetouchScreen
@@ -89,6 +90,8 @@ private fun WinsPhotoApp() {
     var effectsOpen by remember { mutableStateOf(false) }
     var lutOpen by remember { mutableStateOf(false) }
     var canvasSizeOpen by remember { mutableStateOf(false) }
+    var maskPaintOpen by remember { mutableStateOf(false) }
+    var maskPaintLayerId by remember { mutableStateOf<String?>(null) }
     var hslOpen by remember { mutableStateOf(false) }
     var gradientOpen by remember { mutableStateOf(false) }
     var retouchOpen by remember { mutableStateOf(false) }
@@ -226,6 +229,14 @@ private fun WinsPhotoApp() {
                 onCancel={hslOpen=false},
                 onApply={edited -> commitEdit(edited,current);hslOpen=false}
             )
+            else if (maskPaintOpen) {
+                val maskLayer=layers.firstOrNull{it.id==maskPaintLayerId}
+                val activeMask=maskLayer?.mask
+                if(activeMask!=null) LayerMaskPaintScreen(mask=activeMask,onCancel={maskPaintOpen=false},onApply={editedMask->
+                    val updated=layers.map{if(it.id==maskPaintLayerId)it.copy(mask=editedMask) else it}
+                    layers=updated;maskPaintOpen=false;scope.launch{bitmap=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,current.width,current.height)}}
+                }) else { Text("Mask not available",color=Color.White);TextButton(onClick={maskPaintOpen=false}){Text("Back")} }
+            }
             else if (canvasSizeOpen) CanvasSizeScreen(
                 source=current,
                 onCancel={canvasSizeOpen=false},
@@ -276,6 +287,7 @@ private fun WinsPhotoApp() {
                 selectedLayerId=selectedLayerId,
                 onCancel={layersOpen=false},
                 onAddImage={layerImagePicker.launch(arrayOf("image/*"))},
+                onEditMask={layerId,maskBitmap->maskPaintLayerId=layerId;maskPaintOpen=true},
                 onApply={newLayers,newSelected -> editHistory=(editHistory+current).takeLast(5);layersOpen=false;selectedLayerId=newSelected; scope.launch { val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(newLayers,current.width,current.height)}; layers=newLayers; bitmap=composite }}
             )
             else if (curvesOpen) CurvesScreen(
