@@ -22,7 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @Composable
-fun HslScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
+fun HslScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,HslAdjustments)->Unit) {
     var selected by remember { mutableStateOf(HslColorRange.RED) }
     var ranges by remember { mutableStateOf(HslAdjustments()) }
     val current=ranges.ranges[selected] ?: HslRangeAdjustment()
@@ -37,7 +37,7 @@ fun HslScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
             Text("HSL / Color Range",Modifier.weight(1f),color=Color.White)
             TextButton(onClick={update(HslRangeAdjustment())}){Text("Reset range")}
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true))}}){Text("Apply")}
+            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true),ranges)}}){Text("Apply")}
         }
         Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D)),contentAlignment=Alignment.Center) {
             preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize().padding(8.dp),contentScale=ContentScale.Fit)}?:CircularProgressIndicator()
