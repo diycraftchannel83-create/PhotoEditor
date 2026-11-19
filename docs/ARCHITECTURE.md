@@ -33,7 +33,7 @@ EditorLayer stores bitmap, visibility, opacity, blend mode, lock, alpha-lock, op
 ## Project persistence and recovery
 Editable bitmap projects save layer PNGs plus JSON metadata, including masks, lock/alpha-lock and group metadata. Original+operation projects save the imported bitmap separately from operation JSON. Recovery snapshots are stored in app-private files and the editor offers a startup recovery prompt.
 
-Recovery and project storage have not been build/runtime verified in this feature pass. The editable-project loader now validates canonical asset paths to prevent traversal and rejects missing/corrupt required assets rather than silently opening a partial project. Format migrations, autosave races and full operation state still require audit.
+Project and recovery loaders now resolve canonical paths under their app-owned folders, reject traversal paths, validate supported schemas, and safely skip unavailable/corrupt optional bitmaps or fail closed for invalid manifests. Snapshot and operation-project asset loading also use guarded path resolution. Security regression tests for project asset traversal were authored; build/runtime verification remains pending. Format migrations, autosave races and full operation state still require audit.
 
 ## Processing
 - CPU reference processors are used for current adjustment, LUT, selection, retouch and effect tools.
