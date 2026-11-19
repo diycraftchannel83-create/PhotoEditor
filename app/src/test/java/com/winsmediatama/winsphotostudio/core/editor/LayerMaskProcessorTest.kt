@@ -20,7 +20,13 @@ class LayerMaskProcessorTest {
         assertEquals(255,Color.alpha(result.getPixel(0,0)))
         assertEquals(0,Color.alpha(result.getPixel(1,0)))
     }
-    @Test fun combineMultiplyIntersectsRevealMasks() {\n        val a=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{setPixel(0,0,Color.rgb(128,128,128))}\n        val b=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{setPixel(0,0,Color.rgb(128,128,128))}\n        val combined=LayerMaskProcessor.combineMultiply(a,b)\n        assertEquals(64,Color.red(combined.getPixel(0,0)))\n    }\n    @Test fun inversionSwapsWhiteAndBlack() {
+    @Test fun combineMultiplyIntersectsRevealMasks() {
+        val a=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{setPixel(0,0,Color.rgb(128,128,128))}
+        val b=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{setPixel(0,0,Color.rgb(128,128,128))}
+        val combined=LayerMaskProcessor.combineMultiply(a,b)
+        assertEquals(64,Color.red(combined.getPixel(0,0)))
+    }
+    @Test fun inversionSwapsWhiteAndBlack() {
         val mask=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888);mask.setPixel(0,0,Color.WHITE)
         assertEquals(Color.BLACK,LayerMaskProcessor.invert(mask).getPixel(0,0))
     }
