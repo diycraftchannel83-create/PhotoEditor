@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.winsmediatama.winsphotostudio.core.adjustments.HslAdjustments
-import com.winsmediatama.winsphotudio.core.adjustments.HslColorRange
+import com.winsmediatama.winsphotostudio.core.adjustments.HslColorRange
 import com.winsmediatama.winsphotostudio.core.adjustments.HslRangeAdjustment
 import com.winsmediatama.winsphotostudio.core.adjustments.HslProcessor
 import kotlinx.coroutines.Dispatchers
