@@ -103,7 +103,7 @@
 ## Phase 10 — Project, autosave and recovery
 - [x] Project save/open for editable bitmap layer stacks
 - [x] Persist visibility, opacity, blend mode, selected layer, masks, locks and group metadata
-- [x] Original-source plus replayable operation project persistence foundation
+- [x] Per-layer non-destructive Basic Adjustment operations live-integrated; operation model also supports Levels, Curves, HSL and Crop replay/JSON; per-layer originals and operation metadata persist in projects/recovery
 - [x] Private recovery snapshots and startup recovery/discard prompt
 - [x] Schema version bumps and atomic manifest writes; optional-field backward-compatible loading
 - [x] Editable-project loader validates manifest asset paths, rejects traversal and fails safely on missing/corrupt layer/mask assets (tests authored; verification pending)
