@@ -299,7 +299,7 @@ private fun WinsPhotoApp() {
             else if (effectsOpen) EffectsScreen(
                 source=selectedBitmap,
                 onCancel={effectsOpen=false},
-                onApply={edited -> commitEdit(edited,current);effectsOpen=false}
+                onApply={edited,settings -> commitOperation(edited,current,EditOperation.Effect(settings=settings),flatten=true);effectsOpen=false}
             )
             else if (filtersOpen) FilterScreen(
                 source=selectedBitmap,
