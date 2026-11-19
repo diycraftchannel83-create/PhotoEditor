@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.winsmediatama.winsphotostudio.ui.tools.CropTransformScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -49,6 +50,8 @@ private fun WinsPhotoApp() {
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var cropTransformOpen by remember { mutableStateOf(false) }
+    var editHistory by remember { mutableStateOf<List<Bitmap>>(emptyList()) }
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) { imageUri = uri; loading = true; error = null }
     }
@@ -71,7 +74,23 @@ private fun WinsPhotoApp() {
         Surface(Modifier.fillMaxSize(), color = StudioBackground) {
             val current = bitmap
             if (current == null) HomeScreen(loading, error) { imagePicker.launch(arrayOf("image/*")) }
-            else EditorPreviewScreen(current, onBack = { bitmap = null; imageUri = null }, onImportAnother = { imagePicker.launch(arrayOf("image/*")) })
+            else if (cropTransformOpen) CropTransformScreen(
+                source = current,
+                onCancel = { cropTransformOpen = false },
+                onApply = { edited ->
+                    editHistory = editHistory + current
+                    bitmap = edited
+                    cropTransformOpen = false
+                }
+            )
+            else EditorPreviewScreen(
+                current,
+                onBack = { bitmap = null; imageUri = null; editHistory = emptyList() },
+                onImportAnother = { imagePicker.launch(arrayOf("image/*")) },
+                onCropTransform = { cropTransformOpen = true },
+                onUndo = { if (editHistory.isNotEmpty()) { bitmap = editHistory.last(); editHistory = editHistory.dropLast(1) } },
+                canUndo = editHistory.isNotEmpty()
+            )
         }
     }
 }
@@ -102,7 +121,7 @@ private fun HomeScreen(loading: Boolean, error: String?, onImport: () -> Unit) {
 }
 
 @Composable
-private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit) {
+private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onUndo: () -> Unit, canUndo: Boolean) {
     var zoom by remember { mutableFloatStateOf(1f) }
     var panX by remember { mutableFloatStateOf(0f) }
     var panY by remember { mutableFloatStateOf(0f) }
@@ -114,6 +133,8 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
                 Text("${bitmap.width} × ${bitmap.height}px", style = MaterialTheme.typography.labelSmall, color = Color.LightGray)
             }
             TextButton(onClick = { zoom = 1f; panX = 0f; panY = 0f }) { Text("Fit") }
+            TextButton(onClick = onUndo, enabled = canUndo) { Text("Undo") }
+            TextButton(onClick = onCropTransform) { Text("Crop / Transform") }
             TextButton(onClick = onImportAnother) { Text("Replace") }
         }
         Box(Modifier.weight(1f).fillMaxWidth().background(Color(0xFF25282D)).padding(12.dp).pointerInput(bitmap) {
@@ -125,8 +146,8 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
             Image(bitmap.asImageBitmap(), contentDescription = "Imported photo", modifier = Modifier.fillMaxSize().graphicsLayer { scaleX = zoom; scaleY = zoom; translationX = panX; translationY = panY }, contentScale = ContentScale.Fit)
         }
         Column(Modifier.fillMaxWidth().background(StudioSurface).padding(16.dp)) {
-            Text("Foundation build", fontWeight = FontWeight.Bold, color = StudioAccent)
-            Text("Import and image preview are implemented. Editing tools will be added as functional modules.", color = Color.LightGray, style = MaterialTheme.typography.bodySmall)
+            Text("WinsPhoto Studio • Editor", fontWeight = FontWeight.Bold, color = StudioAccent)
+            Text("Crop, rotate, flip, resize and undo are available. Source image is retained separately from the edit result.", color = Color.LightGray, style = MaterialTheme.typography.bodySmall)
         }
     }
 }
