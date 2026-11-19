@@ -16,7 +16,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
 import com.winsmediatama.winsphotostudio.core.history.EditOperation
-import com.winsmediatama.winsphotudio.core.history.NonDestructiveEditStack
+import com.winsmediatama.winsphotostudio.core.history.NonDestructiveEditStack
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
