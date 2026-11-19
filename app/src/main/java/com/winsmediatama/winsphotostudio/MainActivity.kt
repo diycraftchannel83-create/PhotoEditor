@@ -304,7 +304,7 @@ private fun WinsPhotoApp() {
             else if (filtersOpen) FilterScreen(
                 source=selectedBitmap,
                 onCancel={filtersOpen=false},
-                onApply={edited -> commitEdit(edited,current);filtersOpen=false}
+                onApply={edited,values -> commitOperation(edited,current,EditOperation.BasicAdjust(values=values),flatten=true);filtersOpen=false}
             )
             else if (textShapeOpen) TextShapeScreen(
                 source=selectedBitmap,
