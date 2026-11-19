@@ -25,10 +25,12 @@ object LayerCompositeRenderer {
                     val base=masked?:layer.bitmap
                     val clipped=if(layer.clipToBelow&&previousAlpha!=null)ClipAlphaProcessor.apply(base,previousAlpha!!)else base
                     drawPrepared(canvas,clipped,dest,layer.opacity,layer.blendMode)
-                    val nextOwned=clipped!==layer.bitmap
-                    if(previousOwned&&previousAlpha!==clipped)previousAlpha?.takeUnless{it.isRecycled}?.recycle()
-                    previousAlpha=clipped;previousOwned=nextOwned
+                    val alphaSource=if(layer.opacity<1f)applyAlphaOpacity(clipped,layer.opacity)else clipped
+                    val nextOwned=alphaSource!==layer.bitmap
+                    if(previousOwned&&previousAlpha!==alphaSource)previousAlpha?.takeUnless{it.isRecycled}?.recycle()
+                    previousAlpha=alphaSource;previousOwned=nextOwned
                     if(masked!=null&&masked!==clipped&&!masked.isRecycled)masked.recycle()
+                    if(alphaSource!==clipped&&clipped!==layer.bitmap&&!clipped.isRecycled)clipped.recycle()
                 }
                 index++
                 continue
@@ -44,10 +46,12 @@ object LayerCompositeRenderer {
                 val base=masked?:child.bitmap
                 val clipped=if(child.clipToBelow&&groupPrevious!=null)ClipAlphaProcessor.apply(base,groupPrevious!!)else base
                 drawPrepared(groupCanvas,clipped,dest,child.opacity,child.blendMode)
-                val nextOwned=clipped!==child.bitmap
-                if(groupPreviousOwned&&groupPrevious!==clipped)groupPrevious?.takeUnless{it.isRecycled}?.recycle()
-                groupPrevious=clipped;groupPreviousOwned=nextOwned
+                val alphaSource=if(child.opacity<1f)applyAlphaOpacity(clipped,child.opacity)else clipped
+                val nextOwned=alphaSource!==child.bitmap
+                if(groupPreviousOwned&&groupPrevious!==alphaSource)groupPrevious?.takeUnless{it.isRecycled}?.recycle()
+                groupPrevious=alphaSource;groupPreviousOwned=nextOwned
                 if(masked!=null&&masked!==clipped&&!masked.isRecycled)masked.recycle()
+                if(alphaSource!==clipped&&clipped!==child.bitmap&&!clipped.isRecycled)clipped.recycle()
             }
             if(groupPreviousOwned)groupPrevious?.takeUnless{it.isRecycled}?.recycle()
             val groupOpacity=(group.firstOrNull()?.groupOpacity?:1f).coerceIn(0f,1f)
