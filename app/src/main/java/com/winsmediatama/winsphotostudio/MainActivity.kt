@@ -111,7 +111,12 @@ private fun WinsPhotoApp() {
     val jpegExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/jpeg")) { uri ->
         val currentBitmap=bitmap
         if(uri!=null && currentBitmap!=null) scope.launch {
-            val ok=withContext(Dispatchers.IO) { runCatching { context.contentResolver.openOutputStream(uri)?.use { flattenForJpeg(currentBitmap,exportBackground).compress(Bitmap.CompressFormat.JPEG,exportQuality.toInt(),it) } ?: false }.getOrDefault(false) }
+            val ok=withContext(Dispatchers.IO) { runCatching { context.contentResolver.openOutputStream(uri)?.use { stream ->
+                val flattened=flattenForJpeg(currentBitmap,exportBackground)
+                val compressed=flattened.compress(Bitmap.CompressFormat.JPEG,exportQuality.toInt(),stream)
+                flattened.recycle()
+                compressed
+            } ?: false }.getOrDefault(false) }
             exportStatus=if(ok) "JPEG exported successfully" else "Export failed"
         }
     }
