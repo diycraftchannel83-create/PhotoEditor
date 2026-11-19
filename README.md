@@ -36,7 +36,7 @@ The roadmap below is the source of truth for continuing development. Update chec
 - Private autosave snapshots and startup session recovery prompt
 - Canvas resize independent of image resize (now replayable with dimensions, anchor and background); perspective correction (now replayable as a non-destructive operation with normalized corner parameters) and arbitrary straighten rotation
 - Background replacement with solid, gradient or photo background (replayable operation; photo source stored as bounded PNG Base64 project data)
-- Memory-conscious image import (preview/editor canvas currently capped to 2048 px maximum dimension)
+- Memory-conscious image import (preview/editor canvas currently capped to 2048 px maximum dimension); optional source-dimension export resamples the edited preview, guarded to 60 MP (does not yet replay edits natively at source resolution)
 
 ## Roadmap — Photoshop Mini
 
@@ -267,3 +267,10 @@ Build verification and release readiness must be tracked honestly. Check the lat
 
 - [Detailed roadmap](docs/ROADMAP.md)
 - [Architecture](docs/ARCHITECTURE.md)
+
+
+### Export sizing continuation
+- Import records the source image dimensions from bounds-only decoding.
+- PNG/JPEG export has an optional source-dimension resampling switch, while preview dimensions remain the default.
+- Resampling is capped at 60 MP to reduce memory risk; test coverage authored, not executed.
+- This is output-size support, not full-resolution processing: native-resolution source/edit replay remains a future task.
