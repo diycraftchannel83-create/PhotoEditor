@@ -42,6 +42,15 @@ class NonDestructiveEditStackTest {
         assertTrue(restored.operations[1] is EditOperation.Curves)
         assertEquals(stack.toJson().toString(),restored.toJson().toString())
     }
+    @Test fun hslOperationReplaysAndRoundTripsJson() {
+        val src=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{setPixel(0,0,Color.RED)}
+        val values=HslAdjustments(mapOf(HslColorRange.RED to HslRangeAdjustment(saturation=-1f)))
+        val stack=NonDestructiveEditStack(src).apply{append(EditOperation.Hsl(values=values))}
+        val output=stack.render();assertNotEquals(Color.RED,output.getPixel(0,0))
+        val restored=NonDestructiveEditStack.fromJson(src,stack.toJson())
+        assertTrue(restored.operations.first() is EditOperation.Hsl)
+        assertEquals(stack.toJson().toString(),restored.toJson().toString())
+    }
     @Test fun stackSupportsInsertAndReorder() {
         val src=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
         val first=EditOperation.BasicAdjust(values=BasicAdjustmentValues(brightness=.1f))
