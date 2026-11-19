@@ -240,15 +240,15 @@ private fun WinsPhotoApp() {
     LaunchedEffect(imageUri) {
         val selected = imageUri ?: return@LaunchedEffect
         val importResult = withContext(Dispatchers.IO) {
-            runCatching {
-                val cache=OriginalSourceCache(File(context.filesDir,"original-source-cache"))
-                val cached=cache.cache(context.contentResolver,selected,"active-source")
-                val preview=PreviewImageDecoder.decode(context.contentResolver,selected)
-                Pair(cached,preview)
+            val cacheResult=runCatching {
+                OriginalSourceCache(File(context.filesDir,"original-source-cache"))
+                    .cache(context.contentResolver,selected,"active-source")
             }.getOrNull()
+            val preview=runCatching { PreviewImageDecoder.decode(context.contentResolver,selected) }.getOrNull()
+            Pair(cacheResult,preview)
         }
-        val cachedSource=importResult?.first
-        val decodedInfo=importResult?.second
+        val cachedSource=importResult.first
+        val decodedInfo=importResult.second
         originalSourceCached=cachedSource!=null
         originalSourceBytes=cachedSource?.byteCount?:0L
         bitmap=decodedInfo?.bitmap
