@@ -88,7 +88,7 @@
 - [x] Invert, expand/contract and feather controls
 - [x] App-private saved-selection mask storage API (named masks, load/rename/delete, PNG assets and JSON metadata)
 - [x] Selection UI can capture/save the current processed mask with a user-provided name
-- [ ] Saved-mask browse/load/rename/delete UI and apply loaded mask to selection workflow
+- [x] Saved-mask browse/load/rename/delete UI and apply loaded mask to selection workflow
 - [x] Saved-selection UI integrated with selection preview, crop/mask/copy output
 - [ ] Refine edge, cut/paste selection as layers and regression verification
 
