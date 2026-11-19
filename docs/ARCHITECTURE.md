@@ -23,7 +23,7 @@ Imported preview bitmap -> bitmap layers -> selected-layer or composite tool -> 
 Crop/selection/canvas-wide edits may flatten the composite and rebuild a simplified layer stack. Layer tools preserve bitmap-layer metadata where available. Tool operations are still generally applied to bitmap pixels rather than retained as live adjustment layers.
 
 ## Non-destructive foundation
-NonDestructiveEditStack retains the original bitmap and ordered operation objects. Basic Adjust, Levels, Curves and normalized Crop operations are replayable and JSON serializable; operations can be enabled/disabled, replaced and removed. ProjectStore has a separate original-image plus operation JSON persistence path.
+NonDestructiveEditStack retains the original bitmap and ordered operation objects. Basic Adjust, Levels, Curves, HSL, Crop/Transform, Effects, LUT and Retouch operations are replayable and JSON serializable; Retouch preserves normalized stroke data plus strength and offsets. Operations can be enabled/disabled, replaced and removed. Retouch regression coverage is authored but unexecuted. ProjectStore has a separate original-image plus operation JSON persistence path.
 
 **Integration limitation:** the operation stack is still not wired as the live editor's primary state. `NonDestructiveEditorSession` now provides a source-preserving controller with operation mutations, preview/final rendering, JSON export, and bounded operation-level undo/redo. UI tool routing, operation persistence/recovery integration, and operation coverage for all tools remain pending.
 
