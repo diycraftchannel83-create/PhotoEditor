@@ -104,8 +104,9 @@ private fun WinsPhotoApp() {
                 layers=updated;selectedLayerId=selected.id;bitmap=composite
             }
         } else {
-            val newLayer=EditorLayer(name="Background",bitmap=edited)
-            layers=listOf(newLayer);selectedLayerId=newLayer.id;bitmap=edited
+            val backup=EditorLayer(name="Previous composite (hidden)",bitmap=previousComposite,visible=false)
+            val resultLayer=EditorLayer(name="Applied edit",bitmap=edited)
+            layers=listOf(backup,resultLayer);selectedLayerId=resultLayer.id;bitmap=edited
         }
     }
     val jpegExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/jpeg")) { uri ->
