@@ -19,7 +19,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.winsmediatama.winsphotostudio.core.history.EditOperation\nimport kotlinx.coroutines.Dispatchers
+import com.winsmediatama.winsphotostudio.core.history.EditOperation
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 
