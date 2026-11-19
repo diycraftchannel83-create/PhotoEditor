@@ -39,7 +39,7 @@ fun TextShapeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
     var outline by remember{mutableStateOf(false)}
     var outlineWidth by remember{mutableFloatStateOf(4f)}
     var alignment by remember{mutableStateOf(TextAlignment.CENTER)}
-    var fontFamily by remember{mutableStateOf("sans-serif")}
+    var fontFamily by remember{mutableStateOf("sans-serif")}\n    var tracking by remember{mutableFloatStateOf(0f)}\n    var lineSpacing by remember{mutableFloatStateOf(0f)
     var fontMenu by remember{mutableStateOf(false)}
     var shadow by remember{mutableStateOf(false)}
     var shadowRadius by remember{mutableFloatStateOf(8f)}
@@ -51,7 +51,7 @@ fun TextShapeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(10.dp),verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
             Text("Text & Shapes",Modifier.weight(1f),color=Color.White)
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(onClick={onApply(renderOverlay(source,kind,text,overlayColor,outlineColor,fontSize,x,y,opacity,rotation,bold,italic,outline,outlineWidth,alignment,fontFamily,shadow,shadowRadius,shapeFill,shapeWidth,shapeHeight))}){Text("Apply")}
+            Button(onClick={onApply(renderOverlay(source,kind,text,overlayColor,outlineColor,fontSize,x,y,opacity,rotation,bold,italic,outline,outlineWidth,alignment,fontFamily,shadow,shadowRadius,tracking,lineSpacing,shapeFill,shapeWidth,shapeHeight))}){Text("Apply")}
         }
         Box(Modifier.weight(1f).fillMaxWidth().aspectRatio(source.width.toFloat()/source.height).padding(12.dp).background(Color(0xFF25282D))) {
             Image(source.asImageBitmap(),null,Modifier.fillMaxSize())
@@ -65,11 +65,11 @@ fun TextShapeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
                     strokeWidth=(outlineWidth*scale).coerceAtLeast(1f)
                     typeface=Typeface.create(fontFamily,(if(bold)Typeface.BOLD else Typeface.NORMAL)or(if(italic)Typeface.ITALIC else 0))
                     textAlign=when(alignment){TextAlignment.LEFT->AndroidPaint.Align.LEFT;TextAlignment.CENTER->AndroidPaint.Align.CENTER;TextAlignment.RIGHT->AndroidPaint.Align.RIGHT}
-                    if(shadow&&kind==OverlayKind.TEXT)setShadowLayer(shadowRadius*scale,2f*scale,2f*scale,android.graphics.Color.BLACK)
+                    letterSpacing=tracking/100f\n                    if(shadow&&kind==OverlayKind.TEXT)setShadowLayer(shadowRadius*scale,2f*scale,2f*scale,android.graphics.Color.BLACK)
                 }
                 nc.save();nc.rotate(rotation,cx,cy)
                 when(kind){
-                    OverlayKind.TEXT->{if(outline){val stroke=AndroidPaint(p).apply{color=outlineColor.toArgb();style=AndroidPaint.Style.STROKE;strokeWidth=outlineWidth*scale;clearShadowLayer()};nc.drawText(text,cx,cy,stroke)};p.style=AndroidPaint.Style.FILL;nc.drawText(text,cx,cy,p)}
+                    OverlayKind.TEXT->{val lines=text.split("\\n");val step=p.textSize+lineSpacing*scale;val startY=cy-(lines.size-1)*step/2f;if(outline){val stroke=AndroidPaint(p).apply{color=outlineColor.toArgb();style=AndroidPaint.Style.STROKE;strokeWidth=outlineWidth*scale;clearShadowLayer()};lines.forEachIndexed{index,line->nc.drawText(line,cx,startY+index*step,stroke)}};p.style=AndroidPaint.Style.FILL;lines.forEachIndexed{index,line->nc.drawText(line,cx,startY+index*step,p)}}
                     OverlayKind.RECTANGLE->{p.style=if(shapeFill)AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE;nc.drawRect(cx-size.width*shapeWidth/2,cy-size.height*shapeHeight/2,cx+size.width*shapeWidth/2,cy+size.height*shapeHeight/2,p)}
                     OverlayKind.ELLIPSE->{p.style=if(shapeFill)AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE;nc.drawOval(RectF(cx-size.width*shapeWidth/2,cy-size.height*shapeHeight/2,cx+size.width*shapeWidth/2,cy+size.height*shapeHeight/2),p)}
                     OverlayKind.LINE->{p.style=AndroidPaint.Style.STROKE;nc.drawLine(cx-size.width*shapeWidth/2,cy,cx+size.width*shapeWidth/2,cy,p)}
@@ -85,7 +85,7 @@ fun TextShapeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
                 Row(verticalAlignment=androidx.compose.ui.Alignment.CenterVertically){Checkbox(checked=bold,onCheckedChange={bold=it});Text("Bold",color=Color.White);Checkbox(checked=italic,onCheckedChange={italic=it});Text("Italic",color=Color.White);Checkbox(checked=outline,onCheckedChange={outline=it});Text("Outline",color=Color.White)}
                 Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(4.dp)){TextAlignment.entries.forEach{a->FilterChip(selected=alignment==a,onClick={alignment=a},label={Text(a.name)})}}
                 Row(verticalAlignment=androidx.compose.ui.Alignment.CenterVertically){Checkbox(checked=shadow,onCheckedChange={shadow=it});Text("Shadow",color=Color.White)}
-                if(shadow){Text("Shadow radius ${shadowRadius.toInt()}px",color=Color.LightGray);Slider(value=shadowRadius,onValueChange={shadowRadius=it},valueRange=0f..32f)}
+                if(shadow){Text("Shadow radius ${shadowRadius.toInt()}px",color=Color.LightGray);Slider(value=shadowRadius,onValueChange={shadowRadius=it},valueRange=0f..32f)}\n                Text("Letter spacing ${tracking.toInt()}px",color=Color.LightGray);Slider(value=tracking,onValueChange={tracking=it},valueRange=0f..24f)\n                Text("Line spacing ${lineSpacing.toInt()}px",color=Color.LightGray);Slider(value=lineSpacing,onValueChange={lineSpacing=it},valueRange=0f..100f)
                 if(outline){Text("Outline width ${outlineWidth.toInt()}px",color=Color.LightGray);Slider(value=outlineWidth,onValueChange={outlineWidth=it},valueRange=1f..24f);Text("Outline color",color=Color.LightGray);ColorPalette(palette,onSelect={outlineColor=it})}
             }
             Text("Fill color",color=Color.LightGray);ColorPalette(palette,onSelect={overlayColor=it})
@@ -99,13 +99,13 @@ fun TextShapeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
     }
 }
 @Composable private fun ColorPalette(colors:List<Color>,onSelect:(Color)->Unit){Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)){colors.forEach{c->Button(onClick={onSelect(c)},colors=ButtonDefaults.buttonColors(containerColor=c),modifier=Modifier.size(30.dp),contentPadding=PaddingValues(0.dp)){} }}}
-private fun renderOverlay(source:Bitmap,kind:OverlayKind,text:String,color:Color,outlineColor:Color,fontSize:Float,x:Float,y:Float,opacity:Float,rotation:Float,bold:Boolean,italic:Boolean,outline:Boolean,outlineWidth:Float,alignment:TextAlignment,fontFamily:String,shadow:Boolean,shadowRadius:Float,shapeFill:Boolean,shapeWidth:Float,shapeHeight:Float):Bitmap {
+private fun renderOverlay(source:Bitmap,kind:OverlayKind,text:String,color:Color,outlineColor:Color,fontSize:Float,x:Float,y:Float,opacity:Float,rotation:Float,bold:Boolean,italic:Boolean,outline:Boolean,outlineWidth:Float,alignment:TextAlignment,fontFamily:String,shadow:Boolean,shadowRadius:Float,tracking:Float,lineSpacing:Float,shapeFill:Boolean,shapeWidth:Float,shapeHeight:Float):Bitmap {
     val output=source.copy(Bitmap.Config.ARGB_8888,true);val canvas=AndroidCanvas(output)
-    val p=AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply{this.color=color.copy(alpha=opacity).toArgb();textSize=fontSize;strokeWidth=outlineWidth.coerceAtLeast(1f);typeface=Typeface.create(fontFamily,(if(bold)Typeface.BOLD else Typeface.NORMAL)or(if(italic)Typeface.ITALIC else 0));textAlign=when(alignment){TextAlignment.LEFT->AndroidPaint.Align.LEFT;TextAlignment.CENTER->AndroidPaint.Align.CENTER;TextAlignment.RIGHT->AndroidPaint.Align.RIGHT};if(shadow&&kind==OverlayKind.TEXT)setShadowLayer(shadowRadius,2f,2f,android.graphics.Color.BLACK)}
+    val p=AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply{this.color=color.copy(alpha=opacity).toArgb();textSize=fontSize;strokeWidth=outlineWidth.coerceAtLeast(1f);typeface=Typeface.create(fontFamily,(if(bold)Typeface.BOLD else Typeface.NORMAL)or(if(italic)Typeface.ITALIC else 0));textAlign=when(alignment){TextAlignment.LEFT->AndroidPaint.Align.LEFT;TextAlignment.CENTER->AndroidPaint.Align.CENTER;TextAlignment.RIGHT->AndroidPaint.Align.RIGHT};letterSpacing=tracking/100f;if(shadow&&kind==OverlayKind.TEXT)setShadowLayer(shadowRadius,2f,2f,android.graphics.Color.BLACK)}
     val cx=x*source.width;val cy=y*source.height
     canvas.save();canvas.rotate(rotation,cx,cy)
     when(kind){
-        OverlayKind.TEXT->{if(outline){val stroke=AndroidPaint(p).apply{this.color=outlineColor.toArgb();style=AndroidPaint.Style.STROKE;strokeWidth=outlineWidth;clearShadowLayer()};canvas.drawText(text,cx,cy,stroke)};p.style=AndroidPaint.Style.FILL;canvas.drawText(text,cx,cy,p)}
+        OverlayKind.TEXT->{val lines=text.split("\\n");val step=p.textSize+lineSpacing;val startY=cy-(lines.size-1)*step/2f;if(outline){val stroke=AndroidPaint(p).apply{this.color=outlineColor.toArgb();style=AndroidPaint.Style.STROKE;strokeWidth=outlineWidth;clearShadowLayer()};lines.forEachIndexed{index,line->canvas.drawText(line,cx,startY+index*step,stroke)}};p.style=AndroidPaint.Style.FILL;lines.forEachIndexed{index,line->canvas.drawText(line,cx,startY+index*step,p)}}
         OverlayKind.RECTANGLE->{p.style=if(shapeFill)AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE;canvas.drawRect(cx-source.width*shapeWidth/2,cy-source.height*shapeHeight/2,cx+source.width*shapeWidth/2,cy+source.height*shapeHeight/2,p)}
         OverlayKind.ELLIPSE->{p.style=if(shapeFill)AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE;canvas.drawOval(RectF(cx-source.width*shapeWidth/2,cy-source.height*shapeHeight/2,cx+source.width*shapeWidth/2,cy+source.height*shapeHeight/2),p)}
         OverlayKind.LINE->{p.style=AndroidPaint.Style.STROKE;canvas.drawLine(cx-source.width*shapeWidth/2,cy,cx+source.width*shapeWidth/2,cy,p)}
