@@ -1,40 +1,51 @@
 # WinsPhoto Studio — Architecture
 
 ## Principles
-1. Offline-first; implemented tools require no backend.
+1. Offline-first; current tools do not require backend APIs.
 2. Imported originals are not overwritten.
-3. Preview before Apply; edit actions are undoable at canvas level.
-4. Modular processing and composable tool screens.
-5. Memory-aware preview canvas (current import proxy max dimension 2048).
-6. Build/CI verification is deferred until the feature pass is complete.
+3. Preview/apply tool workflow; bounded bitmap undo/redo.
+4. Modular Kotlin processors and Compose screens.
+5. Memory-conscious preview proxy capped near 2048px maximum dimension.
+6. Build, CI, lint and device verification are deferred until the feature pass is complete.
 
-## Current implementation structure
-- app: Android lifecycle, Compose navigation/workspace, SAF import/export
-- core-model: project/layer/adjustment models
-- core-editor: bitmap layer stack and composite renderer
-- core-storage: local project snapshot manifest/assets
-- core-history: command history foundation plus bounded canvas bitmap undo
-- core-adjustments: CPU Basic Adjustments, Levels and Curves reference processors
-- ui/tools: Crop/Transform, Adjustments, Levels, Curves, Layers, Brush/Eraser, Selection, Text/Shapes, Filters, Retouch, Background Removal, AI Background Removal, Project Manager
+## Structure
+- app: Android lifecycle, Compose editor workspace, SAF import/export and tool routing
+- core/adjustments: Basic Adjustments, Levels, Curves, HSL, Histogram, Cube LUT and effects processors
+- core/editor: EditorLayer metadata, layer masks, alpha-lock processor, grouped compositing
+- core/history: command-history foundation and replayable serialized EditOperation stack
+- core/tools: crop/transform model, canvas resize, perspective, selection masks, retouch processors
+- core/storage: bitmap project manifests, original+operation project foundation, private recovery snapshots
+- ui/tools: crop/transform, canvas size, perspective, adjustments, levels, curves, HSL, filters, effects, LUT, layers/masks/groups, selection, retouch, text/shapes, gradients, background removal/replacement, project manager
 
-## Current render pipeline
-Imported bitmap/proxy -> editor layers -> selected-layer tool processing or composite-canvas tool -> composite preview -> JPEG/PNG export.
+## Current workflow
+Imported preview bitmap -> bitmap layers -> selected-layer or composite tool -> composite preview -> JPEG/PNG export.
 
-Layer operations include visibility, opacity, ordering, duplication, rename, image/empty layer insertion, and blend modes. The current editor uses a flattened canvas snapshot after canvas-wide crop/selection operations and keeps a hidden previous-composite layer for recovery. Many adjustment/retouch tools currently apply directly to the selected bitmap layer rather than creating fully parameterized adjustment layers.
+Crop/selection/canvas-wide edits may flatten the composite and rebuild a simplified layer stack. Layer tools preserve bitmap-layer metadata where available. Tool operations are still generally applied to bitmap pixels rather than retained as live adjustment layers.
 
-## Project persistence
-Project Manager saves and reopens layer PNG assets plus JSON metadata for layer order, visibility, opacity, blend mode and selected layer. Tool adjustment parameters are currently baked into layer bitmaps; masks, groups and live adjustment layers are not serialized.
+## Non-destructive foundation
+NonDestructiveEditStack retains the original bitmap and ordered operation objects. Basic Adjust, Levels, Curves and normalized Crop operations are replayable and JSON serializable; operations can be enabled/disabled, replaced and removed. ProjectStore has a separate original-image plus operation JSON persistence path.
+
+**Integration limitation:** this operation stack is not yet the live editor's primary state. Most UI edits remain baked into bitmap layers. Operation-level undo/redo, live adjustment layers, operation serialization for all tools and history panel remain planned.
+
+## Layers, masks and groups
+EditorLayer stores bitmap, visibility, opacity, blend mode, lock, alpha-lock, optional grayscale mask and group metadata. Mask pixels use white to reveal and black to hide; mask alpha is respected. Mask painting and inversion controls are available in the layer panel. Alpha-lock retains the original layer alpha during selected-layer edits. Contiguous groups have shared group name/opacity metadata and render through an offscreen group composite. Nested groups, clipping masks and group effects are not implemented yet.
+
+## Project persistence and recovery
+Editable bitmap projects save layer PNGs plus JSON metadata, including masks, lock/alpha-lock and group metadata. Original+operation projects save the imported bitmap separately from operation JSON. Recovery snapshots are stored in app-private files and the editor offers a startup recovery prompt.
+
+Recovery and project storage have not been build/runtime verified in this feature pass. Atomic-swap robustness, format migrations, corrupt assets, autosave races and full operation state still require audit.
+
+## Processing
+- CPU reference processors are used for current adjustment, LUT, selection, retouch and effect tools.
+- Preview processing uses background coroutine dispatch where tool screens implement it.
+- GPU/tile rendering is deferred until correctness and profiling.
+- ML Kit Selfie Segmentation is bundled/on-device; it primarily segments people, not arbitrary objects.
 
 ## History
-Canvas Undo is bounded to five composite snapshots to limit memory. The command-history model remains a foundation for future operation-level history.
+Bitmap undo/redo remains bounded to five composite snapshots to limit memory. Undo/redo restores a simplified flattened layer state; complete layer-tree history and operation-level commands are future work.
 
-## AI
-Bundled ML Kit Selfie Segmentation runs on-device for person/background separation. It is not a general object segmenter. Manual color-key removal is available for solid/high-contrast backgrounds.
+## Export
+JPEG/PNG export uses Android document destinations. JPEG can flatten transparency to a chosen white/black background. Current export is based on the editor preview canvas; full-resolution export, color profile, EXIF policy and large-image memory strategy remain incomplete.
 
-## Performance and limitations
-- Import proxy max dimension is 2048 to reduce processing memory.
-- CPU processors run on background dispatchers for previews.
-- Bitmap processing can still be memory intensive; full performance audit and testing remain deferred.
-- Preview caches and render-job cancellation need further refinement.
-- Export currently writes PNG/JPEG to Android's CreateDocument destinations.
-- No original files are overwritten.
+## Verification status
+No build, CI, lint or tests were run during this feature pass, by request. New tests were authored but are pending execution. Source-level audit is ongoing.
