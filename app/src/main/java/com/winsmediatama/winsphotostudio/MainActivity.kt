@@ -257,7 +257,7 @@ private fun WinsPhotoApp() {
             else if (hslOpen) HslScreen(
                 source=selectedBitmap,
                 onCancel={hslOpen=false},
-                onApply={edited -> commitEdit(edited,current);hslOpen=false}
+                onApply={edited,values -> commitOperation(edited,current,EditOperation.Hsl(values=values));hslOpen=false}
             )
             else if (perspectiveOpen) PerspectiveScreen(source=current,onCancel={perspectiveOpen=false},onApply={edited->commitEdit(edited,current,flatten=true);perspectiveOpen=false})
             else if (backgroundReplaceOpen) BackgroundReplaceScreen(source=current,onCancel={backgroundReplaceOpen=false},onApply={edited->commitEdit(edited,current,flatten=true);backgroundReplaceOpen=false})
@@ -331,12 +331,12 @@ private fun WinsPhotoApp() {
             else if (curvesOpen) CurvesScreen(
                 source=selectedBitmap,
                 onCancel={curvesOpen=false},
-                onApply={edited -> commitEdit(edited,current);curvesOpen=false}
+                onApply={edited,values -> commitOperation(edited,current,EditOperation.Curves(values=values));curvesOpen=false}
             )
             else if (levelsOpen) LevelsScreen(
                 source=selectedBitmap,
                 onCancel={levelsOpen=false},
-                onApply={edited -> commitEdit(edited,current);levelsOpen=false}
+                onApply={edited,values -> commitOperation(edited,current,EditOperation.Levels(values=values));levelsOpen=false}
             )
             else if (adjustmentOpen) AdjustmentScreen(
                 source = selectedBitmap,
