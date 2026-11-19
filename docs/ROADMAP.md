@@ -40,7 +40,9 @@
 - [x] Persist original bitmap separately from operation JSON in a project-store foundation
 - [x] Operation-project round-trip tests authored (original preservation, IDs/parameters, disabled ops, crop replay; verification pending)
 - [x] Add source-preserving operation-session controller with bounded undo/redo, render preview/final and JSON export (controller foundation; UI integration pending)
-- [x] Add LayerOperationRenderer utility to reconstruct replayable layers from preserved source + operation metadata (tests authored; verification pending)\n- [x] Layer compositor now replays operation metadata for individual and grouped layers (regression test authored; verification pending)\n- [ ] Integrate operation stack into the live MainActivity/editor workflow
+- [x] Add LayerOperationRenderer utility to reconstruct replayable layers from preserved source + operation metadata (tests authored; verification pending)
+- [x] Layer compositor now replays operation metadata for individual and grouped layers (regression test authored; verification pending)
+- [ ] Integrate operation stack into the live MainActivity/editor workflow
 - [ ] Add transform, HSL, selection, retouch, LUT/effect and layer operations to stack
 - [x] Layer-preserving bounded undo/redo snapshots and History panel restore
 - [ ] Parameter-level operation history and named states
@@ -83,7 +85,8 @@
 - [x] System font-family picker and text shadow controls
 - [x] Shape fill/outline and width/height controls
 - [x] Text and shape rotation
-- [x] Text tracking and multiline line-spacing controls (source implemented; verification pending)\n- [ ] Font import and gradient text
+- [x] Text tracking and multiline line-spacing controls (source implemented; verification pending)
+- [ ] Font import and gradient text
 - [ ] Custom paths, stickers/assets, transform handles and reusable layer styles
 
 ## Phase 8 — Filters and effects
@@ -115,7 +118,8 @@
 - [x] Recent/saved project list with open, rename, duplicate, delete (existing ProjectScreen; refresh-on-action)
 - [ ] Unsaved-changes protection
 - [x] Basic Adjustment operation stack is live-integrated and per-layer operation metadata is saved in projects/recovery
-- [x] Levels, Curves and HSL live operation integration and per-layer persistence\n- [ ] Operation stack toggle/reorder UI, parameter editing and full editable-state recovery
+- [x] Levels, Curves and HSL live operation integration and per-layer persistence
+- [ ] Operation stack toggle/reorder UI, parameter editing and full editable-state recovery
 
 ## Phase 11 — Render/export and performance
 - [x] JPEG/PNG export, JPEG quality and background flattening controls
