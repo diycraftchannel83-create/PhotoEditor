@@ -74,7 +74,7 @@ private fun renderRetouch(source:Bitmap,strokes:List<RetouchStroke>,strength:Flo
     val w=source.width;val h=source.height
     val base=IntArray(w*h);source.getPixels(base,0,w,0,0,w,h)
     var result=base.copyOf()
-    val blur=boxBlur(base,w,h,3)
+    val blur=if(strokes.any{it.mode==RetouchMode.BLUR})boxBlur(base,w,h,3)else base
     val pixel=if(strokes.any{it.mode==RetouchMode.PIXELATE})pixelate(base,w,h,12)else base
     for(mode in RetouchMode.entries){
         val group=strokes.filter{it.mode==mode}
