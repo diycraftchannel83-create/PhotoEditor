@@ -14,7 +14,10 @@ import com.winsmediatama.winsphotostudio.core.adjustments.LevelsValues
 import com.winsmediatama.winsphotostudio.core.adjustments.HslAdjustments
 import com.winsmediatama.winsphotostudio.core.adjustments.HslColorRange
 import com.winsmediatama.winsphotostudio.core.adjustments.HslRangeAdjustment
-import com.winsmediatama.winsphotostudio.core.adjustments.HslProcessor\nimport com.winsmediatama.winsphotostudio.core.tools.TransformProcessor\nimport com.winsmediatama.winsphotostudio.core.tools.TransformSpec\nimport com.winsmediatama.winsphotostudio.core.adjustments.TransformProcessor
+import com.winsmediatama.winsphotostudio.core.adjustments.HslProcessor
+import com.winsmediatama.winsphotostudio.core.tools.TransformProcessor
+import com.winsmediatama.winsphotostudio.core.tools.TransformSpec
+import com.winsmediatama.winsphotostudio.core.adjustments.TransformProcessor
 
 /**
  * Serializable, replayable edit stack. Operations retain parameters rather than requiring
@@ -61,7 +64,13 @@ sealed interface EditOperation {
         override fun toJson()=JSONObject().put("id",id).put("type","hsl").put("enabled",enabled).put("values",hslJson(values))
     }
 
-    data class Transform(override val id:String=java.util.UUID.randomUUID().toString(),override val enabled:Boolean=true,val left:Float=0f,val top:Float=0f,val right:Float=1f,val bottom:Float=1f,val rotationDegrees:Float=0f,val flipHorizontal:Boolean=false,val flipVertical:Boolean=false,val outputWidth:Int=0,val outputHeight:Int=0):EditOperation {\n        override val label=\"Crop / Transform\"\n        fun valid()=TransformSpec(left,top,right,bottom,rotationDegrees,flipHorizontal,flipVertical,outputWidth,outputHeight).isValid()\n        override fun toJson()=JSONObject().put(\"id\",id).put(\"type\",\"transform\").put(\"enabled\",enabled).put(\"left\",left).put(\"top\",top).put(\"right\",right).put(\"bottom\",bottom).put(\"rotationDegrees\",rotationDegrees).put(\"flipHorizontal\",flipHorizontal).put(\"flipVertical\",flipVertical).put(\"outputWidth\",outputWidth).put(\"outputHeight\",outputHeight)\n    }\n\n    data class Crop(
+    data class Transform(override val id:String=java.util.UUID.randomUUID().toString(),override val enabled:Boolean=true,val left:Float=0f,val top:Float=0f,val right:Float=1f,val bottom:Float=1f,val rotationDegrees:Float=0f,val flipHorizontal:Boolean=false,val flipVertical:Boolean=false,val outputWidth:Int=0,val outputHeight:Int=0):EditOperation {
+        override val label=\"Crop / Transform\"
+        fun valid()=TransformSpec(left,top,right,bottom,rotationDegrees,flipHorizontal,flipVertical,outputWidth,outputHeight).isValid()
+        override fun toJson()=JSONObject().put(\"id\",id).put(\"type\",\"transform\").put(\"enabled\",enabled).put(\"left\",left).put(\"top\",top).put(\"right\",right).put(\"bottom\",bottom).put(\"rotationDegrees\",rotationDegrees).put(\"flipHorizontal\",flipHorizontal).put(\"flipVertical\",flipVertical).put(\"outputWidth\",outputWidth).put(\"outputHeight\",outputHeight)
+    }
+
+    data class Crop(
         override val id: String = java.util.UUID.randomUUID().toString(),
         override val enabled: Boolean = true,
         val left: Float, val top: Float, val right: Float, val bottom: Float
@@ -103,7 +112,8 @@ class NonDestructiveEditStack(
             is EditOperation.Levels -> old.copy(enabled = enabled)
             is EditOperation.Curves -> old.copy(enabled = enabled)
             is EditOperation.Crop -> old.copy(enabled = enabled)
-            is EditOperation.Hsl -> old.copy(enabled = enabled)\n            is EditOperation.Transform -> old.copy(enabled=enabled)
+            is EditOperation.Hsl -> old.copy(enabled = enabled)
+            is EditOperation.Transform -> old.copy(enabled=enabled)
         }
         return true
     }
@@ -119,7 +129,8 @@ class NonDestructiveEditStack(
                 is EditOperation.Levels -> LevelsProcessor.apply(current, operation.values)
                 is EditOperation.Curves -> CurvesProcessor.apply(current, operation.values)
                 is EditOperation.Crop -> crop(current, operation)
-                is EditOperation.Hsl -> HslProcessor.apply(current,operation.values)\n                is EditOperation.Transform -> TransformProcessor.apply(current,TransformSpec(operation.left,operation.top,operation.right,operation.bottom,operation.rotationDegrees,operation.flipHorizontal,operation.flipVertical,operation.outputWidth,operation.outputHeight))
+                is EditOperation.Hsl -> HslProcessor.apply(current,operation.values)
+                is EditOperation.Transform -> TransformProcessor.apply(current,TransformSpec(operation.left,operation.top,operation.right,operation.bottom,operation.rotationDegrees,operation.flipHorizontal,operation.flipVertical,operation.outputWidth,operation.outputHeight))
             }
             if (next !== current && !current.isRecycled) current.recycle()
             current = next
@@ -150,7 +161,8 @@ class NonDestructiveEditStack(
                         )
                         if (crop.valid()) ops += crop
                     }
-                    "hsl" -> ops += EditOperation.Hsl(id,enabled,hslFromJson(values))\n                    "transform" -> { val op=EditOperation.Transform(id,enabled,item.optDouble("left",0.0).toFloat(),item.optDouble("top",0.0).toFloat(),item.optDouble("right",1.0).toFloat(),item.optDouble("bottom",1.0).toFloat(),item.optDouble("rotationDegrees",0.0).toFloat(),item.optBoolean("flipHorizontal",false),item.optBoolean("flipVertical",false),item.optInt("outputWidth",0),item.optInt("outputHeight",0));if(op.valid())ops+=op }
+                    "hsl" -> ops += EditOperation.Hsl(id,enabled,hslFromJson(values))
+                    "transform" -> { val op=EditOperation.Transform(id,enabled,item.optDouble("left",0.0).toFloat(),item.optDouble("top",0.0).toFloat(),item.optDouble("right",1.0).toFloat(),item.optDouble("bottom",1.0).toFloat(),item.optDouble("rotationDegrees",0.0).toFloat(),item.optBoolean("flipHorizontal",false),item.optBoolean("flipVertical",false),item.optInt("outputWidth",0),item.optInt("outputHeight",0));if(op.valid())ops+=op }
                 }
             }
             return NonDestructiveEditStack(source, ops)
