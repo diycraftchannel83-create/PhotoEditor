@@ -70,14 +70,17 @@ class ProjectStore(context: Context) {
     fun saveLayerProject(layers:List<EditorLayer>,selectedLayerId:String?,canvasWidth:Int,canvasHeight:Int,projectName:String):File {
         val id=UUID.randomUUID().toString()
         val folder=File(root,id).apply{mkdirs()}
-        val assets=File(folder,"assets").apply{mkdirs()}
+        File(folder,"assets").mkdirs()
         val layerArray=JSONArray()
-        layers.forEachIndexed { index,layer ->
-            val assetPath="assets/layer_${index}.png"
-            File(folder,assetPath).outputStream().use { if(!layer.bitmap.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write layer asset $index") }
-            layerArray.put(JSONObject().put("id",layer.id).put("name",layer.name).put("visible",layer.visible).put("opacity",layer.opacity).put("blendMode",layer.blendMode.name).put("locked",layer.locked).put("alphaLocked",layer.alphaLocked).put("groupId",layer.groupId).put("groupName",layer.groupName).put("groupOpacity",layer.groupOpacity).put("clipToBelow",layer.clipToBelow).put("asset",assetPath).put("originalAsset",originalPath).put("operations",operationJson).apply { layer.mask?.let { maskBitmap -> val maskPath="assets/mask_${index}.png"; File(folder,maskPath).outputStream().use { if(!maskBitmap.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write mask asset $index") }; put("maskAsset",maskPath) } })
+        layers.forEachIndexed{index,layer->
+            val assetPath="assets/layer_$index.png"
+            File(folder,assetPath).outputStream().use{if(!layer.bitmap.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write layer asset $index")}
+            val originalPath=layer.originalBitmap?.let{original->val path="assets/original_$index.png";File(folder,path).outputStream().use{if(!original.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write original layer $index")};path}
+            val operationJson=if(layer.operations.isNotEmpty())NonDestructiveEditStack(layer.originalBitmap?:layer.bitmap,layer.operations).toJson()else null
+            val maskPath=layer.mask?.let{mask->val path="assets/mask_$index.png";File(folder,path).outputStream().use{if(!mask.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write mask $index")};path}
+            layerArray.put(JSONObject().put("id",layer.id).put("name",layer.name).put("visible",layer.visible).put("opacity",layer.opacity).put("blendMode",layer.blendMode.name).put("locked",layer.locked).put("alphaLocked",layer.alphaLocked).put("groupId",layer.groupId).put("groupName",layer.groupName).put("groupOpacity",layer.groupOpacity).put("clipToBelow",layer.clipToBelow).put("asset",assetPath).put("originalAsset",originalPath).put("operations",operationJson).put("maskAsset",maskPath))
         }
-        val manifest=JSONObject().put("schemaVersion",3).put("projectId",id).put("name",projectName.trim().ifBlank{"Untitled Project"})
+        val manifest=JSONObject().put("schemaVersion",4).put("projectId",id).put("name",projectName.trim().ifBlank{"Untitled Project"})
             .put("canvasWidth",canvasWidth).put("canvasHeight",canvasHeight).put("createdAt",System.currentTimeMillis()).put("updatedAt",System.currentTimeMillis())
             .put("selectedLayerId",selectedLayerId).put("layers",layerArray)
         writeManifestAtomically(folder,manifest)
@@ -85,45 +88,32 @@ class ProjectStore(context: Context) {
     }
 
     fun loadEditableProject(projectFolder:File):LoadedStudioProject? {
-        val manifest=runCatching { readManifest(projectFolder) }.getOrNull() ?: return null
+        val manifest=readManifest(projectFolder)
         val name=manifest.optString("name",projectFolder.name)
         val width=manifest.optInt("canvasWidth",1).coerceAtLeast(1)
         val height=manifest.optInt("canvasHeight",1).coerceAtLeast(1)
         val array=manifest.optJSONArray("layers")
         val layers=mutableListOf<EditorLayer>()
-        if(array!=null) for(i in 0 until array.length()) {
-            val item=array.optJSONObject(i) ?: continue
+        if(array!=null)for(i in 0 until array.length()){
+            val item=array.optJSONObject(i)?:continue
             val asset=item.optString("asset",manifest.optString("snapshotAsset",manifest.optString("sourceAsset","")))
-            if(asset.isBlank()) continue
-            val assetFile=resolveProjectAsset(projectFolder,asset) ?: run { layers.forEach { it.bitmap.recycle(); it.mask?.recycle() }; return null }
-            val bitmap=android.graphics.BitmapFactory.decodeFile(assetFile.absolutePath) ?: run { layers.forEach { it.bitmap.recycle(); it.mask?.recycle() }; return null }
-            val maskPath=item.optString("maskAsset").takeIf{it.isNotBlank()}
-            val mask=maskPath?.let { path ->
-                val maskFile=resolveProjectAsset(projectFolder,path) ?: run { bitmap.recycle(); layers.forEach { it.bitmap.recycle(); it.mask?.recycle() }; return null }
-                android.graphics.BitmapFactory.decodeFile(maskFile.absolutePath) ?: run { bitmap.recycle(); layers.forEach { it.bitmap.recycle(); it.mask?.recycle() }; return null }
-            }
+            if(asset.isBlank())continue
+            val bitmap=BitmapFactory.decodeFile(File(projectFolder,asset).absolutePath)?:continue
             val mode=runCatching{EditorBlendMode.valueOf(item.optString("blendMode","NORMAL"))}.getOrDefault(EditorBlendMode.NORMAL)
+            val mask=item.optString("maskAsset").takeIf{it.isNotBlank()}?.let{BitmapFactory.decodeFile(File(projectFolder,it).absolutePath)}
+            val original=item.optString("originalAsset").takeIf{it.isNotBlank()}?.let{BitmapFactory.decodeFile(File(projectFolder,it).absolutePath)}
+            val operations=item.optJSONArray("operations")?.let{json->original?.let{NonDestructiveEditStack.fromJson(it,json).operations}}?:emptyList()
             layers+=EditorLayer(id=item.optString("id",UUID.randomUUID().toString()),name=item.optString("name","Layer ${i+1}"),bitmap=bitmap,
-                visible=item.optBoolean("visible",true),opacity=item.optDouble("opacity",1.0).toFloat().coerceIn(0f,1f),blendMode=mode,locked=item.optBoolean("locked",false),alphaLocked=item.optBoolean("alphaLocked",false),groupId=item.optString("groupId").takeIf{it.isNotBlank()},groupName=item.optString("groupName").takeIf{it.isNotBlank()},groupOpacity=item.optDouble("groupOpacity",1.0).toFloat().coerceIn(0f,1f),clipToBelow=item.optBoolean("clipToBelow",false),mask=mask)
+                visible=item.optBoolean("visible",true),opacity=item.optDouble("opacity",1.0).toFloat().coerceIn(0f,1f),blendMode=mode,
+                locked=item.optBoolean("locked",false),alphaLocked=item.optBoolean("alphaLocked",false),
+                groupId=item.optString("groupId").takeIf{it.isNotBlank()},groupName=item.optString("groupName").takeIf{it.isNotBlank()},
+                groupOpacity=item.optDouble("groupOpacity",1.0).toFloat().coerceIn(0f,1f),clipToBelow=item.optBoolean("clipToBelow",false),
+                mask=mask,originalBitmap=original,operations=operations)
         }
-        if(layers.isEmpty()) {
-            val snapshotPath=manifest.optString("snapshotAsset")
-            if(snapshotPath.isBlank()) return null
-            val snapshotFile=resolveProjectAsset(projectFolder,snapshotPath) ?: return null
-            val snapshot=android.graphics.BitmapFactory.decodeFile(snapshotFile.absolutePath) ?: return null
-            layers+=EditorLayer(name=name,bitmap=snapshot)
-        }
+        if(layers.isEmpty()){val snapshot=loadSnapshot(projectFolder)?:return null;layers+=EditorLayer(name=name,bitmap=snapshot)}
         return LoadedStudioProject(name,width,height,layers,manifest.optString("selectedLayerId").takeIf{it.isNotBlank()})
     }
 
-    /** Resolve manifest asset paths without allowing traversal outside the project directory. */
-    private fun resolveProjectAsset(projectFolder:File,relativePath:String):File? {
-        if(relativePath.isBlank() || File(relativePath).isAbsolute) return null
-        val rootCanonical=runCatching { projectFolder.canonicalFile }.getOrNull() ?: return null
-        val assetCanonical=runCatching { File(projectFolder,relativePath).canonicalFile }.getOrNull() ?: return null
-        if(!assetCanonical.path.startsWith(rootCanonical.path+File.separator)) return null
-        return assetCanonical.takeIf { it.isFile }
-    }
     /** Persist an original source and replayable edit operations separately from rendered layer snapshots. */
     fun saveOperationProject(source:Bitmap, operations:org.json.JSONArray, projectName:String):File {
         val id=UUID.randomUUID().toString()
