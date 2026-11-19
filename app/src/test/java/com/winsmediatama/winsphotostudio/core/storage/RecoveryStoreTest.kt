@@ -7,7 +7,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
+import com.winsmediatama.winsphotostudio.core.editor.EditorLayer\nimport com.winsmediatama.winsphotostudio.core.editor.EditorBlendMode
 import com.winsmediatama.winsphotostudio.core.history.EditOperation
 import com.winsmediatama.winsphotostudio.core.adjustments.HslAdjustments
 import com.winsmediatama.winsphotostudio.core.adjustments.HslColorRange
@@ -23,7 +23,7 @@ class RecoveryStoreTest {
         val mask=Bitmap.createBitmap(2,2,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.WHITE)}
         val original=Bitmap.createBitmap(2,2,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.RED)}
         val operations=listOf(EditOperation.Hsl(values=HslAdjustments(mapOf(HslColorRange.RED to HslRangeAdjustment(saturation=-.5f)))))
-        val layer=EditorLayer(name="Recovery test",bitmap=bitmap,opacity=.6f,locked=true,alphaLocked=true,groupId="grp",groupName="Test Group",groupOpacity=.4f,clipToBelow=true,mask=mask,originalBitmap=original,operations=operations)
+        val layer=EditorLayer(name="Recovery test",bitmap=bitmap,opacity=.6f,locked=true,alphaLocked=true,groupId="grp",groupName="Test Group",groupOpacity=.4f,groupBlendMode=EditorBlendMode.SCREEN,clipToBelow=true,mask=mask,originalBitmap=original,operations=operations)
         store.save(listOf(layer),layer.id,2,2)
         val recovered=store.recover()
         assertNotNull(recovered)
