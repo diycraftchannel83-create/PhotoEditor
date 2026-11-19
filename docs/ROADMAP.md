@@ -104,7 +104,7 @@
 ## Phase 10 — Project, autosave and recovery
 - [x] Project save/open for editable bitmap layer stacks
 - [x] Persist visibility, opacity, blend mode, selected layer, masks, locks and group metadata
-- [x] Per-layer non-destructive Basic Adjustment operations live-integrated; operation model also supports Levels, Curves, HSL and Crop replay/JSON; per-layer originals and operation metadata persist in projects/recovery
+- [x] Per-layer non-destructive Basic Adjustment, Levels, Curves and HSL operations live-integrated; operation metadata and original layer sources persist in projects/recovery
 - [x] Private recovery snapshots and startup recovery/discard prompt
 - [x] Schema version bumps and atomic manifest writes; optional-field backward-compatible loading
 - [x] Editable-project loader validates manifest asset paths, rejects traversal and fails safely on missing/corrupt layer/mask assets (tests authored; verification pending)
@@ -115,7 +115,7 @@
 - [x] Recent/saved project list with open, rename, duplicate, delete (existing ProjectScreen; refresh-on-action)
 - [ ] Unsaved-changes protection
 - [x] Basic Adjustment operation stack is live-integrated and per-layer operation metadata is saved in projects/recovery
-- [ ] Levels, Curves and HSL live operation integration; operation stack toggle/reorder UI and full editable-state recovery
+- [x] Levels, Curves and HSL live operation integration and per-layer persistence\n- [ ] Operation stack toggle/reorder UI, parameter editing and full editable-state recovery
 
 ## Phase 11 — Render/export and performance
 - [x] JPEG/PNG export, JPEG quality and background flattening controls
