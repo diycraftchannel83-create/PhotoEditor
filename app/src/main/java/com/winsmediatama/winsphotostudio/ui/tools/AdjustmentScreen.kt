@@ -40,7 +40,7 @@ fun AdjustmentScreen(source: Bitmap, onCancel: () -> Unit, onApply: (Bitmap) -> 
             Text("Adjustments", Modifier.weight(1f), color=Color.White, fontWeight=FontWeight.Bold)
             TextButton(onClick={values=BasicAdjustmentValues(); resetKey++}) { Text("Reset") }
             TextButton(onClick=onCancel) { Text("Cancel") }
-            Button(enabled=preview!=null, onClick={preview?.let(onApply)}) { Text("Apply") }
+            Button(enabled=preview!=null, onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true))}}) { Text("Apply") }
         }
         Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D)), contentAlignment=Alignment.Center) {
             preview?.let { Image(it.asImageBitmap(), null, Modifier.fillMaxSize().padding(8.dp), contentScale=ContentScale.Fit) }
