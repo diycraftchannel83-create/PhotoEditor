@@ -1,7 +1,7 @@
 package com.winsmediatama.winsphotostudio.core.editor
 
 import android.graphics.Bitmap
-import java.util.UUID
+import java.util.UUID\nimport com.winsmediatama.winsphotostudio.core.history.EditOperation
 
 enum class EditorBlendMode { NORMAL, MULTIPLY, SCREEN, OVERLAY, DARKEN, LIGHTEN, ADD, DIFFERENCE }
 
@@ -19,5 +19,5 @@ data class EditorLayer(
     val groupId:String?=null,
     val groupName:String?=null,
     val groupOpacity:Float=1f,
-    val clipToBelow:Boolean=false
+    val clipToBelow:Boolean=false,\n    val originalBitmap:Bitmap?=null,\n    val operations:List<EditOperation> = emptyList()
 )
