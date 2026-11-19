@@ -135,7 +135,8 @@ class NonDestructiveEditStack(
                     "basic" -> ops += EditOperation.BasicAdjust(id, enabled, basicValuesFromJson(values))
                     "levels" -> ops += EditOperation.Levels(id, enabled, levelsFromJson(values))
                     "curves" -> ops += EditOperation.Curves(id, enabled, curvesFromJson(values))
-                    "crop" -> ops += EditOperation.Crop(id, enabled,item.optDouble("left").toFloat(),item.optDouble("top").toFloat(),item.optDouble("right").toFloat(),item.optDouble("bottom").toFloat())\n                    "hsl" -> ops += EditOperation.Hsl(id,enabled,hslFromJson(values))
+                    "crop" -> ops += EditOperation.Crop(id, enabled,item.optDouble("left").toFloat(),item.optDouble("top").toFloat(),item.optDouble("right").toFloat(),item.optDouble("bottom").toFloat())
+                    "hsl" -> ops += EditOperation.Hsl(id,enabled,hslFromJson(values))
                 }
             }
             return NonDestructiveEditStack(source, ops)
