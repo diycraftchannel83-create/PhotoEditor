@@ -25,6 +25,8 @@ object BasicAdjustmentProcessor {
         val vibrance=values.vibrance.coerceIn(-1f,1f)
         val clarity=values.clarity.coerceIn(-1f,1f)
         val sharpen=values.sharpen.coerceIn(0f,1f)
+        val hueShift=values.hue.coerceIn(-1f,1f)*180f
+        val hsv=FloatArray(3)
         for(y in 0 until height) for(x in 0 until width) {
             val i=y*width+x; val p=pixels[i]; val a=p ushr 24
             var r=((p shr 16) and 255).toFloat()
@@ -56,7 +58,8 @@ object BasicAdjustmentProcessor {
                 val blurB=neighborAverage(sharpenSource,width,height,x,y,0)
                 r+=((r-blurR)*sharpen*0.7f); g+=((g-blurG)*sharpen*0.7f); b+=((b-blurB)*sharpen*0.7f)
             }
-            pixels[i]=(a shl 24) or (r.toInt().coerceIn(0,255) shl 16) or (g.toInt().coerceIn(0,255) shl 8) or b.toInt().coerceIn(0,255)
+            val ri=r.toInt().coerceIn(0,255);val gi=g.toInt().coerceIn(0,255);val bi=b.toInt().coerceIn(0,255)
+            if(hueShift!=0f) { android.graphics.Color.RGBToHSV(ri,gi,bi,hsv);hsv[0]=(hsv[0]+hueShift+360f)%360f;val shifted=android.graphics.Color.HSVToColor(a,hsv);pixels[i]=shifted } else pixels[i]=(a shl 24) or (ri shl 16) or (gi shl 8) or bi
         }
         output.setPixels(pixels,0,width,0,0,width,height)
         return output
