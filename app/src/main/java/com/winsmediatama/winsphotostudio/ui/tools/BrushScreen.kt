@@ -39,7 +39,7 @@ fun BrushScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
             TextButton(onClick=onCancel){Text("Cancel")}
             Button(onClick={onApply(renderBrush(source,strokes+listOfNotNull(active)))}){Text("Apply")}
         }
-        Canvas(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D),RoundedCornerShape(8.dp))
+        Canvas(Modifier.weight(1f).fillMaxWidth().aspectRatio(source.width.toFloat()/source.height).padding(12.dp).background(Color(0xFF25282D),RoundedCornerShape(8.dp))
             .pointerInput(source,brushSize,color,erase) {
                 detectDragGestures(onDragStart={start->
                     active=BrushStroke(listOf(Offset(start.x/size.width,start.y/size.height)),color,brushSize,erase)
