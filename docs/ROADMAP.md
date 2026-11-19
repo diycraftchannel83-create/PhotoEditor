@@ -23,7 +23,7 @@
 - [ ] Full crop/transform correctness and undo regression tests (test files authored; verification pending)
 - [x] Source-level repair of Text & Shapes multiline and line-spacing declarations (build deferred)
 - [x] Align non-destructive Transform replay with TransformProcessor API (build deferred)
-- [x] Disk-backed original source cache foundation (copy original without decoding, transactional cache replacement, cache status surfaced; regression tests authored)\n- [ ] Integrate full-resolution source/render pipeline (preview currently capped at ~2048px; original retained but replay/export integration pending)
+- [x] Disk-backed original source cache foundation (copy original without decoding, transactional cache replacement, cache status surfaced; regression tests authored)\n- [x] Add source-resolution replay foundation that scales Transform/Perspective/CanvasSize dimension parameters while retaining normalized geometry; tests authored (verification deferred)\n- [ ] Integrate full-resolution source/render pipeline into project/layer-aware export (preview currently capped at ~2048px; original retained, but export still resamples preview)
 
 ## Phase 2 — Color and tonal editing
 - [x] Basic adjustment processor and UI (brightness, contrast, exposure, saturation, hue, temperature, tint, RGB balance, highlights/shadows, whites/blacks, vibrance, clarity, sharpen)
