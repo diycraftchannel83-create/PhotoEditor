@@ -2,6 +2,7 @@ package com.winsmediatama.winsphotostudio.core.adjustments
 
 import android.graphics.Bitmap
 import kotlin.math.abs
+import kotlin.math.min
 
 enum class HslColorRange(val label:String,val center:Float) {
     RED("Red",0f),ORANGE("Orange",30f),YELLOW("Yellow",60f),GREEN("Green",120f),
