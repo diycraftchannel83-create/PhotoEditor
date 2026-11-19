@@ -9,7 +9,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import com.winsmediatama.winsphotostudio.core.adjustments.BasicAdjustmentValues
 import com.winsmediatama.winsphotostudio.core.adjustments.CurvePoint
-import com.winsmediatama.winsphotostudio.core.adjustments.CurvesValues
+import com.winsmediatama.winsphotostudio.core.adjustments.CurvesValues\nimport com.winsmediatama.winsphotostudio.core.adjustments.HslAdjustments\nimport com.winsmediatama.winsphotostudio.core.adjustments.HslColorRange\nimport com.winsmediatama.winsphotostudio.core.adjustments.HslRangeAdjustment
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[28])
