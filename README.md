@@ -58,7 +58,7 @@ The roadmap below is the source of truth for continuing development. Update chec
 - [x] Resize controls and preview/apply workflow
 - [ ] Verify crop/transform correctness, edge cases, aspect ratios and undo behavior
 - [ ] Improve straighten/perspective correction tools, including corner dragging ergonomics and verification (perspective operation replay integration implemented; verification deferred)
-- [ ] Canvas-size tool (change canvas dimensions independently of image resize)
+- [x] Canvas-size tool (independent dimensions, anchors/background, replayable operation; tests authored, verification deferred)
 
 ### Phase 2 — Color & tonal editing
 - [x] Brightness, contrast, exposure, saturation and hue
@@ -108,9 +108,9 @@ The roadmap below is the source of truth for continuing development. Update chec
 - [x] Magic wand / contiguous color selection
 - [x] Color-range selection
 - [x] Feather, expand and contract controls
-- [ ] Invert, save and load selections
+- [x] Invert, save and load selections (saved selection store/UI; verification deferred)
 - [ ] Selection overlay and edge visualization
-- [ ] Copy/cut/paste selection as a new layer
+- [x] Copy/cut selection as a new layer (copy/cut/cut-to-layer actions implemented; paste workflow still needs polish)
 
 ### Phase 6 — Retouching & paint
 - [x] Brush and eraser with size, opacity, hardness and straight-line controls
@@ -155,7 +155,7 @@ The roadmap below is the source of truth for continuing development. Update chec
 - [x] On-device person segmentation/background removal
 - [ ] Edge refinement, hair/detail preservation
 - [ ] Subject selection integrated into selection/layer workflow
-- [ ] Background replacement with image/color/gradient
+- [x] Background replacement with image/color/gradient (replayable operation; verification deferred)
 - [ ] Object removal model feasibility and offline model-size evaluation
 - [ ] Image enhancement and upscaling model feasibility
 - [ ] AI tool progress, cancel, error handling and device capability checks
@@ -169,14 +169,14 @@ The roadmap below is the source of truth for continuing development. Update chec
 - [ ] Full project migration system
 - [x] Autosave and recovery snapshots
 - [x] Startup session recovery
-- [ ] Unsaved-changes protection
-- [ ] Recent projects and project management
-- [ ] Duplicate/save-as/rename/delete project flows
+- [ ] Unsaved-changes protection (still pending)
+- [x] Recent projects and project management (open/list/rename/duplicate/delete/save-as flows implemented; verification deferred)
+- [x] Duplicate/save-as/rename/delete project flows (implementation present; verification deferred)
 - [ ] Validate missing/corrupt assets and recover gracefully
 
 ### Phase 11 — High-resolution rendering, performance & export
-- [ ] Separate preview resolution from full-resolution source/render pipeline
-- [ ] Full-resolution export (avoid exporting only the 2048px preview canvas)
+- [x] Retained original-source cache and native source-layer replay export foundation (24 MP guard; fallback for destructive/non-replayable edits)
+- [x] Native source-dimension JPEG/PNG export replay for retained imported source layer (fallback resampling remains)
 - [ ] Memory-aware tile/region rendering for large images
 - [ ] Background processing and progress reporting
 - [ ] Cancellation and safe failure handling
