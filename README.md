@@ -16,9 +16,9 @@ The roadmap below is the source of truth for continuing development. Update chec
 - Crop presets: Original, Free, 1:1, 4:3, 3:2, 16:9, 9:16
 - Free crop size and position, rotate, flip, resize, preview and apply
 - Basic adjustments: brightness, contrast, exposure, saturation, hue, temperature, tint, RGB balance, highlights, shadows, whites, blacks, vibrance, clarity and sharpen
-- RGB/composite Levels with input/output and gamma controls
+- RGB/composite Levels with input/output and gamma controls (currently applied as raster edit)
 - Selective HSL color ranges (Red, Orange, Yellow, Green, Cyan, Blue, Purple, Magenta)
-- RGB and per-channel Curves with draggable control points
+- RGB and per-channel Curves with draggable control points (currently applied as raster edit)
 - Layer manager: add transparent/photo layers, duplicate, rename, visibility, opacity, reorder, blend modes, lock/alpha-lock, contiguous groups/group opacity, clipping-to-below, mask creation/inversion/painting
 - Brush and eraser with size, opacity, hardness and straight-line controls
 - Rectangle, ellipse, polygon, color-range and contiguous magic-wand selections; crop/mask/copy-to-layer/apply-as-layer-mask, invert, expand/contract and feather controls
