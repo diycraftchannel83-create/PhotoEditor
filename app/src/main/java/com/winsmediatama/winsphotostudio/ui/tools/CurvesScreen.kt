@@ -29,7 +29,7 @@ private enum class CurveChannel(val title:String) { RGB("RGB"), RED("Red"), GREE
 private fun identityCurve()=listOf(CurvePoint(0f,0f),CurvePoint(.25f,.25f),CurvePoint(.5f,.5f),CurvePoint(.75f,.75f),CurvePoint(1f,1f))
 
 @Composable
-fun CurvesScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
+fun CurvesScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,CurvesValues)->Unit) {
     var target by remember { mutableStateOf(CurveChannel.RGB) }
     var rgb by remember { mutableStateOf(identityCurve()) }
     var red by remember { mutableStateOf(identityCurve()) }
@@ -46,7 +46,7 @@ fun CurvesScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
             Text("Curves",Modifier.weight(1f),color=Color.White)
             TextButton(onClick={setCurve(identityCurve())}){Text("Reset")}
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true))}}){Text("Apply")}
+            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true),curveValues)}}){Text("Apply")}
         }
         Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D)),contentAlignment=Alignment.Center) {
             preview?.let { Image(it.asImageBitmap(),null,Modifier.fillMaxSize().padding(8.dp),contentScale=ContentScale.Fit) } ?: CircularProgressIndicator()
