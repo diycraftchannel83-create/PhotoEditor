@@ -217,7 +217,8 @@ private fun renderSavedMask(source:Bitmap,mask:Bitmap,action:SelectionAction,inv
     if(maxX<minX||maxY<minY)return SelectionOutput(source.copy(Bitmap.Config.ARGB_8888,true),action)
     return SelectionOutput(Bitmap.createBitmap(source,minX,minY,maxX-minX+1,maxY-minY+1),action)
 }
-private fun processSelectionMask(mask:Bitmap,processor:com.winsmediatama.winsphotostudio.core.tools.SelectionMaskProcessor,invert:Boolean,expand:Int,feather:Int):Bitmap {
+private fun processSelectionMask(mask:Bitmap,invert:Boolean,expand:Int,feather:Int):Bitmap {
+    val processor=com.winsmediatama.winsphotostudio.core.tools.SelectionMaskProcessor
     var current=mask
     if(invert){val next=processor.invert(current);current.recycle();current=next}
     if(expand!=0){val next=processor.expandContract(current,expand);current.recycle();current=next}
