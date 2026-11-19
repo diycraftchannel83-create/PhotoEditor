@@ -119,6 +119,9 @@ private fun WinsPhotoApp() {
                 onImportAnother = { imagePicker.launch(arrayOf("image/*")) },
                 onCropTransform = { cropTransformOpen = true },
                 onAdjustments = { adjustmentOpen = true },
+                onLevels = { levelsOpen = true },
+                onCurves = { curvesOpen = true },
+                onLayers = { layersOpen = true },
                 onUndo = { if (editHistory.isNotEmpty()) { bitmap = editHistory.last(); layers=listOf(EditorLayer(name="Background",bitmap=editHistory.last())); editHistory = editHistory.dropLast(1) } },
                 canUndo = editHistory.isNotEmpty()
             )
