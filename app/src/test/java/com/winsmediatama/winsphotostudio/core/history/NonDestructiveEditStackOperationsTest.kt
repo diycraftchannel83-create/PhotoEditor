@@ -65,4 +65,16 @@ class NonDestructiveEditStackOperationsTest {
         val output = stack.render()
         assertEquals(android.graphics.Color.GRAY, output.getPixel(0, 0))
     }
+
+    @Test
+    fun malformedCropOperationsAreSkippedDuringJsonLoad() {
+        val src = source()
+        val json = org.json.JSONArray().put(org.json.JSONObject()
+            .put("id", "bad-crop")
+            .put("type", "crop")
+            .put("enabled", true)
+            .put("left", 0.8).put("top", 0.2).put("right", 0.3).put("bottom", 0.9))
+        val loaded = NonDestructiveEditStack.fromJson(src, json)
+        assertTrue(loaded.operations.isEmpty())
+    }
 }
