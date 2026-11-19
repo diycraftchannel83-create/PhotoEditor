@@ -37,11 +37,11 @@ fun FilterScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
     var selected by remember { mutableStateOf(filters.first()) }
     var strength by remember { mutableFloatStateOf(1f) }
     val preview by produceState<Bitmap?>(null,source,selected,strength) { value?.takeIf { it !== source }?.recycle(); value=null; value=withContext(Dispatchers.IO){BasicAdjustmentProcessor.apply(source,scaledFilterValues(selected.values,strength))} }
-    Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
+    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==source}?.recycle()}}\n    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.recycle()}}\n    Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
             Text("Filters",Modifier.weight(1f),color=Color.White)
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(enabled=preview!=null,onClick={preview?.let(onApply)}){Text("Apply")}
+            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true))}}){Text("Apply")}
         }
         Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D)),contentAlignment=Alignment.Center) {
             preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize().padding(8.dp),contentScale=ContentScale.Fit)}?:CircularProgressIndicator()
