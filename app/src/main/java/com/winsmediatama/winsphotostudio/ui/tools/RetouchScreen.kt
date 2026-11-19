@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-private enum class RetouchMode(val label:String){BLUR("Blur"),PIXELATE("Pixelate"),CLONE("Clone")}
+private enum class RetouchMode(val label:String){BLUR("Blur"),PIXELATE("Pixelate"),CLONE("Clone"),SPOT_HEAL("Spot heal"),DODGE("Dodge"),BURN("Burn"),SMUDGE("Smudge")}
 private data class RetouchStroke(val points:List<Offset>,val size:Float,val mode:RetouchMode)
 
 @Composable
@@ -61,7 +61,7 @@ fun RetouchScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
             Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){RetouchMode.entries.forEach{m->FilterChip(selected=mode==m,onClick={mode=m},label={Text(m.label)})}}
             Text("Brush size ${brushSize.toInt()} px",color=Color.LightGray);Slider(value=brushSize,onValueChange={brushSize=it},valueRange=5f..180f)
             if(mode!=RetouchMode.CLONE){Text("Strength ${(strength*100).toInt()}%",color=Color.LightGray);Slider(value=strength,onValueChange={strength=it},valueRange=.1f..1f)}
-            if(mode==RetouchMode.CLONE) {
+            if(mode==RetouchMode.CLONE||mode==RetouchMode.SMUDGE) {
                 Text("Source offset X: ${offsetX.toInt()}px",color=Color.LightGray);Slider(value=offsetX,onValueChange={offsetX=it},valueRange=-source.width.toFloat()..source.width.toFloat())
                 Text("Source offset Y: ${offsetY.toInt()}px",color=Color.LightGray);Slider(value=offsetY,onValueChange={offsetY=it},valueRange=-source.height.toFloat()..source.height.toFloat())
             }
@@ -75,27 +75,36 @@ private fun renderRetouch(source:Bitmap,strokes:List<RetouchStroke>,strength:Flo
     val base=IntArray(w*h);source.getPixels(base,0,w,0,0,w,h)
     var result=base.copyOf()
     val blur=boxBlur(base,w,h,3)
-    val pixel=if(strokes.any{it.mode==RetouchMode.PIXELATE}) pixelate(base,w,h,12) else base
-    for(mode in RetouchMode.entries) {
+    val pixel=if(strokes.any{it.mode==RetouchMode.PIXELATE})pixelate(base,w,h,12)else base
+    for(mode in RetouchMode.entries){
         val group=strokes.filter{it.mode==mode}
         if(group.isEmpty())continue
         val mask=FloatArray(w*h)
-        group.forEach { stroke ->
-            stroke.points.forEach { point ->
-                val cx=(point.x*w).toInt();val cy=(point.y*h).toInt();val radius=(stroke.size/2f).toInt().coerceAtLeast(1)
-                for(y in (cy-radius).coerceAtLeast(0)..(cy+radius).coerceAtMost(h-1)) for(x in (cx-radius).coerceAtLeast(0)..(cx+radius).coerceAtMost(w-1)) {
-                    val d=(x-cx)*(x-cx)+(y-cy)*(y-cy);if(d<=radius*radius)mask[y*w+x]=1f
-                }
+        group.forEach{stroke->stroke.points.forEach{point->
+            val cx=(point.x*w).toInt();val cy=(point.y*h).toInt();val radius=(stroke.size/2f).toInt().coerceAtLeast(1)
+            for(y in (cy-radius).coerceAtLeast(0)..(cy+radius).coerceAtMost(h-1))for(x in (cx-radius).coerceAtLeast(0)..(cx+radius).coerceAtMost(w-1)){
+                val d=(x-cx)*(x-cx)+(y-cy)*(y-cy);if(d<=radius*radius)mask[y*w+x]=1f
             }
-        }
-        for(i in result.indices) {
-            val m=mask[i]*strength;if(m<=0f)continue
-            val target=when(mode) {
-                RetouchMode.BLUR->blur[i]
-                RetouchMode.PIXELATE->pixel[i]
-                RetouchMode.CLONE->{val x=i%w;val y=i/w;val sx=(x-offsetX.toInt()).coerceIn(0,w-1);val sy=(y-offsetY.toInt()).coerceIn(0,h-1);base[sy*w+sx]}
+        }}
+        when(mode){
+            RetouchMode.SPOT_HEAL->{group.forEach{stroke->stroke.points.forEach{point->
+                val healed=com.winsmediatama.winsphotostudio.core.tools.RetouchProcessors.spotHeal(Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(result,0,w,0,0,w,h)},(point.x*w).toInt(),(point.y*h).toInt(),(stroke.size/2).toInt().coerceAtLeast(1))
+                val hp=IntArray(w*h);healed.getPixels(hp,0,w,0,0,w,h);healed.recycle()
+                val cx=(point.x*w).toInt();val cy=(point.y*h).toInt();val radius=(stroke.size/2).toInt().coerceAtLeast(1)
+                for(y in (cy-radius).coerceAtLeast(0)..(cy+radius).coerceAtMost(h-1))for(x in (cx-radius).coerceAtLeast(0)..(cx+radius).coerceAtMost(w-1)){val i=y*w+x;val d=(x-cx)*(x-cx)+(y-cy)*(y-cy);if(d<=radius*radius){val t=mask[i]*strength*(1f-kotlin.math.sqrt(d.toFloat())/radius).coerceIn(0f,1f);result[i]=blend(result[i],hp[i],t)}}
+            }}}
+            RetouchMode.DODGE,RetouchMode.BURN->{
+                val maskBitmap=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888);val mp=IntArray(w*h){i->val v=(mask[i]*255).toInt();android.graphics.Color.argb(255,v,v,v)};maskBitmap.setPixels(mp,0,w,0,0,w,h)
+                val adjusted=com.winsmediatama.winsphotostudio.core.tools.RetouchProcessors.dodgeBurn(Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(result,0,w,0,0,w,h)},if(mode==RetouchMode.DODGE).5f else -.5f,.5f,maskBitmap)
+                val ap=IntArray(w*h);adjusted.getPixels(ap,0,w,0,0,w,h);adjusted.recycle();maskBitmap.recycle()
+                for(i in result.indices)result[i]=blend(result[i],ap[i],strength)
             }
-            result[i]=blend(result[i],target,m)
+            RetouchMode.SMUDGE->{
+                val shifted=com.winsmediatama.winsphotostudio.core.tools.RetouchProcessors.smudge(Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(result,0,w,0,0,w,h)},offsetX.toInt(),offsetY.toInt(),strength)
+                val sp=IntArray(w*h);shifted.getPixels(sp,0,w,0,0,w,h);shifted.recycle()
+                for(i in result.indices)result[i]=blend(result[i],sp[i],mask[i]*strength)
+            }
+            else->for(i in result.indices){val m=mask[i]*strength;if(m<=0f)continue;val target=when(mode){RetouchMode.BLUR->blur[i];RetouchMode.PIXELATE->pixel[i];RetouchMode.CLONE->{val x=i%w;val y=i/w;val sx=(x-offsetX.toInt()).coerceIn(0,w-1);val sy=(y-offsetY.toInt()).coerceIn(0,h-1);base[sy*w+sx]};else->result[i]};result[i]=blend(result[i],target,m)}
         }
     }
     return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).also{it.setPixels(result,0,w,0,0,w,h)}
