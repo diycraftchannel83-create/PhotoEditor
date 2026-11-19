@@ -41,7 +41,7 @@ fun TextShapeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
     var alignment by remember{mutableStateOf(TextAlignment.CENTER)}
     var fontFamily by remember{mutableStateOf("sans-serif")}
     var tracking by remember{mutableFloatStateOf(0f)}
-    var lineSpacing by remember{mutableFloatStateOf(0f)
+    var lineSpacing by remember{mutableFloatStateOf(0f)}
     var fontMenu by remember{mutableStateOf(false)}
     var shadow by remember{mutableStateOf(false)}
     var shadowRadius by remember{mutableFloatStateOf(8f)}
@@ -72,8 +72,7 @@ fun TextShapeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
                 }
                 nc.save();nc.rotate(rotation,cx,cy)
                 when(kind){
-                    OverlayKind.TEXT->{val lines=text.split('
-');val step=p.textSize+lineSpacing*scale;val startY=cy-(lines.size-1)*step/2f;if(outline){val stroke=AndroidPaint(p).apply{color=outlineColor.toArgb();style=AndroidPaint.Style.STROKE;strokeWidth=outlineWidth*scale;clearShadowLayer()};lines.forEachIndexed{index,line->nc.drawText(line,cx,startY+index*step,stroke)}};p.style=AndroidPaint.Style.FILL;lines.forEachIndexed{index,line->nc.drawText(line,cx,startY+index*step,p)}}
+                    OverlayKind.TEXT->{val lines=text.split('\n');val step=p.textSize+lineSpacing*scale;val startY=cy-(lines.size-1)*step/2f;if(outline){val stroke=AndroidPaint(p).apply{color=outlineColor.toArgb();style=AndroidPaint.Style.STROKE;strokeWidth=outlineWidth*scale;clearShadowLayer()};lines.forEachIndexed{index,line->nc.drawText(line,cx,startY+index*step,stroke)}};p.style=AndroidPaint.Style.FILL;lines.forEachIndexed{index,line->nc.drawText(line,cx,startY+index*step,p)}}
                     OverlayKind.RECTANGLE->{p.style=if(shapeFill)AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE;nc.drawRect(cx-size.width*shapeWidth/2,cy-size.height*shapeHeight/2,cx+size.width*shapeWidth/2,cy+size.height*shapeHeight/2,p)}
                     OverlayKind.ELLIPSE->{p.style=if(shapeFill)AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE;nc.drawOval(RectF(cx-size.width*shapeWidth/2,cy-size.height*shapeHeight/2,cx+size.width*shapeWidth/2,cy+size.height*shapeHeight/2),p)}
                     OverlayKind.LINE->{p.style=AndroidPaint.Style.STROKE;nc.drawLine(cx-size.width*shapeWidth/2,cy,cx+size.width*shapeWidth/2,cy,p)}
