@@ -22,7 +22,7 @@
 - [x] Highlights, shadows, whites, blacks, vibrance, clarity and sharpen
 - [x] Composite/RGB Levels with input, gamma and output controls
 - [x] Composite and RGB Curves with draggable control points
-- [ ] Histogram
+- [x] RGB and luminance histogram UI/processor (CI verification pending)
 
 ## Phase 3 — Layer engine
 - [x] Bitmap layer stack
