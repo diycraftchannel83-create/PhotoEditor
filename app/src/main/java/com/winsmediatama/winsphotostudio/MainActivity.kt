@@ -93,7 +93,12 @@ private fun WinsPhotoApp() {
                 onCancel={layersOpen=false},
                 onApply={newLayers -> layersOpen=false; scope.launch { val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(newLayers,current.width,current.height)}; layers=newLayers; bitmap=composite }}
             )
-            else if (curvesOpen) CurvesScreen(\n                source=current,\n                onCancel={curvesOpen=false},\n                onApply={edited -> editHistory=editHistory+current; bitmap=edited; layers=listOf(EditorLayer(name="Background",bitmap=edited)); curvesOpen=false}\n            )\n            else if (levelsOpen) LevelsScreen(
+            else if (curvesOpen) CurvesScreen(
+                source=current,
+                onCancel={curvesOpen=false},
+                onApply={edited -> editHistory=editHistory+current; bitmap=edited; layers=listOf(EditorLayer(name="Background",bitmap=edited)); curvesOpen=false}
+            )
+            else if (levelsOpen) LevelsScreen(
                 source=current,
                 onCancel={levelsOpen=false},
                 onApply={edited -> editHistory=editHistory+current; bitmap=edited; layers=listOf(EditorLayer(name="Background",bitmap=edited)); levelsOpen=false}
@@ -169,7 +174,9 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
             TextButton(onClick = { zoom = 1f; panX = 0f; panY = 0f }) { Text("Fit") }
             TextButton(onClick = onUndo, enabled = canUndo) { Text("Undo") }
             TextButton(onClick = onCropTransform) { Text("Crop / Transform") }
-            TextButton(onClick = onAdjustments) { Text("Adjust") }\n            TextButton(onClick = onLevels) { Text("Levels") }\n            TextButton(onClick = onCurves) { Text("Curves") }
+            TextButton(onClick = onAdjustments) { Text("Adjust") }
+            TextButton(onClick = onLevels) { Text("Levels") }
+            TextButton(onClick = onCurves) { Text("Curves") }
             TextButton(onClick = onLayers) { Text("Layers") }
             TextButton(onClick = onImportAnother) { Text("Replace") }
         }
