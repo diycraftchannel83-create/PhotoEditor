@@ -50,7 +50,7 @@ fun TextShapeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
     var shapeHeight by remember{mutableFloatStateOf(.16f)}
     val palette=listOf(Color.White,Color.Black,Color(0xFFFF3B30),Color(0xFFFFC107),Color(0xFF00C853),Color(0xFF00B0FF),Color(0xFF7C4DFF),Color(0xFFFF4081))
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
-        Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24).padding(10.dp),verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(10.dp),verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
             Text("Text & Shapes",Modifier.weight(1f),color=Color.White)
             TextButton(onClick=onCancel){Text("Cancel")}
             Button(onClick={onApply(renderOverlay(source,kind,text,overlayColor,outlineColor,fontSize,x,y,opacity,rotation,bold,italic,outline,outlineWidth,alignment,fontFamily,shadow,shadowRadius,tracking,lineSpacing,shapeFill,shapeWidth,shapeHeight))}){Text("Apply")}
