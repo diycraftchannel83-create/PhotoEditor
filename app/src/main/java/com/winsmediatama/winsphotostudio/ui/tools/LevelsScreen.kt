@@ -29,8 +29,9 @@ fun LevelsScreen(source: Bitmap, onCancel:()->Unit, onApply:(Bitmap)->Unit) {
     var blue by remember { mutableStateOf(LevelsChannel()) }
     val values=LevelsValues(composite,red,green,blue)
     val preview by produceState<Bitmap?>(null,source,values) {
-        value?.takeIf { it !== source }?.recycle()
+        val previousPreview=value
         value=null
+        previousPreview?.takeIf { it !== source }?.recycle()
         value=withContext(Dispatchers.IO) { LevelsProcessor.apply(source,values) }
     }
     fun updateTarget(v:LevelsChannel) {
