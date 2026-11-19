@@ -105,13 +105,11 @@ private fun renderRetouch(source:Bitmap,strokes:List<RetouchStroke>,strength:Flo
             }}
             RetouchMode.DODGE,RetouchMode.BURN->{
                 val maskBitmap=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888);val mp=IntArray(w*h){i->val v=(mask[i]*255).toInt();android.graphics.Color.argb(255,v,v,v)};maskBitmap.setPixels(mp,0,w,0,0,w,h)
-                val adjusted=com.winsmediatama.winsphotostudio.core.tools.RetouchProcessors.dodgeBurn(Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(result,0,w,0,0,w,h)},if(mode==RetouchMode.DODGE).5f else -.5f,.5f,maskBitmap)
-                val ap=IntArray(w*h);adjusted.getPixels(ap,0,w,0,0,w,h);adjusted.recycle();maskBitmap.recycle()
+                val working=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(result,0,w,0,0,w,h)}\n                val adjusted=com.winsmediatama.winsphotostudio.core.tools.RetouchProcessors.dodgeBurn(working,if(mode==RetouchMode.DODGE).5f else -.5f,.5f,maskBitmap)\n                if(adjusted!==working)working.recycle()\n                val ap=IntArray(w*h);adjusted.getPixels(ap,0,w,0,0,w,h);if(!adjusted.isRecycled)adjusted.recycle();maskBitmap.recycle()
                 for(i in result.indices)result[i]=blend(result[i],ap[i],strength)
             }
             RetouchMode.SMUDGE->{
-                val shifted=com.winsmediatama.winsphotostudio.core.tools.RetouchProcessors.smudge(Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(result,0,w,0,0,w,h)},offsetX.toInt(),offsetY.toInt(),strength)
-                val sp=IntArray(w*h);shifted.getPixels(sp,0,w,0,0,w,h);shifted.recycle()
+                val working=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(result,0,w,0,0,w,h)}\n                val shifted=com.winsmediatama.winsphotostudio.core.tools.RetouchProcessors.smudge(working,offsetX.toInt(),offsetY.toInt(),strength)\n                if(shifted!==working)working.recycle()\n                val sp=IntArray(w*h);shifted.getPixels(sp,0,w,0,0,w,h);if(!shifted.isRecycled)shifted.recycle()
                 for(i in result.indices)result[i]=blend(result[i],sp[i],mask[i]*strength)
             }
             else->for(i in result.indices){val m=mask[i]*strength;if(m<=0f)continue;val target=when(mode){RetouchMode.BLUR->blur[i];RetouchMode.PIXELATE->pixel[i];RetouchMode.CLONE->{val x=i%w;val y=i/w;val sx=(x-offsetX.toInt()).coerceIn(0,w-1);val sy=(y-offsetY.toInt()).coerceIn(0,h-1);base[sy*w+sx]};else->result[i]};result[i]=blend(result[i],target,m)}
