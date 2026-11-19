@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.google.mlkit.vision.segmentation.Segmentation
-import com.google.mlkit.vision.segmentation.SelfieSegmenterOptions
+import com.google.mlkit.vision.segmentation.selfie.SelfieSegmenterOptions
 import com.google.mlkit.vision.common.InputImage
 import com.google.android.gms.tasks.Tasks
 import kotlinx.coroutines.Dispatchers
@@ -53,7 +53,7 @@ fun AiBackgroundRemoveScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->U
             TextButton(onClick=onCancel){Text("Cancel")}
             Button(enabled=preview!=null,onClick={preview?.let(onApply)}){Text("Apply")}
         }
-        Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D)),contentAlignment=Alignment.Center) {
+        Box(Modifier.weight(1f).fillMaxWidth().aspectRatio(source.width.toFloat()/source.height).padding(12.dp).background(Color(0xFF25282D),contentAlignment=Alignment.Center) {
             preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize().padding(8.dp),contentScale=ContentScale.Fit)}
                 ?: if(segmentation.error!=null) Text(segmentation.error,color=Color(0xFFFF8080)) else CircularProgressIndicator()
         }
