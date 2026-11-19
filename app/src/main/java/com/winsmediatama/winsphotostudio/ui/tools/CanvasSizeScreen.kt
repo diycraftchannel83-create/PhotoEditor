@@ -14,7 +14,7 @@ import com.winsmediatama.winsphotostudio.core.tools.CanvasAnchor
 import com.winsmediatama.winsphotostudio.core.tools.CanvasResizeProcessor
 
 @Composable
-fun CanvasSizeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
+fun CanvasSizeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,Int,Int,CanvasAnchor,Int)->Unit) {
     var width by remember{mutableFloatStateOf(source.width.toFloat())}
     var height by remember{mutableFloatStateOf(source.height.toFloat())}
     var anchor by remember{mutableStateOf(CanvasAnchor.CENTER)}
@@ -24,7 +24,7 @@ fun CanvasSizeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically){
             Text("Canvas Size",Modifier.weight(1f),color=Color.White)
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(onClick={onApply(CanvasResizeProcessor.resize(source,width.toInt(),height.toInt(),anchor,background.toArgb()))}){Text("Apply")}
+            Button(onClick={onApply(CanvasResizeProcessor.resize(source,width.toInt(),height.toInt(),anchor,background.toArgb()),width.toInt(),height.toInt(),anchor,background.toArgb())}){Text("Apply")}
         }
         Column(Modifier.fillMaxWidth().padding(16.dp)){
             Text("Width: ${width.toInt()} px",color=Color.LightGray);Slider(value=width,onValueChange={width=it},valueRange=1f..minOf(8192f,source.width*3f).coerceAtLeast(1f))
