@@ -44,9 +44,46 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->U
     var saveDialogOpen by remember{mutableStateOf(false)}
     var selectionName by remember{mutableStateOf("")}
     var savedSelectionMessage by remember{mutableStateOf<String?>(null)}
+    var manageDialogOpen by remember{mutableStateOf(false)}
+    var savedItems by remember{mutableStateOf(savedSelectionStore.list())}
+    var loadedMask by remember{mutableStateOf<Bitmap?>(null)}
+    var renameTarget by remember{mutableStateOf<com.winsmediatama.winsphotostudio.core.selection.SavedSelection?>(null)}
+    var renameValue by remember{mutableStateOf("")}
+    DisposableEffect(Unit){onDispose{loadedMask?.recycle()}}
     val selectionOverlay by produceState<Bitmap?>(null,source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection){
         value?.takeIf{it!==source}?.recycle();value=null
         value=withContext(Dispatchers.Default){runCatching{buildSelectionOverlay(source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection)}.getOrNull()}
+    }
+    if(manageDialogOpen) AlertDialog(
+        onDismissRequest={manageDialogOpen=false},
+        title={Text("Saved selection masks")},
+        text={Column(verticalArrangement=Arrangement.spacedBy(8.dp),modifier=Modifier.heightIn(max=420.dp)){
+            if(savedItems.isEmpty()) Text("No saved masks yet.")
+            savedItems.forEach { item ->
+                Row(verticalAlignment=androidx.compose.ui.Alignment.CenterVertically){
+                    Column(Modifier.weight(1f)){
+                        Text(item.name,color=Color.White)
+                        Text("${item.width} × ${item.height}",style=MaterialTheme.typography.bodySmall,color=Color.LightGray)
+                    }
+                    TextButton(onClick={
+                        val loaded=runCatching{savedSelectionStore.load(item.id)}.getOrNull()
+                        loadedMask?.recycle();loadedMask=loaded
+                        if(loaded!=null){manageDialogOpen=false;savedSelectionMessage="Loaded mask: ${item.name}"}
+                    }){Text("Use")}
+                    TextButton(onClick={renameTarget=item;renameValue=item.name}){Text("Rename")}
+                    TextButton(onClick={savedSelectionStore.delete(item.id);savedItems=savedSelectionStore.list();if(loadedMask!=null){loadedMask?.recycle();loadedMask=null}}){Text("Delete")}
+                }
+            }
+            if(loadedMask!=null) Text("Loaded mask is active. It will override the current shape until cleared.",color=Color(0xFF77D7C0))
+        }},
+        confirmButton={TextButton(onClick={savedItems=savedSelectionStore.list();manageDialogOpen=false}){Text("Done")}},
+        dismissButton={TextButton(onClick={loadedMask?.recycle();loadedMask=null}){Text("Clear loaded mask")}}
+    )
+    renameTarget?.let { target ->
+        AlertDialog(onDismissRequest={renameTarget=null},title={Text("Rename selection")},
+            text={OutlinedTextField(value=renameValue,onValueChange={renameValue=it},label={Text("New name")},singleLine=true)},
+            confirmButton={TextButton(onClick={if(savedSelectionStore.rename(target.id,renameValue)){savedItems=savedSelectionStore.list();renameTarget=null}}){Text("Rename")}},
+            dismissButton={TextButton(onClick={renameTarget=null}){Text("Cancel")}})
     }
     if(saveDialogOpen) AlertDialog(
         onDismissRequest={saveDialogOpen=false},
@@ -67,10 +104,11 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->U
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))){
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(10.dp)){
             Text("Selection",Modifier.weight(1f),color=Color.White)
-            TextButton(onClick={saveDialogOpen=true}){Text("Save selection")}
+            TextButton(onClick={savedSelectionMessage=null;saveDialogOpen=true}){Text("Save selection")}
+            TextButton(onClick={savedItems=savedSelectionStore.list();manageDialogOpen=true}){Text("Saved masks (${savedItems.size})")}
             TextButton(onClick={rect=Rect(0f,0f,1f,1f);polygonPoints=emptyList()}){Text("Select all")}
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(enabled=(shape!=SelectionShape.POLYGON&&shape!=SelectionShape.FREEHAND)||(polygonPoints.size>=3),onClick={onApply(renderSelection(source,rect,shape,action,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection))}){Text("Apply")}
+            Button(enabled=(shape!=SelectionShape.POLYGON&&shape!=SelectionShape.FREEHAND)||(polygonPoints.size>=3),onClick={onApply(loadedMask?.let{renderSavedMask(source,it,action)} ?: renderSelection(source,rect,shape,action,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection))}){Text("Apply")}
         }
         Row(Modifier.fillMaxWidth().padding(8.dp),horizontalArrangement=Arrangement.spacedBy(4.dp)){
             SelectionShape.entries.forEach{s->FilterChip(selected=shape==s,onClick={shape=s},label={Text(s.name.replace("_"," "))})}
@@ -159,6 +197,28 @@ private fun applyMask(source:Bitmap,mask:Bitmap):Bitmap {
     val w=source.width;val h=source.height;val pixels=IntArray(w*h);source.getPixels(pixels,0,w,0,0,w,h);val mp=IntArray(w*h);mask.getPixels(mp,0,w,0,0,w,h)
     for(i in pixels.indices){val p=pixels[i];val m=android.graphics.Color.red(mp[i]);val a=(p ushr 24)*m/255;pixels[i]=(a shl 24) or (p and 0x00FFFFFF)}
     return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(pixels,0,w,0,0,w,h)}
+}
+private fun buildMaskOverlay(source:Bitmap,mask:Bitmap):Bitmap {
+    val w=source.width;val h=source.height
+    val scaled=if(mask.width==w&&mask.height==h) mask else Bitmap.createScaledBitmap(mask,w,h,true)
+    val pixels=IntArray(w*h);scaled.getPixels(pixels,0,w,0,0,w,h)
+    if(scaled!==mask)scaled.recycle()
+    val overlay=IntArray(pixels.size){i->val alpha=(android.graphics.Color.red(pixels[i])*.3f).toInt().coerceIn(0,255);android.graphics.Color.argb(alpha,119,215,192)}
+    return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(overlay,0,w,0,0,w,h)}
+}
+private fun renderSavedMask(source:Bitmap,mask:Bitmap,action:SelectionAction):SelectionOutput {
+    val w=source.width;val h=source.height
+    val scaled=if(mask.width==w&&mask.height==h)mask else Bitmap.createScaledBitmap(mask,w,h,true)
+    val copy=if(scaled===mask) Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{scaled.copyTo(this)} else scaled
+    if(scaled!==mask)scaled.recycle()
+    if(action==SelectionAction.MASK)return SelectionOutput(applyMask(source,copy),action,copy)
+    if(action==SelectionAction.COPY_LAYER){val out=applyMask(source,copy);copy.recycle();return SelectionOutput(out,action)}
+    val pixels=IntArray(w*h);copy.getPixels(pixels,0,w,0,0,w,h)
+    var minX=w;var minY=h;var maxX=-1;var maxY=-1
+    for(y in 0 until h)for(x in 0 until w)if(android.graphics.Color.red(pixels[y*w+x])>0){minX=minOf(minX,x);minY=minOf(minY,y);maxX=maxOf(maxX,x);maxY=maxOf(maxY,y)}
+    copy.recycle()
+    if(maxX<minX||maxY<minY)return SelectionOutput(source.copy(Bitmap.Config.ARGB_8888,true),action)
+    return SelectionOutput(Bitmap.createBitmap(source,minX,minY,maxX-minX+1,maxY-minY+1),action)
 }
 private fun createCurrentSelectionMask(source:Bitmap,shape:SelectionShape,rect:Rect,points:List<Pair<Float,Float>>,sampleColor:Int,tolerance:Float,softness:Float,seed:Pair<Float,Float>,featherRadius:Float,expandRadius:Float,invertSelection:Boolean):Bitmap {
     val processor=com.winsmediatama.winsphotostudio.core.tools.SelectionMaskProcessor
