@@ -156,20 +156,15 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->U
 
 private fun buildSelectionOverlay(source:Bitmap,shape:SelectionShape,rect:Rect,points:List<Pair<Float,Float>>,sampleColor:Int,tolerance:Float,softness:Float,seed:Pair<Float,Float>,featherRadius:Float,expandRadius:Float,invertSelection:Boolean,loadedMask:Bitmap?):Bitmap? {
     val processor=com.winsmediatama.winsphotostudio.core.tools.SelectionMaskProcessor
-    val mask=when(shape){
+    val mask=loadedMask?.let{if(it.width==source.width&&it.height==source.height)it.copy(Bitmap.Config.ARGB_8888,true)else Bitmap.createScaledBitmap(it,source.width,source.height,true)}?:when(shape){
         SelectionShape.RECTANGLE->processor.rectangle(source.width,source.height,rect.left,rect.top,rect.right,rect.bottom)
         SelectionShape.ELLIPSE->processor.ellipse(source.width,source.height,rect.left,rect.top,rect.right,rect.bottom)
         SelectionShape.POLYGON,SelectionShape.FREEHAND->if(points.size>=3)processor.polygon(source.width,source.height,points)else return null
         SelectionShape.COLOR_RANGE->processor.colorRange(source,sampleColor,tolerance,softness)
         SelectionShape.MAGIC_WAND->processor.magicWand(source,(seed.first*source.width).toInt(),(seed.second*source.height).toInt(),tolerance)
     }
-    var processed=mask
-    if(invertSelection)processed=processor.invert(processed)
-    if(expandRadius.toInt()!=0){val next=processor.expandContract(processed,expandRadius.toInt());if(processed!==mask)processed.recycle();processed=next}
-    if(featherRadius.toInt()>0){val next=processor.feather(processed,featherRadius.toInt());if(processed!==mask)processed.recycle();processed=next}
-    val values=IntArray(source.width*source.height);processed.getPixels(values,0,source.width,0,0,source.width,source.height);if(processed!==mask)processed.recycle();mask.recycle()
-    val overlay=IntArray(values.size){i->val alpha=(android.graphics.Color.red(values[i])*.3f).toInt().coerceIn(0,255);android.graphics.Color.argb(alpha,119,215,192)}
-    return Bitmap.createBitmap(source.width,source.height,Bitmap.Config.ARGB_8888).apply{setPixels(overlay,0,source.width,0,0,source.width,source.height)}
+    val processed=processSelectionMask(mask,processor,invertSelection,expandRadius.toInt(),featherRadius.toInt())
+    val overlay=buildMaskOverlay(source,processed);processed.recycle();return overlay
 }
 private fun Rect.normalize()=Rect(minOf(left,right),minOf(top,bottom),maxOf(left,right),maxOf(top,bottom))
 private fun Rect.clampUnit()=Rect(left.coerceIn(0f,1f),top.coerceIn(0f,1f),right.coerceIn(0f,1f),bottom.coerceIn(0f,1f))
@@ -208,29 +203,38 @@ private fun buildMaskOverlay(source:Bitmap,mask:Bitmap):Bitmap {
     val overlay=IntArray(pixels.size){i->val alpha=(android.graphics.Color.red(pixels[i])*.3f).toInt().coerceIn(0,255);android.graphics.Color.argb(alpha,119,215,192)}
     return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(overlay,0,w,0,0,w,h)}
 }
-private fun renderSavedMask(source:Bitmap,mask:Bitmap,action:SelectionAction):SelectionOutput {
+private fun renderSavedMask(source:Bitmap,mask:Bitmap,action:SelectionAction,invert:Boolean,expand:Int,feather:Int):SelectionOutput {
     val w=source.width;val h=source.height
-    val scaled=if(mask.width==w&&mask.height==h)mask else Bitmap.createScaledBitmap(mask,w,h,true)
-    val copy=if(scaled===mask) Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{scaled.copy(Bitmap.Config.ARGB_8888,true)} else scaled
-    if(scaled!==mask)scaled.recycle()
-    if(action==SelectionAction.MASK)return SelectionOutput(applyMask(source,copy),action,copy)
-    if(action==SelectionAction.COPY_LAYER){val out=applyMask(source,copy);copy.recycle();return SelectionOutput(out,action)}
-    val pixels=IntArray(w*h);copy.getPixels(pixels,0,w,0,0,w,h)
+    val base=if(mask.width==w&&mask.height==h)mask.copy(Bitmap.Config.ARGB_8888,true)else Bitmap.createScaledBitmap(mask,w,h,true)
+    val processor=com.winsmediatama.winsphotostudio.core.tools.SelectionMaskProcessor
+    val processed=processSelectionMask(base,processor,invert,expand,feather)
+    if(action==SelectionAction.MASK)return SelectionOutput(applyMask(source,processed),action,processed)
+    if(action==SelectionAction.COPY_LAYER){val out=applyMask(source,processed);processed.recycle();return SelectionOutput(out,action)}
+    val pixels=IntArray(w*h);processed.getPixels(pixels,0,w,0,0,w,h)
     var minX=w;var minY=h;var maxX=-1;var maxY=-1
     for(y in 0 until h)for(x in 0 until w)if(android.graphics.Color.red(pixels[y*w+x])>0){minX=minOf(minX,x);minY=minOf(minY,y);maxX=maxOf(maxX,x);maxY=maxOf(maxY,y)}
-    copy.recycle()
+    processed.recycle()
     if(maxX<minX||maxY<minY)return SelectionOutput(source.copy(Bitmap.Config.ARGB_8888,true),action)
     return SelectionOutput(Bitmap.createBitmap(source,minX,minY,maxX-minX+1,maxY-minY+1),action)
 }
+private fun processSelectionMask(mask:Bitmap,processor:com.winsmediatama.winsphotostudio.core.tools.SelectionMaskProcessor,invert:Boolean,expand:Int,feather:Int):Bitmap {
+    var current=mask
+    if(invert){val next=processor.invert(current);current.recycle();current=next}
+    if(expand!=0){val next=processor.expandContract(current,expand);current.recycle();current=next}
+    if(feather>0){val next=processor.feather(current,feather);current.recycle();current=next}
+    return current
+}
 private fun createCurrentSelectionMask(source:Bitmap,shape:SelectionShape,rect:Rect,points:List<Pair<Float,Float>>,sampleColor:Int,tolerance:Float,softness:Float,seed:Pair<Float,Float>,featherRadius:Float,expandRadius:Float,invertSelection:Boolean,loadedMask:Bitmap?):Bitmap {
     val processor=com.winsmediatama.winsphotostudio.core.tools.SelectionMaskProcessor
-    var mask=when(shape){
+    val mask=loadedMask?.let{if(it.width==source.width&&it.height==source.height)it.copy(Bitmap.Config.ARGB_8888,true)else Bitmap.createScaledBitmap(it,source.width,source.height,true)}?:when(shape){
         SelectionShape.RECTANGLE->processor.rectangle(source.width,source.height,rect.left,rect.top,rect.right,rect.bottom)
         SelectionShape.ELLIPSE->processor.ellipse(source.width,source.height,rect.left,rect.top,rect.right,rect.bottom)
         SelectionShape.POLYGON,SelectionShape.FREEHAND->processor.polygon(source.width,source.height,points)
         SelectionShape.COLOR_RANGE->processor.colorRange(source,sampleColor,tolerance,softness)
         SelectionShape.MAGIC_WAND->processor.magicWand(source,(seed.first*source.width).toInt(),(seed.second*source.height).toInt(),tolerance)
     }
+    return processSelectionMask(mask,processor,invertSelection,expandRadius.toInt(),featherRadius.toInt())
+}
     if(invertSelection){val next=processor.invert(mask);mask.recycle();mask=next}
     if(expandRadius.toInt()!=0){val next=processor.expandContract(mask,expandRadius.toInt());mask.recycle();mask=next}
     if(featherRadius.toInt()>0){val next=processor.feather(mask,featherRadius.toInt());mask.recycle();mask=next}
