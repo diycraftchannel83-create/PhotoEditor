@@ -63,6 +63,7 @@ import com.winsmediatama.winsphotostudio.core.editor.LayerCompositeRenderer
 import com.winsmediatama.winsphotostudio.core.editor.AlphaLockProcessor
 import com.winsmediatama.winsphotostudio.core.storage.RecoveryStore
 import com.winsmediatama.winsphotostudio.core.export.FullResolutionExport
+import com.winsmediatama.winsphotostudio.core.export.NativeSourceLayerExport
 import com.winsmediatama.winsphotostudio.core.importer.PreviewImageDecoder
 import com.winsmediatama.winsphotostudio.core.importer.OriginalSourceCache
 import java.io.File
@@ -126,6 +127,9 @@ private fun WinsPhotoApp() {
     var sourceHeight by remember { mutableIntStateOf(0) }
     var originalSourceCached by remember { mutableStateOf(false) }
     var originalSourceBytes by remember { mutableLongStateOf(0L) }
+    var sourceLayerId by remember { mutableStateOf<String?>(null) }
+    var sourcePreviewWidth by remember { mutableIntStateOf(0) }
+    var sourcePreviewHeight by remember { mutableIntStateOf(0) }
     var exportStatus by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -181,32 +185,45 @@ private fun WinsPhotoApp() {
             layers=updated;selectedLayerId=selected.id;bitmap=composite
         }
     }
+    suspend fun buildExportBitmap(currentBitmap:Bitmap):Pair<Bitmap,Boolean> = withContext(Dispatchers.IO) {
+        if(exportOriginalDimensions && originalSourceCached && sourceLayerId!=null && sourceWidth>0 && sourceHeight>0 &&
+            sourceWidth.toLong()*sourceHeight<=FullResolutionExport.MAX_EXPORT_PIXELS) {
+            runCatching {
+                val cacheFile=File(context.filesDir,"original-source-cache/active-source.original")
+                val cached=OriginalSourceCache.CachedSource(cacheFile,sourceWidth,sourceHeight,cacheFile.length())
+                val source=OriginalSourceCache(File(context.filesDir,"original-source-cache")).decode(cached,FullResolutionExport.MAX_EXPORT_PIXELS)
+                try {
+                    NativeSourceLayerExport.render(source,layers,sourceLayerId!!,sourcePreviewWidth,sourcePreviewHeight)
+                } finally { source.recycle() }
+            }.getOrNull()?.let { return@withContext it to true }
+        }
+        val size=FullResolutionExport.targetSize(currentBitmap,sourceWidth,sourceHeight,exportOriginalDimensions)
+        FullResolutionExport.render(currentBitmap,size) to false
+    }
     val jpegExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/jpeg")) { uri ->
         val currentBitmap=bitmap
         if(uri!=null && currentBitmap!=null) scope.launch {
             val ok=withContext(Dispatchers.IO) { runCatching { context.contentResolver.openOutputStream(uri)?.use { stream ->
-                val size=FullResolutionExport.targetSize(currentBitmap,sourceWidth,sourceHeight,exportOriginalDimensions)
-                val resized=FullResolutionExport.render(currentBitmap,size)
+                val (resized,nativeReplay)=buildExportBitmap(currentBitmap)
                 val flattened=flattenForJpeg(resized,exportBackground)
                 val compressed=flattened.compress(Bitmap.CompressFormat.JPEG,exportQuality.toInt(),stream)
                 flattened.recycle()
                 if(resized!==currentBitmap)resized.recycle()
                 compressed
             } ?: false }.getOrDefault(false) }
-            exportStatus=if(ok) "JPEG exported successfully" else "Export failed"
+            exportStatus=if(ok) (if(exportOriginalDimensions) "JPEG exported at source dimensions" else "JPEG exported successfully") else "Export failed"
         }
     }
     val pngExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/png")) { uri ->
         val currentBitmap=bitmap
         if(uri!=null && currentBitmap!=null) scope.launch {
             val ok=withContext(Dispatchers.IO) { runCatching {
-                val size=FullResolutionExport.targetSize(currentBitmap,sourceWidth,sourceHeight,exportOriginalDimensions)
-                val resized=FullResolutionExport.render(currentBitmap,size)
+                val (resized,nativeReplay)=buildExportBitmap(currentBitmap)
                 val result=context.contentResolver.openOutputStream(uri)?.use { resized.compress(Bitmap.CompressFormat.PNG,100,it) } ?: false
                 if(resized!==currentBitmap)resized.recycle()
                 result
             }.getOrDefault(false) }
-            exportStatus=if(ok) "PNG exported successfully" else "Export failed"
+            exportStatus=if(ok) (if(exportOriginalDimensions) "PNG exported at source dimensions" else "PNG exported successfully") else "Export failed"
         }
     }
     val layerImagePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -254,9 +271,11 @@ private fun WinsPhotoApp() {
         bitmap=decodedInfo?.bitmap
         sourceWidth=cachedSource?.width?:decodedInfo?.sourceWidth?:0
         sourceHeight=cachedSource?.height?:decodedInfo?.sourceHeight?:0
+        sourcePreviewWidth=decodedInfo?.bitmap?.width?:0
+        sourcePreviewHeight=decodedInfo?.bitmap?.height?:0
         exportOriginalDimensions=false
         loading = false
-        bitmap?.let { loaded -> val bg=EditorLayer(name="Background",bitmap=loaded);layers=listOf(bg);selectedLayerId=bg.id }
+        bitmap?.let { loaded -> val bg=EditorLayer(name="Background",bitmap=loaded,originalBitmap=loaded);layers=listOf(bg);selectedLayerId=bg.id;sourceLayerId=bg.id }
         if (bitmap == null) error = "Unable to open image. Try JPG, PNG or WebP."
     }
     MaterialTheme(colorScheme = darkColorScheme(background = StudioBackground, surface = StudioSurface, primary = StudioAccent, onPrimary = Color(0xFF08231D), onBackground = Color.White, onSurface = Color.White)) {
