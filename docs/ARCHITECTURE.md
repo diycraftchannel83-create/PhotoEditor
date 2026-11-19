@@ -23,7 +23,7 @@ Imported bitmap/proxy -> editor layers -> selected-layer tool processing or comp
 Layer operations include visibility, opacity, ordering, duplication, rename, image/empty layer insertion, and blend modes. The current editor uses a flattened canvas snapshot after canvas-wide crop/selection operations and keeps a hidden previous-composite layer for recovery. Many adjustment/retouch tools currently apply directly to the selected bitmap layer rather than creating fully parameterized adjustment layers.
 
 ## Project persistence
-Project Manager saves and reopens flattened PNG canvas snapshots with JSON metadata. Full editable project serialization (all source assets, layers, masks, blend/adjustment parameters and history) remains unfinished.
+Project Manager saves and reopens layer PNG assets plus JSON metadata for layer order, visibility, opacity, blend mode and selected layer. Tool adjustment parameters are currently baked into layer bitmaps; masks, groups and live adjustment layers are not serialized.
 
 ## History
 Canvas Undo is bounded to five composite snapshots to limit memory. The command-history model remains a foundation for future operation-level history.
