@@ -55,6 +55,7 @@
 - [x] Imported .cube LUT text is retained in a replayable LUT operation, with parse validation and stack toggle
 - [ ] Add selection and remaining tool operations to stack
 - [x] Retouch operation model added to NonDestructiveEditStack with normalized stroke JSON, strength/offset parameters, enable/disable/replay and source-preserving render path (test authored; verification pending)
+- [x] Retouch UI returns stroke parameters and MainActivity commits it as a replayable per-layer operation (build/device verification pending)
 - [x] Core retouch mode/stroke model with normalized points, validation and JSON codec
 - [x] Retouch UI migrated to shared Core stroke model
 - [x] Bitmap retouch renderer moved into Core tools and UI delegates to shared processor (operation replay/persistence pending)
