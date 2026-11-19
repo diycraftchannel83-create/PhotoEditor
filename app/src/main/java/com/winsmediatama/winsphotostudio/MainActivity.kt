@@ -101,7 +101,7 @@ private fun WinsPhotoApp() {
             val updated=layers.map{if(it.id==selected.id)it.copy(bitmap=edited) else it}
             scope.launch {
                 val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,previousComposite.width,previousComposite.height)}
-                layers=updated;selectedLayerId=updated.lastOrNull()?.id;bitmap=composite
+                layers=updated;selectedLayerId=selected.id;bitmap=composite
             }
         } else {
             val newLayer=EditorLayer(name="Background",bitmap=edited)
@@ -134,13 +134,14 @@ private fun WinsPhotoApp() {
                 runCatching {
                     val bounds=Options().apply{inJustDecodeBounds=true}
                     context.contentResolver.openInputStream(uri)?.use{BitmapFactory.decodeStream(it,null,bounds)}
-                    val sample=calculateSampleSize(bounds.outWidth,bounds.outHeight,4096)
+                    val sample=calculateSampleSize(bounds.outWidth,bounds.outHeight,2048)
                     val opts=Options().apply{inSampleSize=sample;inPreferredConfig=Bitmap.Config.ARGB_8888}
                     context.contentResolver.openInputStream(uri)?.use{BitmapFactory.decodeStream(it,null,opts)}
                 }.getOrNull()
             }
             if(decoded!=null) {
                 val fitted=withContext(Dispatchers.IO){fitBitmapToCanvas(decoded,canvasBitmap.width,canvasBitmap.height)}
+                editHistory=editHistory+canvasBitmap
                 val updated=layers+EditorLayer(name="Photo Layer ${layers.size+1}",bitmap=fitted)
                 val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,canvasBitmap.width,canvasBitmap.height)}
                 layers=updated;bitmap=composite
@@ -148,7 +149,7 @@ private fun WinsPhotoApp() {
         }
     }
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) { imageUri = uri; loading = true; error = null }
+        if (uri != null) { imageUri = uri; loading = true; error = null; editHistory=emptyList() }
     }
     LaunchedEffect(imageUri) {
         val selected = imageUri ?: return@LaunchedEffect
@@ -156,7 +157,7 @@ private fun WinsPhotoApp() {
             runCatching {
                 val bounds = Options().apply { inJustDecodeBounds = true }
                 context.contentResolver.openInputStream(selected)?.use { BitmapFactory.decodeStream(it, null, bounds) }
-                val sample = calculateSampleSize(bounds.outWidth, bounds.outHeight, 4096)
+                val sample = calculateSampleSize(bounds.outWidth, bounds.outHeight, 2048)
                 val decodeOptions = Options().apply { inSampleSize = sample; inPreferredConfig = Bitmap.Config.ARGB_8888 }
                 context.contentResolver.openInputStream(selected)?.use { BitmapFactory.decodeStream(it, null, decodeOptions) }
             }.getOrNull()
@@ -168,7 +169,7 @@ private fun WinsPhotoApp() {
     MaterialTheme(colorScheme = darkColorScheme(background = StudioBackground, surface = StudioSurface, primary = StudioAccent, onPrimary = Color(0xFF08231D), onBackground = Color.White, onSurface = Color.White)) {
         Surface(Modifier.fillMaxSize(), color = StudioBackground) {
             val current = bitmap
-            val selectedBitmap = current?.let { canvas -> layers.firstOrNull{it.id==selectedLayerId}?.bitmap ?: canvas } ?: Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
+            val selectedBitmap = remember(current,layers,selectedLayerId) { current?.let { canvas -> layers.firstOrNull{it.id==selectedLayerId}?.bitmap ?: canvas } ?: Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888) }
             if (current == null) HomeScreen(loading, error) { imagePicker.launch(arrayOf("image/*")) }
             else if (aiBackgroundRemoveOpen) AiBackgroundRemoveScreen(
                 source=selectedBitmap,
@@ -215,7 +216,7 @@ private fun WinsPhotoApp() {
                 selectedLayerId=selectedLayerId,
                 onCancel={layersOpen=false},
                 onAddImage={layerImagePicker.launch(arrayOf("image/*"))},
-                onApply={newLayers,newSelected -> layersOpen=false;selectedLayerId=newSelected; scope.launch { val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(newLayers,current.width,current.height)}; layers=newLayers; bitmap=composite }}
+                onApply={newLayers,newSelected -> editHistory=editHistory+current;layersOpen=false;selectedLayerId=newSelected; scope.launch { val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(newLayers,current.width,current.height)}; layers=newLayers; bitmap=composite }}
             )
             else if (curvesOpen) CurvesScreen(
                 source=selectedBitmap,
