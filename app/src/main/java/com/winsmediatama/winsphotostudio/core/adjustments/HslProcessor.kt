@@ -35,8 +35,8 @@ object HslProcessor {
         return output
     }
     private fun rgbToHsl(r:Float,g:Float,b:Float):FloatArray {
-        val max=max(r,max(g,b));val min=min(r,min(g,b));val delta=max-min
-        val l=(max+min)/2f
+        val maxChannel=maxOf(r,g,b);val minChannel=minOf(r,g,b);val delta=maxChannel-minChannel
+        val l=(maxChannel+minChannel)/2f
         if(delta==0f)return floatArrayOf(0f,0f,l)
         val s=delta/(1f-abs(2f*l-1f))
         var h=when(max) {
@@ -55,6 +55,6 @@ object HslProcessor {
         val (r,g,b)=when(h.toInt()) {
             0->Triple(c,x,0f);1->Triple(x,c,0f);2->Triple(0f,c,x);3->Triple(0f,x,c);4->Triple(x,0f,c);else->Triple(c,0f,x)
         }
-        return floatArrayOf((r+m).coerceIn(0f,1f),(g+m).coerceIn(0f,1f),(b+m).coerceIn(0f,1f)
+        return floatArrayOf((r+m).coerceIn(0f,1f),(g+m).coerceIn(0f,1f),(b+m).coerceIn(0f,1f))
     }
 }
