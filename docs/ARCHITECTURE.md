@@ -5,7 +5,7 @@
 2. Imported originals are not overwritten.
 3. Preview/apply tool workflow; bounded bitmap undo/redo.
 4. Modular Kotlin processors and Compose screens.
-5. Memory-conscious preview proxy capped near 2048px maximum dimension.
+5. Bounds-first import decoding; preview proxy capped near 2048px maximum dimension, source dimensions retained as metadata, invalid/extreme bounds rejected.
 6. Build, CI, lint and device verification are deferred until the feature pass is complete.
 
 ## Structure
