@@ -39,6 +39,7 @@ import com.winsmediatama.winsphotostudio.ui.tools.BrushScreen
 import com.winsmediatama.winsphotostudio.ui.tools.SelectionScreen
 import com.winsmediatama.winsphotostudio.ui.tools.TextShapeScreen
 import com.winsmediatama.winsphotostudio.ui.tools.FilterScreen
+import com.winsmediatama.winsphotostudio.ui.tools.RetouchScreen
 import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
 import com.winsmediatama.winsphotostudio.core.editor.LayerCompositeRenderer
 import kotlinx.coroutines.launch
@@ -72,6 +73,7 @@ private fun WinsPhotoApp() {
     var selectionOpen by remember { mutableStateOf(false) }
     var textShapeOpen by remember { mutableStateOf(false) }
     var filtersOpen by remember { mutableStateOf(false) }
+    var retouchOpen by remember { mutableStateOf(false) }
     var layers by remember { mutableStateOf<List<EditorLayer>>(emptyList()) }
     var exportDialogOpen by remember { mutableStateOf(false) }
     var exportQuality by remember { mutableFloatStateOf(92f)
@@ -117,6 +119,11 @@ private fun WinsPhotoApp() {
         Surface(Modifier.fillMaxSize(), color = StudioBackground) {
             val current = bitmap
             if (current == null) HomeScreen(loading, error) { imagePicker.launch(arrayOf("image/*")) }
+            else if (retouchOpen) RetouchScreen(
+                source=current,
+                onCancel={retouchOpen=false},
+                onApply={edited -> editHistory=editHistory+current;bitmap=edited;layers=listOf(EditorLayer(name="Background",bitmap=edited));retouchOpen=false}
+            )
             else if (filtersOpen) FilterScreen(
                 source=current,
                 onCancel={filtersOpen=false},
@@ -186,6 +193,7 @@ private fun WinsPhotoApp() {
                 onSelection = { selectionOpen = true },
                 onTextShape = { textShapeOpen = true },
                 onFilters = { filtersOpen = true },
+                onRetouch = { retouchOpen = true },
                 onExport = { exportDialogOpen=true },
                 onUndo = { if (editHistory.isNotEmpty()) { bitmap = editHistory.last(); layers=listOf(EditorLayer(name="Background",bitmap=editHistory.last())); editHistory = editHistory.dropLast(1) } },
                 canUndo = editHistory.isNotEmpty()
@@ -235,7 +243,7 @@ private fun HomeScreen(loading: Boolean, error: String?, onImport: () -> Unit) {
 }
 
 @Composable
-private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onLevels: () -> Unit, onCurves: () -> Unit, onLayers: () -> Unit, onProjects: () -> Unit, onBrush: () -> Unit, onSelection: () -> Unit, onTextShape: () -> Unit, onFilters: () -> Unit, onExport: () -> Unit, onUndo: () -> Unit, canUndo: Boolean) {
+private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onLevels: () -> Unit, onCurves: () -> Unit, onLayers: () -> Unit, onProjects: () -> Unit, onBrush: () -> Unit, onSelection: () -> Unit, onTextShape: () -> Unit, onFilters: () -> Unit, onRetouch: () -> Unit, onExport: () -> Unit, onUndo: () -> Unit, canUndo: Boolean) {
     var zoom by remember { mutableFloatStateOf(1f) }
     var panX by remember { mutableFloatStateOf(0f) }
     var panY by remember { mutableFloatStateOf(0f) }
@@ -258,6 +266,7 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
             TextButton(onClick = onSelection) { Text("Select") }
             TextButton(onClick = onTextShape) { Text("Text / Shape") }
             TextButton(onClick = onFilters) { Text("Filters") }
+            TextButton(onClick = onRetouch) { Text("Retouch") }
             TextButton(onClick = onExport) { Text("Export") }
             TextButton(onClick = onImportAnother) { Text("Replace") }
         }
