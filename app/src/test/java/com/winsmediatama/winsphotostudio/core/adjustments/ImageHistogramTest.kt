@@ -12,6 +12,20 @@ import org.robolectric.annotation.Config
 @Config(sdk = [28])
 class ImageHistogramTest {
     @Test
+    fun largeImageSamplingIsBoundedAndPreservesFlatColorDistribution() {
+        val bitmap = Bitmap.createBitmap(1200, 1200, Bitmap.Config.ARGB_8888)
+        bitmap.eraseColor(Color.rgb(25, 80, 160))
+
+        val histogram = ImageHistogram.from(bitmap)
+
+        assertEquals(true, histogram.sampleCount <= ImageHistogram.MAX_SAMPLES)
+        assertEquals(histogram.sampleCount, histogram.red[25])
+        assertEquals(histogram.sampleCount, histogram.green[80])
+        assertEquals(histogram.sampleCount, histogram.blue[160])
+        bitmap.recycle()
+    }
+
+    @Test
     fun countsRgbAndLuminanceBinsAndIgnoresTransparentPixels() {
         val bitmap = Bitmap.createBitmap(3, 1, Bitmap.Config.ARGB_8888)
         bitmap.setPixel(0, 0, Color.RED)
