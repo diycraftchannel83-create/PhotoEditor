@@ -57,6 +57,7 @@ import com.winsmediatama.winsphotostudio.ui.tools.BackgroundRemoveScreen
 import com.winsmediatama.winsphotostudio.ui.tools.AiBackgroundRemoveScreen
 import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
 import com.winsmediatama.winsphotostudio.core.editor.LayerCompositeRenderer
+import com.winsmediatama.winsphotostudio.core.editor.AlphaLockProcessor
 import com.winsmediatama.winsphotostudio.core.storage.RecoveryStore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
@@ -119,7 +120,8 @@ private fun WinsPhotoApp() {
         val selected=layers.firstOrNull{it.id==selectedLayerId}
         if(!flatten && selected?.locked==true){exportStatus="Selected layer is locked. Unlock it in Layers before editing.";return}
         if(!flatten && selected!=null) {
-            val updated=layers.map{if(it.id==selected.id)it.copy(bitmap=edited) else it}
+            val finalEdited=if(selected.alphaLocked)AlphaLockProcessor.apply(selected.bitmap,edited) else edited
+            val updated=layers.map{if(it.id==selected.id)it.copy(bitmap=finalEdited) else it}
             scope.launch {
                 val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,previousComposite.width,previousComposite.height)}
                 layers=updated;selectedLayerId=selected.id;bitmap=composite
