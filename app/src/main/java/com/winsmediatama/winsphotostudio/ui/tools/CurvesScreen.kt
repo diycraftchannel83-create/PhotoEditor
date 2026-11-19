@@ -52,11 +52,11 @@ fun CurvesScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
         Column(Modifier.fillMaxWidth().heightIn(max=360.dp).background(Color(0xFF1B1E24)).padding(16.dp)) {
             Row(horizontalArrangement=Arrangement.spacedBy(4.dp)) { CurveChannel.entries.forEach { ch-> FilterChip(selected=target==ch,onClick={target=ch;selected=2},label={Text(ch.title)}) } }
             Canvas(Modifier.fillMaxWidth().height(220.dp).padding(8.dp)
-                .pointerInput(target,current) { detectTapGestures { pos ->
+                .pointerInput(target) { detectTapGestures { pos ->
                     val pad=8f; val size=this.size; val nx=((pos.x-pad)/(size.width-2*pad)).coerceIn(0f,1f)
                     selected=(1..3).minByOrNull { kotlin.math.abs(current[it].x-nx) } ?: 2
                 } }
-                .pointerInput(target,current,selected) { detectDragGestures { change, _ ->
+                .pointerInput(target,selected) { detectDragGestures { change, _ ->
                     change.consume()
                     val pad=8f; val w=size.width-2*pad; val h=size.height-2*pad
                     val y=((change.position.y-pad)/h).coerceIn(0f,1f)
