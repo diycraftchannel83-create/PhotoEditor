@@ -60,7 +60,7 @@ fun LayersScreen(
                                 Text(buildString{append(if(layer.visible)"Visible" else "Hidden");append(" • ");append(if(layer.locked)"Locked" else "Unlocked");append(" • ");append(if(layer.alphaLocked)"Alpha locked" else "Alpha free");append(" • ");append(if(layer.clipToBelow)"Clipped" else "Unclipped")},color=Color.LightGray,style=MaterialTheme.typography.labelSmall)
                             }
                         }
-                        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(4.dp)) {
+                        Row(Modifier.fillMaxWidth().horizontalScroll(androidx.compose.foundation.rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(4.dp)) {
                             OutlinedButton(onClick={working=working.toMutableList().also{it[index]=layer.copy(name=rename)}}){Text("Rename")}
                             OutlinedButton(onClick={selectedId=layer.id}){Text(if(selectedId==layer.id)"Selected" else "Select")}
                             OutlinedButton(onClick={working=working.toMutableList().also{it[index]=layer.copy(locked=!layer.locked)}}){Text(if(layer.locked)"Unlock" else "Lock")}
@@ -86,7 +86,7 @@ fun LayersScreen(
                             Text("Opacity ${(layer.opacity*100).toInt()}%",color=Color.LightGray,style=MaterialTheme.typography.labelSmall)
                             Slider(value=layer.opacity,onValueChange={v->working=working.toMutableList().also{it[index]=layer.copy(opacity=v)}},modifier=Modifier.weight(1f))
                         }
-                        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(4.dp)) {
+                        Row(Modifier.fillMaxWidth().horizontalScroll(androidx.compose.foundation.rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(4.dp)) {
                             OutlinedButton(onClick={val m=LayerMaskProcessor.createWhiteMask(layer.bitmap.width,layer.bitmap.height);working=working.toMutableList().also{it[index]=layer.copy(mask=m)}}){Text(if(layer.mask==null)"Add mask" else "Reset")}
                             OutlinedButton(enabled=layer.mask!=null,onClick={layer.mask?.let{onEditMask(layer.id,it)}}){Text("Paint")}
                             OutlinedButton(enabled=layer.mask!=null,onClick={val m=layer.mask?.let{LayerMaskProcessor.invert(it)};working=working.toMutableList().also{it[index]=layer.copy(mask=m)}}){Text("Invert")}
