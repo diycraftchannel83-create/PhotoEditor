@@ -42,7 +42,8 @@ fun BackgroundReplaceScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Un
         value?.takeIf{it!==source}?.recycle();value=null
         value=withContext(Dispatchers.Default){composeBackground(source,imported,startColor.toArgb(),endColor.toArgb(),gradient)}
     }
-    androidx.compose.runtime.DisposableEffect(preview,imported){onDispose{preview?.takeIf{it!==source}?.recycle();imported?.takeIf{it!==source}?.recycle()}}\n    Column(Modifier.fillMaxSize().background(Color(0xFF101216))){
+    androidx.compose.runtime.DisposableEffect(preview,imported){onDispose{preview?.takeIf{it!==source}?.recycle();imported?.takeIf{it!==source}?.recycle()}}
+    Column(Modifier.fillMaxSize().background(Color(0xFF101216))){
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically){
             Text("Replace Background",Modifier.weight(1f),color=Color.White)
             TextButton(onClick=onCancel){Text("Cancel")}
