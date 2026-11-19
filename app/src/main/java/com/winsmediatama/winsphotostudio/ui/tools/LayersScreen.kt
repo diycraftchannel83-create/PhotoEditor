@@ -57,7 +57,7 @@ fun LayersScreen(
                             Image(layer.bitmap.asImageBitmap(),null,Modifier.size(54.dp),contentScale=ContentScale.Crop)
                             Column(Modifier.weight(1f).padding(start=8.dp)) {
                                 OutlinedTextField(value=rename,onValueChange={rename=it},singleLine=true,label={Text("Name")},modifier=Modifier.fillMaxWidth())
-                                Text(buildString{append(if(layer.visible)"Visible" else "Hidden");append(" • ");append(if(layer.locked)"Locked" else "Unlocked");append(" • ");append(if(layer.alphaLocked)"Alpha locked" else "Alpha free")},color=Color.LightGray,style=MaterialTheme.typography.labelSmall)
+                                Text(buildString{append(if(layer.visible)"Visible" else "Hidden");append(" • ");append(if(layer.locked)"Locked" else "Unlocked");append(" • ");append(if(layer.alphaLocked)"Alpha locked" else "Alpha free");append(" • ");append(if(layer.clipToBelow)"Clipped" else "Unclipped")},color=Color.LightGray,style=MaterialTheme.typography.labelSmall)
                             }
                         }
                         Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(4.dp)) {
@@ -65,6 +65,7 @@ fun LayersScreen(
                             OutlinedButton(onClick={selectedId=layer.id}){Text(if(selectedId==layer.id)"Selected" else "Select")}
                             OutlinedButton(onClick={working=working.toMutableList().also{it[index]=layer.copy(locked=!layer.locked)}}){Text(if(layer.locked)"Unlock" else "Lock")}
                             OutlinedButton(onClick={working=working.toMutableList().also{it[index]=layer.copy(alphaLocked=!layer.alphaLocked)}}){Text(if(layer.alphaLocked)"Alpha off" else "Alpha lock")}
+                            OutlinedButton(enabled=index>0,onClick={working=working.toMutableList().also{it[index]=layer.copy(clipToBelow=!layer.clipToBelow)}}){Text(if(layer.clipToBelow)"Unclip" else "Clip")}
                             Checkbox(checked=layer.visible,onCheckedChange={v->working=working.toMutableList().also{it[index]=layer.copy(visible=v)}})
                         }
                         if(layer.groupId!=null) {
