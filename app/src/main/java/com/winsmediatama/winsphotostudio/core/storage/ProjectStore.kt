@@ -60,11 +60,11 @@ class ProjectStore(context: Context) {
         return folder
     }
 
-    fun loadSnapshot(projectFolder: File): Bitmap? {
+    fun loadSnapshot(projectFolder: File): Bitmap? = runCatching {
         val manifest = readManifest(projectFolder)
         val path = manifest.optString("snapshotAsset", "assets/canvas.png")
-        return android.graphics.BitmapFactory.decodeFile(File(projectFolder, path).absolutePath)
-    }
+        decodeAsset(projectFolder, path)
+    }.getOrNull()
 
     fun projectName(projectFolder: File): String = readManifest(projectFolder).optString("name", projectFolder.name)
 
@@ -88,8 +88,11 @@ class ProjectStore(context: Context) {
         return folder
     }
 
-    fun loadEditableProject(projectFolder:File):LoadedStudioProject? {
+    fun loadEditableProject(projectFolder:File):LoadedStudioProject? = runCatching {
         val manifest=readManifest(projectFolder)
+        requireSupportedProjectFolder(projectFolder)
+        val schema=manifest.optInt("schemaVersion",1)
+        require(schema in 1..4) { "Unsupported project schema: $schema" }
         val name=manifest.optString("name",projectFolder.name)
         val width=manifest.optInt("canvasWidth",1).coerceAtLeast(1)
         val height=manifest.optInt("canvasHeight",1).coerceAtLeast(1)
@@ -99,10 +102,10 @@ class ProjectStore(context: Context) {
             val item=array.optJSONObject(i)?:continue
             val asset=item.optString("asset",manifest.optString("snapshotAsset",manifest.optString("sourceAsset","")))
             if(asset.isBlank())continue
-            val bitmap=BitmapFactory.decodeFile(File(projectFolder,asset).absolutePath)?:continue
+            val bitmap=decodeAsset(projectFolder,asset)?:continue
             val mode=runCatching{EditorBlendMode.valueOf(item.optString("blendMode","NORMAL"))}.getOrDefault(EditorBlendMode.NORMAL)
-            val mask=item.optString("maskAsset").takeIf{it.isNotBlank()}?.let{BitmapFactory.decodeFile(File(projectFolder,it).absolutePath)}
-            val original=item.optString("originalAsset").takeIf{it.isNotBlank()}?.let{BitmapFactory.decodeFile(File(projectFolder,it).absolutePath)}
+            val mask=item.optString("maskAsset").takeIf{it.isNotBlank()}?.let{decodeAsset(projectFolder,it)}
+            val original=item.optString("originalAsset").takeIf{it.isNotBlank()}?.let{decodeAsset(projectFolder,it)}
             val operations=item.optJSONArray("operations")?.let{json->original?.let{NonDestructiveEditStack.fromJson(it,json).operations}}?:emptyList()
             layers+=EditorLayer(id=item.optString("id",UUID.randomUUID().toString()),name=item.optString("name","Layer ${i+1}"),bitmap=bitmap,
                 visible=item.optBoolean("visible",true),opacity=item.optDouble("opacity",1.0).toFloat().coerceIn(0f,1f),blendMode=mode,
@@ -112,8 +115,8 @@ class ProjectStore(context: Context) {
                 mask=mask,originalBitmap=original,operations=operations)
         }
         if(layers.isEmpty()){val snapshot=loadSnapshot(projectFolder)?:return null;layers+=EditorLayer(name=name,bitmap=snapshot)}
-        return LoadedStudioProject(name,width,height,layers,manifest.optString("selectedLayerId").takeIf{it.isNotBlank()})
-    }
+        LoadedStudioProject(name,width,height,layers,manifest.optString("selectedLayerId").takeIf{it.isNotBlank()})
+    }.getOrNull()
 
     /** Persist an original source and replayable edit operations separately from rendered layer snapshots. */
     fun saveOperationProject(source:Bitmap, operations:org.json.JSONArray, projectName:String):File {
@@ -136,13 +139,34 @@ class ProjectStore(context: Context) {
 
     fun loadOperationProject(projectFolder:File):LoadedOperationProject? {
         val manifest=readManifest(projectFolder)
+        requireSupportedProjectFolder(projectFolder)
         val sourcePath=manifest.optString("originalAsset")
         if(sourcePath.isBlank()) return null
-        val original=android.graphics.BitmapFactory.decodeFile(File(projectFolder,sourcePath).absolutePath) ?: return null
+        val original=decodeAsset(projectFolder,sourcePath) ?: return null
         val operationsPath=manifest.optString("operationsAsset","operations.json")
-        val operations=runCatching{org.json.JSONArray(File(projectFolder,operationsPath).readText())}.getOrNull() ?: org.json.JSONArray()
+        val operationsFile=resolveProjectAsset(projectFolder,operationsPath)
+        val operations=runCatching{org.json.JSONArray(operationsFile.readText())}.getOrNull() ?: org.json.JSONArray()
         return LoadedOperationProject(manifest.optString("name",projectFolder.name),original,
             com.winsmediatama.winsphotostudio.core.history.NonDestructiveEditStack.fromJson(original,operations))
+    }
+
+    private fun requireSupportedProjectFolder(projectFolder:File) {
+        val canonicalRoot=root.canonicalFile
+        val canonicalFolder=projectFolder.canonicalFile
+        require(canonicalFolder.path.startsWith(canonicalRoot.path+File.separator)) { "Project folder is outside app storage" }
+        require(canonicalFolder.isDirectory) { "Project folder is missing" }
+    }
+    private fun resolveProjectAsset(projectFolder:File,relativePath:String):File {
+        require(relativePath.isNotBlank()) { "Empty project asset path" }
+        val folder=projectFolder.canonicalFile
+        val candidate=File(folder,relativePath).canonicalFile
+        require(candidate.path.startsWith(folder.path+File.separator)) { "Unsafe project asset path" }
+        return candidate
+    }
+    private fun decodeAsset(projectFolder:File,relativePath:String):Bitmap? {
+        val file=resolveProjectAsset(projectFolder,relativePath)
+        if(!file.isFile || file.length()<=0L) return null
+        return BitmapFactory.decodeFile(file.absolutePath)?.takeIf{it.width>0&&it.height>0}
     }
 
     private fun writeManifestAtomically(folder:File,manifest:JSONObject) = writeTextAtomically(File(folder,"project.json"),manifest.toString(2))
