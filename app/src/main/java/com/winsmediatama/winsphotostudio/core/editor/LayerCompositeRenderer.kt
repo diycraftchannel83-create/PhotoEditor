@@ -28,7 +28,7 @@ object LayerCompositeRenderer {
             val groupBitmap=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888)
             val groupCanvas=Canvas(groupBitmap)
             group.filter{it.visible&&!it.bitmap.isRecycled}.forEach{child->drawLayer(groupCanvas,child.copy(groupId=null,groupOpacity=1f),dest)}
-            val groupPaint=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply{alpha=(group.firstOrNull()?.groupOpacity?.coerceIn(0f,1f)?:1f*255).toInt()}
+            val groupPaint=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
             groupPaint.alpha=((group.firstOrNull()?.groupOpacity?:1f).coerceIn(0f,1f)*255).toInt()
             canvas.drawBitmap(groupBitmap,null,dest,groupPaint)
             groupBitmap.recycle()
