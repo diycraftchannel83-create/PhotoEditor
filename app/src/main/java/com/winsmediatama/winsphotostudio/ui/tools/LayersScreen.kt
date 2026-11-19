@@ -22,15 +22,20 @@ import com.winsmediatama.winsphotostudio.core.editor.LayerMaskProcessor
 fun LayersScreen(layers:List<EditorLayer>,selectedLayerId:String?,onCancel:()->Unit,onAddImage:()->Unit,onEditMask:(String,Bitmap)->Unit,onApply:(List<EditorLayer>,String?)->Unit) {
     var working by remember(layers) { mutableStateOf(layers) }
     var selectedId by remember(layers,selectedLayerId) { mutableStateOf(selectedLayerId ?: layers.lastOrNull()?.id) }
+    var groupSelection by remember(layers){mutableStateOf(setOf<String>())}
+    var groupStatus by remember{mutableStateOf<String?>(null)}
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
             Text("Layers",Modifier.weight(1f),color=Color.White)
             TextButton(onClick={val newLayer=EditorLayer(name="Layer ${working.size+1}",bitmap=Bitmap.createBitmap(working.firstOrNull()?.bitmap?.width ?: 1,working.firstOrNull()?.bitmap?.height ?: 1,Bitmap.Config.ARGB_8888));working=working+newLayer;selectedId=newLayer.id}){Text("+ Empty")}
+            TextButton(onClick={val indices=working.indices.filter{working[it].id in groupSelection};if(indices.size<2)groupStatus="Select at least two layers" else if(indices.last()-indices.first()+1!=indices.size)groupStatus="Select contiguous layers to group" else {val id=java.util.UUID.randomUUID().toString();val name="Group ${working.count{it.groupId!=null}+1}";working=working.map{if(it.id in groupSelection)it.copy(groupId=id,groupName=name,groupOpacity=1f)else it};groupSelection=emptySet();groupStatus="Created $name"}}){Text("Group")}
+            TextButton(onClick={val target=working.firstOrNull{it.id in groupSelection}?:working.firstOrNull{it.id==selectedId};val id=target?.groupId;if(id!=null){working=working.map{if(it.groupId==id)it.copy(groupId=null,groupName=null,groupOpacity=1f)else it};groupStatus="Group removed"}else groupStatus="Select a grouped layer"}){Text("Ungroup")}
             TextButton(onClick=onAddImage){Text("+ Photo")}
             TextButton(onClick=onCancel){Text("Cancel")}
             Button(onClick={onApply(working,selectedId)}){Text("Apply")}
         }
-        Text("Bottom-to-top stacking • Tap visibility • Adjust opacity",color=Color.LightGray,modifier=Modifier.padding(12.dp),style=MaterialTheme.typography.bodySmall)
+        Text("Bottom-to-top stacking • Tap visibility • Adjust opacity • Group contiguous layers",color=Color.LightGray,modifier=Modifier.padding(12.dp),style=MaterialTheme.typography.bodySmall)
+        groupStatus?.let{Text(it,color=Color(0xFF77D7C0),modifier=Modifier.padding(horizontal=12.dp))}
         LazyColumn(Modifier.weight(1f),contentPadding=PaddingValues(8.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
             itemsIndexed(working.asReversed(),key={_,l->l.id}) { reverseIndex, layer ->
                 val index=working.lastIndex-reverseIndex
@@ -39,6 +44,7 @@ fun LayersScreen(layers:List<EditorLayer>,selectedLayerId:String?,onCancel:()->U
                 Card(colors=CardDefaults.cardColors(containerColor=Color(0xFF20242A))) {
                     Column(Modifier.fillMaxWidth().padding(10.dp)) {
                         Row(verticalAlignment=Alignment.CenterVertically) {
+                            Checkbox(checked=layer.id in groupSelection,onCheckedChange={v->groupSelection=if(v)groupSelection+layer.id else groupSelection-layer.id})
                             Image(layer.bitmap.asImageBitmap(),null,Modifier.size(56.dp),contentScale=ContentScale.Crop)
                             Column(Modifier.weight(1f).padding(start=8.dp)) {
                                 OutlinedTextField(value=rename,onValueChange={rename=it},singleLine=true,label={Text("Layer name")})
@@ -49,6 +55,14 @@ fun LayersScreen(layers:List<EditorLayer>,selectedLayerId:String?,onCancel:()->U
                             TextButton(onClick={working=working.toMutableList().also{it[index]=layer.copy(locked=!layer.locked)}}){Text(if(layer.locked)"Unlock" else "Lock")}
                             TextButton(onClick={working=working.toMutableList().also{it[index]=layer.copy(alphaLocked=!layer.alphaLocked)}}){Text(if(layer.alphaLocked)"Alpha Unlocked" else "Alpha Lock")}
                             Checkbox(checked=layer.visible,onCheckedChange={v->working=working.toMutableList().also{it[index]=layer.copy(visible=v)}})
+                        }
+                        if(layer.groupId!=null) {
+                            Text("Group: ${layer.groupName?:"Group"}",color=Color(0xFF77D7C0),style=MaterialTheme.typography.labelSmall)
+                            Row(verticalAlignment=Alignment.CenterVertically) {
+                                Text("Group opacity ${(layer.groupOpacity*100).toInt()}%",color=Color.LightGray,style=MaterialTheme.typography.labelSmall)
+                                Slider(value=layer.groupOpacity,onValueChange={v->working=working.map{if(it.groupId==layer.groupId)it.copy(groupOpacity=v)else it}},modifier=Modifier.weight(1f))
+                                TextButton(onClick={val all=working.filter{it.groupId==layer.groupId};val visible=all.any{!it.visible};working=working.map{if(it.groupId==layer.groupId)it.copy(visible=visible)else it}}){Text(if(working.filter{it.groupId==layer.groupId}.all{it.visible})"Hide group" else "Show group")}
+                            }
                         }
                         Row(verticalAlignment=Alignment.CenterVertically) {
                             TextButton(onClick={blendMenu=true}){Text("Blend: ${layer.blendMode.name}")}
