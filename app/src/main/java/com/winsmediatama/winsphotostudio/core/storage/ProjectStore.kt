@@ -158,7 +158,7 @@ class ProjectStore(context: Context) {
     fun duplicateProject(projectFolder:File,newName:String?=null):File? {
         return runCatching{
             val sourceManifest=readManifest(projectFolder);val id=UUID.randomUUID().toString();val target=File(root,id)
-            if(!projectFolder.copyRecursively(target,overwrite=false))throw IllegalStateException("Project copy failed")
+            projectFolder.copyRecursively(target,overwrite=false)
             val manifest=readManifest(target);manifest.put("projectId",id).put("name",newName?.trim()?.takeIf{it.isNotBlank()}?:("${sourceManifest.optString("name","Project")} Copy")).put("createdAt",System.currentTimeMillis()).put("updatedAt",System.currentTimeMillis())
             writeManifestAtomically(target,manifest);target
         }.getOrNull()
