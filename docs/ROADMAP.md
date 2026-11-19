@@ -53,7 +53,8 @@
 - [x] Effects screen commits effect kind, strength and angle as replayable Effect operation (source implementation; verification deferred)
 - [x] Effect operation can be enabled/disabled from operation stack and replays from retained source
 - [x] Imported .cube LUT text is retained in a replayable LUT operation, with parse validation and stack toggle
-- [ ] Add selection, retouch, LUT/effect and remaining tool operations to stack
+- [ ] Add selection and remaining tool operations to stack
+- [x] Retouch operation model added to NonDestructiveEditStack with normalized stroke JSON, strength/offset parameters, enable/disable/replay and source-preserving render path (test authored; verification pending)
 - [x] Core retouch mode/stroke model with normalized points, validation and JSON codec
 - [x] Retouch UI migrated to shared Core stroke model
 - [x] Bitmap retouch renderer moved into Core tools and UI delegates to shared processor (operation replay/persistence pending)
