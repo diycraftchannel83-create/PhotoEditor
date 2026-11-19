@@ -6,6 +6,32 @@ import kotlin.math.sqrt
 
 /** Pixel mask helpers; white means selected, black means outside selection. */
 object SelectionMaskProcessor {
+    fun polygon(width:Int,height:Int,points:List<Pair<Float,Float>>):Bitmap {
+        require(points.size>=3){"Polygon needs at least three points"}
+        val w=width.coerceAtLeast(1);val h=height.coerceAtLeast(1);val pixels=IntArray(w*h)
+        for(y in 0 until h)for(x in 0 until w){
+            val px=(x+.5f)/w;val py=(y+.5f)/h;var inside=false
+            var j=points.lastIndex
+            for(i in points.indices){val xi=points[i].first;val yi=points[i].second;val xj=points[j].first;val yj=points[j].second
+                if(((yi>py)!=(yj>py)) && (px<(xj-xi)*(py-yi)/(yj-yi+0.000001f)+xi))inside=!inside
+                j=i
+            }
+            if(inside)pixels[y*w+x]=Color.WHITE
+        }
+        return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(pixels,0,w,0,0,w,h)}
+    }
+    /** RGB distance selection, normalized to 0..1; optional softness applies a linear feather band. */
+    fun colorRange(source:Bitmap,sampleColor:Int,tolerance:Float,softness:Float=0f):Bitmap {
+        val tol=tolerance.coerceIn(0f,1f)*441.67295f;val soft=softness.coerceIn(0f,1f)*220.83648f
+        val sr=android.graphics.Color.red(sampleColor);val sg=android.graphics.Color.green(sampleColor);val sb=android.graphics.Color.blue(sampleColor)
+        val w=source.width;val h=source.height;val pixels=IntArray(w*h);source.getPixels(pixels,0,w,0,0,w,h)
+        for(i in pixels.indices){val p=pixels[i];val dr=android.graphics.Color.red(p)-sr;val dg=android.graphics.Color.green(p)-sg;val db=android.graphics.Color.blue(p)-sb
+            val d=kotlin.math.sqrt((dr*dr+dg*dg+db*db).toFloat())
+            val value=if(soft<=0f)if(d<=tol)255 else 0 else ((tol+soft-d)/soft*255f).toInt().coerceIn(0,255)
+            pixels[i]=Color.argb(255,value,value,value)
+        }
+        return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(pixels,0,w,0,0,w,h)}
+    }
     fun rectangle(width:Int,height:Int,left:Float,top:Float,right:Float,bottom:Float):Bitmap {
         val w=width.coerceAtLeast(1);val h=height.coerceAtLeast(1)
         val l=(left.coerceIn(0f,1f)*w).toInt().coerceIn(0,w)
