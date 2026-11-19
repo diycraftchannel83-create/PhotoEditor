@@ -19,10 +19,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 
 private enum class SelectionShape { RECTANGLE, ELLIPSE, POLYGON, FREEHAND, COLOR_RANGE, MAGIC_WAND }
-private enum class SelectionAction { CROP, MASK }
+enum class SelectionAction { CROP, MASK, COPY_LAYER }\ndata class SelectionOutput(val bitmap:Bitmap,val action:SelectionAction)
 
 @Composable
-fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
+fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->Unit) {
     var shape by remember{mutableStateOf(SelectionShape.RECTANGLE)}
     var action by remember{mutableStateOf(SelectionAction.CROP)}
     var rect by remember{mutableStateOf(Rect(.1f,.1f,.9f,.9f))}
@@ -40,13 +40,13 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
             Text("Selection",Modifier.weight(1f),color=Color.White)
             TextButton(onClick={rect=Rect(0f,0f,1f,1f);polygonPoints=emptyList()}){Text("Select all")}
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(enabled=(shape!=SelectionShape.POLYGON&&shape!=SelectionShape.FREEHAND)||(polygonPoints.size>=3),onClick={onApply(renderSelection(source,rect,shape,action,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection))}){Text("Apply")}
+            Button(enabled=(shape!=SelectionShape.POLYGON&&shape!=SelectionShape.FREEHAND)||(polygonPoints.size>=3),onClick={onApply(SelectionOutput(renderSelection(source,rect,shape,action,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection),action))}){Text("Apply")}
         }
         Row(Modifier.fillMaxWidth().padding(8.dp),horizontalArrangement=Arrangement.spacedBy(4.dp)){
             SelectionShape.entries.forEach{s->FilterChip(selected=shape==s,onClick={shape=s},label={Text(s.name.replace("_"," "))})}
         }
         Row(Modifier.fillMaxWidth().padding(horizontal=8.dp),horizontalArrangement=Arrangement.spacedBy(4.dp)){
-            SelectionAction.entries.forEach{a->FilterChip(selected=action==a,onClick={action=a},label={Text(a.name)})}
+            SelectionAction.entries.forEach{a->FilterChip(selected=action==a,onClick={action=a},label={Text(when(a){SelectionAction.CROP->"Crop";SelectionAction.MASK->"Mask";SelectionAction.COPY_LAYER->"Copy layer"})})}
         }
         Canvas(Modifier.weight(1f).fillMaxWidth().aspectRatio(source.width.toFloat()/source.height).padding(12.dp).background(Color(0xFF25282D))
             .pointerInput(shape){
@@ -99,7 +99,7 @@ private fun renderSelection(source:Bitmap,selection:Rect,shape:SelectionShape,ac
     if(invertSelection)processed=masks.invert(processed)
     if(expandRadius.toInt()!=0)processed=masks.expandContract(processed,expandRadius.toInt())
     if(featherRadius.toInt()>0)processed=masks.feather(processed,featherRadius.toInt())
-    if(action==SelectionAction.MASK)return applyMask(source,processed)
+    if(action==SelectionAction.MASK||action==SelectionAction.COPY_LAYER)return applyMask(source,processed)
     val pixels=IntArray(source.width*source.height);processed.getPixels(pixels,0,source.width,0,0,source.width,source.height)
     var minX=source.width;var minY=source.height;var maxX=-1;var maxY=-1
     for(y in 0 until source.height)for(x in 0 until source.width)if(android.graphics.Color.red(pixels[y*source.width+x])>0){minX=minOf(minX,x);minY=minOf(minY,y);maxX=maxOf(maxX,x);maxY=maxOf(maxY,y)}
