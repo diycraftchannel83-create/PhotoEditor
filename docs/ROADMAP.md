@@ -13,6 +13,7 @@
 - [x] Free crop size and position
 - [x] Rotate 90° increments and flip H/V
 - [x] Resize and transform preview/apply
+- [x] Crop model validation and aspect-ratio unit tests (CI pending)
 - [x] JPEG/PNG export, JPEG quality and transparent-canvas background options
 
 ## Phase 2 — Tonal and color tools
