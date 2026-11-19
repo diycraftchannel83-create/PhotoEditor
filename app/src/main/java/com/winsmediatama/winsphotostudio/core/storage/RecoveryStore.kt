@@ -38,8 +38,14 @@ class RecoveryStore(context:Context) {
         }
         val manifestTemp=File(root,"recovery.tmp")
         manifestTemp.writeText(JSONObject().put("snapshot","snapshot/recovery.json").put("updatedAt",System.currentTimeMillis()).toString())
-        if(manifest.exists())manifest.delete()
-        if(!manifestTemp.renameTo(manifest))throw IllegalStateException("Recovery manifest write failed")
+        val manifestBackup=File(root,"recovery.bak")
+        manifestBackup.delete()
+        if(manifest.exists()&&!manifest.renameTo(manifestBackup))throw IllegalStateException("Could not stage recovery manifest")
+        if(!manifestTemp.renameTo(manifest)){
+            if(manifestBackup.exists())manifestBackup.renameTo(manifest)
+            throw IllegalStateException("Recovery manifest write failed")
+        }
+        manifestBackup.delete()
         backup.deleteRecursively()
     }
     fun exists():Boolean=manifest.isFile
