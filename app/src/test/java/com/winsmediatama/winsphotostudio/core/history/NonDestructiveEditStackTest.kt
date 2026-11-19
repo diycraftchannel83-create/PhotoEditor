@@ -105,6 +105,20 @@ DOMAIN_MAX 1 1 1
         assertEquals(Color.RED,src.getPixel(0,0))
         replayed.recycle();disabledReplay.recycle();src.recycle()
     }
+    @Test fun perspectiveOperationReplaysAndRoundTripsJson() {
+        val source=Bitmap.createBitmap(8,8,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.BLUE)}
+        val quad=com.winsmediatama.winsphotostudio.core.tools.PerspectiveQuad(
+            .05f to .05f,.95f to .05f,.9f to .95f,.1f to .95f)
+        val stack=NonDestructiveEditStack(source).apply{append(EditOperation.Perspective(quad=quad,outputWidth=8,outputHeight=8))}
+        val rendered=stack.render()
+        assertEquals(8,rendered.width);assertEquals(8,rendered.height)
+        val restored=NonDestructiveEditStack.fromJson(source,stack.toJson())
+        assertTrue(restored.operations.first() is EditOperation.Perspective)
+        assertEquals(stack.toJson().toString(),restored.toJson().toString())
+        assertTrue(restored.toggle(restored.operations.first().id,false))
+        assertEquals(Color.BLUE,restored.render().getPixel(0,0))
+        rendered.recycle();source.recycle()
+    }
     @Test fun stackSupportsInsertAndReorder() {
         val src=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
         val first=EditOperation.BasicAdjust(values=BasicAdjustmentValues(brightness=.1f))
