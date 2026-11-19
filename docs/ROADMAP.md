@@ -54,6 +54,7 @@
 - [x] Effect operation can be enabled/disabled from operation stack and replays from retained source
 - [x] Imported .cube LUT text is retained in a replayable LUT operation, with parse validation and stack toggle
 - [ ] Add selection, retouch, LUT/effect and remaining tool operations to stack
+- [x] Core retouch mode/stroke model with normalized points, validation and JSON codec (persistence integration pending)
 - [x] Filter presets now preserve parameter values in operation stack (source implementation; verification deferred)
 - [x] Blur, motion blur, vignette and grain parameters are serializable and replayable through Effect operation
 - [x] Layer-preserving bounded undo/redo snapshots and History panel restore
@@ -91,6 +92,7 @@
 - [x] Blur, pixelate and clone-stamp foundations
 - [x] Spot-heal, dodge/burn and smudge processors (processors implemented; source verification pending)
 - [x] Spot-heal, dodge/burn and smudge UI modes integrated
+- [x] UI-independent normalized retouch stroke model and JSON encode/decode foundation
 - [ ] Healing/retouch on masks, pressure/hardware support, stabilized strokes, brush presets/hardness/spacing
 - [ ] Validate clone source workflow and high-resolution brush performance
 
