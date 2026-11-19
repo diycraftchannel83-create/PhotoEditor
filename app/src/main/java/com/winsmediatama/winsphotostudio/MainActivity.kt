@@ -74,7 +74,8 @@ private val StudioBackground = Color(0xFF101216)
 private val StudioSurface = Color(0xFF1B1E24)
 private val StudioAccent = Color(0xFF77D7C0)
 
-private data class EditorSnapshot(val layers:List<EditorLayer>,val selectedLayerId:String?,val canvas:Bitmap,val label:String)\nprivate const val MAX_HISTORY_STATES=8
+private data class EditorSnapshot(val layers:List<EditorLayer>,val selectedLayerId:String?,val canvas:Bitmap,val label:String)
+private const val MAX_HISTORY_STATES=8
 
 @Composable
 private fun WinsPhotoApp() {
