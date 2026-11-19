@@ -116,9 +116,9 @@ private fun WinsPhotoApp() {
     var redoHistory by remember { mutableStateOf<List<Bitmap>>(emptyList()) }
     var recoveryCandidate by remember { mutableStateOf<RecoveryStore.Recovered?>(null) }
     fun commitEdit(edited:Bitmap,previousComposite:Bitmap,flatten:Boolean=false) {
-        editHistory=(editHistory+previousComposite).takeLast(5);redoHistory=emptyList()
         val selected=layers.firstOrNull{it.id==selectedLayerId}
         if(!flatten && selected?.locked==true){exportStatus="Selected layer is locked. Unlock it in Layers before editing.";return}
+        editHistory=(editHistory+previousComposite).takeLast(5);redoHistory=emptyList()
         if(!flatten && selected!=null) {
             val finalEdited=if(selected.alphaLocked)AlphaLockProcessor.apply(selected.bitmap,edited) else edited
             val updated=layers.map{if(it.id==selected.id)it.copy(bitmap=finalEdited) else it}
@@ -288,7 +288,7 @@ private fun WinsPhotoApp() {
                 onCancel={projectsOpen=false},
                 onOpen={loadedProject -> projectsOpen=false;scope.launch {
                     val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(loadedProject.layers,loadedProject.canvasWidth,loadedProject.canvasHeight)}
-                    bitmap=composite;layers=loadedProject.layers;selectedLayerId=loadedProject.selectedLayerId ?: loadedProject.layers.lastOrNull()?.id;editHistory=emptyList()
+                    bitmap=composite;layers=loadedProject.layers;selectedLayerId=loadedProject.selectedLayerId ?: loadedProject.layers.lastOrNull()?.id;editHistory=emptyList();redoHistory=emptyList()
                 }}
             )
             else if (layersOpen) LayersScreen(
@@ -297,7 +297,7 @@ private fun WinsPhotoApp() {
                 onCancel={layersOpen=false},
                 onAddImage={layerImagePicker.launch(arrayOf("image/*"))},
                 onEditMask={layerId,maskBitmap->maskPaintLayerId=layerId;maskPaintOpen=true},
-                onApply={newLayers,newSelected -> editHistory=(editHistory+current).takeLast(5);layersOpen=false;selectedLayerId=newSelected; scope.launch { val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(newLayers,current.width,current.height)}; layers=newLayers; bitmap=composite }}
+                onApply={newLayers,newSelected -> editHistory=(editHistory+current).takeLast(5);redoHistory=emptyList();layersOpen=false;selectedLayerId=newSelected; scope.launch { val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(newLayers,current.width,current.height)}; layers=newLayers; bitmap=composite }}
             )
             else if (curvesOpen) CurvesScreen(
                 source=selectedBitmap,
@@ -324,7 +324,7 @@ private fun WinsPhotoApp() {
             )
             else EditorPreviewScreen(
                 current,
-                onBack = { bitmap = null; imageUri = null; editHistory = emptyList(); layers=emptyList();selectedLayerId=null },
+                onBack = { bitmap = null; imageUri = null; editHistory = emptyList();redoHistory=emptyList();layers=emptyList();selectedLayerId=null;scope.launch(Dispatchers.IO){RecoveryStore(context).clear()} },
                 onImportAnother = { imagePicker.launch(arrayOf("image/*")) },
                 onCropTransform = { cropTransformOpen = true },
                 onAdjustments = { adjustmentOpen = true },
