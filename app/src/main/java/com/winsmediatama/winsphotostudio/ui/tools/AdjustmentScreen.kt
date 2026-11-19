@@ -42,6 +42,7 @@ fun AdjustmentScreen(source: Bitmap, onCancel: () -> Unit, onApply: (Bitmap) -> 
             item { AdjustmentSlider("Contrast", values.contrast, -1f..1f) { values=values.copy(contrast=it) } }
             item { AdjustmentSlider("Exposure (EV)", values.exposure, -5f..5f) { values=values.copy(exposure=it) } }
             item { AdjustmentSlider("Saturation", values.saturation, -1f..1f) { values=values.copy(saturation=it) } }
+            item { AdjustmentSlider("Hue", values.hue, -1f..1f) { values=values.copy(hue=it) } }
             item { AdjustmentSlider("Temperature", values.temperature, -1f..1f) { values=values.copy(temperature=it) } }
             item { AdjustmentSlider("Tint", values.tint, -1f..1f) { values=values.copy(tint=it) } }
             item { AdjustmentSlider("Highlights", values.highlights, -1f..1f) { values=values.copy(highlights=it) } }
