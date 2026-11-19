@@ -49,7 +49,12 @@ class SavedSelectionStore(root: File) {
         val updated = JSONArray()
         for (i in 0 until entries.length()) entries.optJSONObject(i)?.let(updated::put)
         updated.put(JSONObject().put("id", saved.id).put("name", saved.name).put("width", saved.width).put("height", saved.height).put("createdAt", saved.createdAt).put("asset", asset.name))
-        writeManifest(JSONObject().put("schemaVersion", 1).put("selections", updated))
+        try {
+            writeManifest(JSONObject().put("schemaVersion", 1).put("selections", updated))
+        } catch (error: Throwable) {
+            asset.delete()
+            throw error
+        }
         return saved
     }
 
@@ -96,10 +101,24 @@ class SavedSelectionStore(root: File) {
     private fun readManifest(): JSONObject = runCatching { JSONObject(manifest.readText()) }.getOrDefault(JSONObject())
     private fun writeManifest(value: JSONObject) {
         val temp = File(directory, "selections.json.tmp")
-        temp.writeText(value.toString(2))
-        if (!temp.renameTo(manifest)) {
-            manifest.writeText(temp.readText())
-            temp.delete()
+        val bytes = value.toString(2).toByteArray(Charsets.UTF_8)
+        temp.outputStream().use { output ->
+            output.write(bytes)
+            output.flush()
+            (output as? java.io.FileOutputStream)?.fd?.sync()
         }
+        if (!temp.renameTo(manifest)) {
+            val fallback = File(directory, "selections.json.fallback")
+            fallback.outputStream().use { output ->
+                output.write(bytes)
+                output.flush()
+                (output as? java.io.FileOutputStream)?.fd?.sync()
+            }
+            if (!fallback.renameTo(manifest)) {
+                fallback.copyTo(manifest, overwrite = true)
+                fallback.delete()
+            }
+        }
+        temp.delete()
     }
 }
