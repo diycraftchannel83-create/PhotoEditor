@@ -35,7 +35,11 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->U
     var softness by remember{mutableFloatStateOf(.1f)}
     var featherRadius by remember{mutableFloatStateOf(0f)}
     var expandRadius by remember{mutableFloatStateOf(0f)}
-    var invertSelection by remember{mutableStateOf(false)}\n    val selectionOverlay by produceState<Bitmap?>(null,source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint){\n        value?.takeIf{it!==source}?.recycle();value=null\n        value=withContext(Dispatchers.Default){runCatching{buildSelectionOverlay(source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint)}.getOrNull()}\n    }
+    var invertSelection by remember{mutableStateOf(false)}
+    val selectionOverlay by produceState<Bitmap?>(null,source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint){
+        value?.takeIf{it!==source}?.recycle();value=null
+        value=withContext(Dispatchers.Default){runCatching{buildSelectionOverlay(source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint)}.getOrNull()}
+    }
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))){
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(10.dp)){
             Text("Selection",Modifier.weight(1f),color=Color.White)
@@ -69,7 +73,8 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->U
                 }
             }
         ){
-            drawImage(source.asImageBitmap(),dstSize=androidx.compose.ui.unit.IntSize(size.width.toInt(),size.height.toInt()))\n            selectionOverlay?.let{drawImage(it.asImageBitmap(),dstSize=androidx.compose.ui.unit.IntSize(size.width.toInt(),size.height.toInt()))}
+            drawImage(source.asImageBitmap(),dstSize=androidx.compose.ui.unit.IntSize(size.width.toInt(),size.height.toInt()))
+            selectionOverlay?.let{drawImage(it.asImageBitmap(),dstSize=androidx.compose.ui.unit.IntSize(size.width.toInt(),size.height.toInt()))}
             val box=Rect(rect.left*size.width,rect.top*size.height,rect.right*size.width,rect.bottom*size.height)
             if(shape==SelectionShape.RECTANGLE||shape==SelectionShape.ELLIPSE){val p=Path().apply{if(shape==SelectionShape.RECTANGLE)addRect(box)else addOval(box)};drawPath(p,Color(0xFF77D7C0),style=Stroke(3f))}
             if((shape==SelectionShape.POLYGON||shape==SelectionShape.FREEHAND)&&polygonPoints.size>=2){val p=Path().apply{moveTo(polygonPoints[0].first*size.width,polygonPoints[0].second*size.height);polygonPoints.drop(1).forEach{lineTo(it.first*size.width,it.second*size.height)};if(polygonPoints.size>=3)close()};drawPath(p,Color(0xFF77D7C0),style=Stroke(3f))}
