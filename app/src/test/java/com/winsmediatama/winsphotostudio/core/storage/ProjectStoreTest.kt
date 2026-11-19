@@ -22,7 +22,7 @@ class ProjectStoreTest {
         val bitmap=Bitmap.createBitmap(2,2,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.CYAN)}
         val mask=Bitmap.createBitmap(2,2,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.WHITE)}
         val original=Bitmap.createBitmap(2,2,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.RED)}
-        val operations=listOf(EditOperation.Hsl(values=HslAdjustments(mapOf(HslColorRange.RED to HslRangeAdjustment(saturation=-.5f)))))
+        val operations=listOf(EditOperation.Hsl(values=HslAdjustments(mapOf(HslColorRange.RED to HslRangeAdjustment(saturation=-.5f)))),EditOperation.Transform(rotationDegrees=90f))
         val layer=EditorLayer(name="Layer test",bitmap=bitmap,opacity=.7f,locked=true,alphaLocked=true,groupId="g",groupName="Group",groupOpacity=.5f,clipToBelow=true,mask=mask,originalBitmap=original,operations=operations)
         val folder=store.saveLayerProject(listOf(layer),layer.id,2,2,"Round trip")
         val loaded=store.loadEditableProject(folder)
