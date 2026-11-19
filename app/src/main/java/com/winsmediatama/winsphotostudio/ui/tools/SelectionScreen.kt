@@ -119,14 +119,16 @@ private fun renderSelection(source:Bitmap,selection:Rect,shape:SelectionShape,ac
         SelectionShape.MAGIC_WAND->masks.magicWand(source,(seedPoint.first*source.width).toInt(),(seedPoint.second*source.height).toInt(),tolerance)
     }
     var processed=mask
-    if(invertSelection)processed=masks.invert(processed)
-    if(expandRadius.toInt()!=0)processed=masks.expandContract(processed,expandRadius.toInt())
-    if(featherRadius.toInt()>0)processed=masks.feather(processed,featherRadius.toInt())
-    if(action==SelectionAction.MASK)return SelectionOutput(applyMask(source,processed),action,processed)\n    if(action==SelectionAction.COPY_LAYER)return SelectionOutput(applyMask(source,processed),action)
+    if(invertSelection){val next=masks.invert(processed);processed.recycle();processed=next}
+    if(expandRadius.toInt()!=0){val next=masks.expandContract(processed,expandRadius.toInt());processed.recycle();processed=next}
+    if(featherRadius.toInt()>0){val next=masks.feather(processed,featherRadius.toInt());processed.recycle();processed=next}
+    if(action==SelectionAction.MASK)return SelectionOutput(applyMask(source,processed),action,processed)
+    if(action==SelectionAction.COPY_LAYER){val output=applyMask(source,processed);processed.recycle();return SelectionOutput(output,action)
     val pixels=IntArray(source.width*source.height);processed.getPixels(pixels,0,source.width,0,0,source.width,source.height)
     var minX=source.width;var minY=source.height;var maxX=-1;var maxY=-1
     for(y in 0 until source.height)for(x in 0 until source.width)if(android.graphics.Color.red(pixels[y*source.width+x])>0){minX=minOf(minX,x);minY=minOf(minY,y);maxX=maxOf(maxX,x);maxY=maxOf(maxY,y)}
-    if(maxX<minX||maxY<minY)return SelectionOutput(source.copy(Bitmap.Config.ARGB_8888,true),action)\n    return SelectionOutput(Bitmap.createBitmap(source,minX,minY,maxX-minX+1,maxY-minY+1),action)
+    if(maxX<minX||maxY<minY){processed.recycle();return SelectionOutput(source.copy(Bitmap.Config.ARGB_8888,true),action)}
+    val cropped=Bitmap.createBitmap(source,minX,minY,maxX-minX+1,maxY-minY+1);processed.recycle();return SelectionOutput(cropped,action)
 }
 private fun applyMask(source:Bitmap,mask:Bitmap):Bitmap {
     val w=source.width;val h=source.height;val pixels=IntArray(w*h);source.getPixels(pixels,0,w,0,0,w,h);val mp=IntArray(w*h);mask.getPixels(mp,0,w,0,0,w,h)
