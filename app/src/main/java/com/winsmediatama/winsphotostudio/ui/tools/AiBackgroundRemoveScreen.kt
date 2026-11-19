@@ -18,7 +18,6 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.android.gms.tasks.Tasks
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.nio.FloatBuffer
 
 private data class SegmentationResult(val width:Int,val height:Int,val mask:FloatArray)
 private data class AiMaskState(val result:SegmentationResult?,val error:String?)
@@ -38,7 +37,7 @@ fun AiBackgroundRemoveScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->U
                     val buffer=mask.getBuffer().duplicate()
                     buffer.rewind()
                     val data=FloatArray(mask.getWidth()*mask.getHeight())
-                    for(i in data.indices)data[i]=buffer.get().coerceIn(0f,1f)
+                    for(i in data.indices)data[i]=buffer.getFloat().coerceIn(0f,1f)
                     SegmentationResult(mask.getWidth(),mask.getHeight(),data)
                 } finally { segmenter.close() }
             }.fold({AiMaskState(it,null)},{AiMaskState(null,it.message ?: "Segmentation failed")})
