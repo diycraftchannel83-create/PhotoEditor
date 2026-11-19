@@ -43,7 +43,7 @@ fun RetouchScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
             TextButton(onClick=onCancel){Text("Cancel")}
             Button(enabled=preview!=null,onClick={preview?.let(onApply)}){Text("Apply")}
         }
-        Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D))) {
+        Box(Modifier.weight(1f).fillMaxWidth().aspectRatio(source.width.toFloat()/source.height).padding(12.dp).background(Color(0xFF25282D))) {
             preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize())}
             Canvas(Modifier.fillMaxSize().pointerInput(mode,brushSize) {
                 detectDragGestures(onDragStart={start->active=RetouchStroke(listOf(Offset(start.x/size.width,start.y/size.height)),brushSize,mode)},onDragEnd={active?.let{strokes=strokes+it};active=null},onDragCancel={active=null}) { change,_ ->
