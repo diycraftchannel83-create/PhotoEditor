@@ -258,7 +258,7 @@ private fun WinsPhotoApp() {
             else if (retouchOpen) RetouchScreen(
                 source=selectedBitmap,
                 onCancel={retouchOpen=false},
-                onApply={edited -> commitEdit(edited,current);retouchOpen=false}
+                onApply={edited,strokes,strength,offsetX,offsetY -> commitOperation(edited,current,EditOperation.Retouch(strokes=strokes,strength=strength,offsetX=offsetX,offsetY=offsetY));retouchOpen=false}
             )
             else if (gradientOpen) GradientScreen(
                 canvasWidth=current.width,
