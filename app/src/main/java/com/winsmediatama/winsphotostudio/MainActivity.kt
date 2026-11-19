@@ -248,6 +248,7 @@ private fun WinsPhotoApp() {
                 val maskLayer=layers.firstOrNull{it.id==maskPaintLayerId}
                 val activeMask=maskLayer?.mask
                 if(activeMask!=null) LayerMaskPaintScreen(mask=activeMask,onCancel={maskPaintOpen=false},onApply={editedMask->
+                    recordUndo(current,"Paint mask")
                     val updated=layers.map{if(it.id==maskPaintLayerId)it.copy(mask=editedMask) else it}
                     layers=updated;maskPaintOpen=false;scope.launch{bitmap=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,current.width,current.height)}}
                 }) else { Text("Mask not available",color=Color.White);TextButton(onClick={maskPaintOpen=false}){Text("Back")} }
