@@ -45,7 +45,7 @@ fun RetouchScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
         }
         Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D))) {
             preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize())}
-            Canvas(Modifier.fillMaxSize().pointerInput(mode,brushSize,strokes) {
+            Canvas(Modifier.fillMaxSize().pointerInput(mode,brushSize) {
                 detectDragGestures(onDragStart={start->active=RetouchStroke(listOf(Offset(start.x/size.width,start.y/size.height)),brushSize,mode)},onDragEnd={active?.let{strokes=strokes+it};active=null},onDragCancel={active=null}) { change,_ ->
                     active=active?.copy(points=active!!.points+Offset(change.position.x/size.width,change.position.y/size.height));change.consume()
                 }
@@ -97,8 +97,8 @@ private fun renderRetouch(source:Bitmap,strokes:List<RetouchStroke>,strength:Flo
     return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).also{it.setPixels(result,0,w,0,0,w,h)}
 }
 private fun blend(a:Int,b:Int,t:Float):Int {
-    fun ch(s:Int,shift:Int)=(((a shr shift)and 255)*(1-t)+((b shr shift)and 255)*t).toInt().coerceIn(0,255)
-    return (a and -0x1000000) or (ch(0,16) shl 16) or (ch(0,8) shl 8) or ch(0,0)
+    fun ch(shift:Int)=(((a shr shift)and 255)*(1-t)+((b shr shift)and 255)*t).toInt().coerceIn(0,255)
+    return (a and -0x1000000) or (ch(16) shl 16) or (ch(8) shl 8) or ch(0)
 }
 private fun boxBlur(p:IntArray,w:Int,h:Int,r:Int):IntArray {
     val out=IntArray(p.size)
