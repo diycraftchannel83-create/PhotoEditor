@@ -14,21 +14,21 @@
 - core/editor: EditorLayer metadata, layer masks, alpha-lock processor, grouped compositing
 - core/history: command-history foundation and replayable serialized EditOperation stack
 - core/tools: crop/transform model, canvas resize, perspective, selection masks, retouch processors
-- core/storage: bitmap project manifests, original+operation project foundation, private recovery snapshots
+- core/storage: bitmap project manifests with per-layer original sources and operation metadata, private recovery snapshots
 - ui/tools: crop/transform, canvas size, perspective, adjustments, levels, curves, HSL, filters, effects, LUT, layers/masks/groups, selection, retouch, text/shapes, gradients, background removal/replacement, project manager
 
 ## Current workflow
 Imported preview bitmap -> bitmap layers -> selected-layer or composite tool -> composite preview -> JPEG/PNG export.
 
-Crop/selection/canvas-wide edits may flatten the composite and rebuild a simplified layer stack. Layer tools preserve bitmap-layer metadata where available. Tool operations are still generally applied to bitmap pixels rather than retained as live adjustment layers.
+Crop/selection/canvas-wide edits may flatten the composite and rebuild a simplified layer stack. Layer tools preserve bitmap-layer metadata where available. Basic Adjust, Levels, Curves, HSL, Crop/Transform, Effects, LUT and Retouch edits can be retained as per-layer replayable operations and managed through the Operation Stack panel.
 
 ## Non-destructive foundation
 NonDestructiveEditStack retains the original bitmap and ordered operation objects. Basic Adjust, Levels, Curves, HSL, Crop/Transform, Effects, LUT and Retouch operations are replayable and JSON serializable; Retouch preserves normalized stroke data plus strength and offsets. Operations can be enabled/disabled, replaced and removed. Retouch regression coverage is authored but unexecuted. ProjectStore has a separate original-image plus operation JSON persistence path.
 
-**Integration limitation:** the operation stack is still not wired as the live editor's primary state. `NonDestructiveEditorSession` now provides a source-preserving controller with operation mutations, preview/final rendering, JSON export, and bounded operation-level undo/redo. Retouch UI now returns stroke parameters to MainActivity and commits through the operation stack; build/device verification remains deferred. Selection and other remaining tools still need operation integration.
+**Integration limitation:** the operation stack is now integrated for selected-layer adjustment and retouch workflows, and the UI supports enable/disable, reorder, remove and reset. `NonDestructiveEditorSession` remains a source-preserving controller with preview/final rendering, JSON export and bounded operation-level undo/redo. Parameter editing inside existing operations, true standalone adjustment layers, full-resolution export, nested groups and remaining tool integration are still pending. Build/device verification remains deferred.
 
 ## Layers, masks and groups
-EditorLayer stores bitmap, visibility, opacity, blend mode, lock, alpha-lock, optional grayscale mask and group metadata. Mask pixels use white to reveal and black to hide; mask alpha is respected. Mask painting and inversion controls are available in the layer panel. Alpha-lock retains the original layer alpha during selected-layer edits. Contiguous groups have shared group name/opacity metadata and render through an offscreen group composite. Nested groups, clipping masks and group effects are not implemented yet.
+EditorLayer stores bitmap, visibility, opacity, blend mode, lock, alpha-lock, optional grayscale mask and group metadata, group opacity and group blend mode. Mask pixels use white to reveal and black to hide; mask alpha is respected. Mask painting and inversion controls are available in the layer panel. Alpha-lock retains the original layer alpha during selected-layer edits. Contiguous groups have shared group name/opacity metadata and render through an offscreen group composite. Nested groups, clipping masks and group effects are not implemented yet.
 
 ## Project persistence and recovery
 Editable bitmap projects save layer PNGs plus JSON metadata, including masks, lock/alpha-lock and group metadata. Original+operation projects save the imported bitmap separately from operation JSON. Recovery snapshots are stored in app-private files and the editor offers a startup recovery prompt.
