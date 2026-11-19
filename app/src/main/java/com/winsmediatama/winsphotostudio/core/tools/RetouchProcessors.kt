@@ -12,7 +12,7 @@ object RetouchProcessors {
         val maskPixels=mask?.let{IntArray(it.width*it.height).also{arr->it.getPixels(arr,0,it.width,0,0,it.width,it.height)}}
         val factor=2f.pow(exposure.coerceIn(-2f,2f))*amount.coerceIn(-1f,1f)
         for(y in 0 until source.height)for(x in 0 until source.width){val i=y*source.width+x;val p=pixels[i];val a=p ushr 24
-            val m=maskPixels?.let{arr->val mx=(x.toFloat()/source.width*mask!!.width).toInt().coerceIn(0,mask.width-1);val my=(y.toFloat()/source.height*mask.height).toInt().coerceIn(0,mask.height-1);(arr[my*mask.width+mx] ushr 24)*((arr[my*mask.width+mx] shr 16 and 255)/255f)}?:1f
+            val m=maskPixels?.let{arr->val mx=(x.toFloat()/source.width*mask!!.width).toInt().coerceIn(0,mask.width-1);val my=(y.toFloat()/source.height*mask.height).toInt().coerceIn(0,mask.height-1);val mp=arr[my*mask.width+mx];val lum=((mp shr 16 and 255)*.2126f+(mp shr 8 and 255)*.7152f+(mp and 255)*.0722f)/255f;(mp ushr 24)/255f*lum}?:1f
             val local=factor*m
             val r=adjust((p shr 16 and 255),local);val g=adjust((p shr 8 and 255),local);val b=adjust(p and 255,local)
             pixels[i]=(a shl 24) or (r shl 16) or (g shl 8) or b
