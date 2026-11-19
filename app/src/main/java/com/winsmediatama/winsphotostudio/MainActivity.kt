@@ -141,7 +141,22 @@ private fun WinsPhotoApp() {
             layers=listOf(backup,resultLayer);selectedLayerId=resultLayer.id;bitmap=edited
         }
     }
-    fun commitOperation(edited:Bitmap,previousComposite:Bitmap,operation:EditOperation) {
+        fun commitOperation(edited:Bitmap,previousComposite:Bitmap,operation:EditOperation,flatten:Boolean=false) {
+        if(flatten){
+            recordUndo(previousComposite,operation.label)
+            val original=previousComposite.copy(Bitmap.Config.ARGB_8888,true)
+            val stack=NonDestructiveEditStack(original).apply{append(operation)}
+            edited.recycle()
+            scope.launch{
+                val rendered=withContext(Dispatchers.IO){stack.render()}
+                val backup=EditorLayer(name="Previous composite (hidden)",bitmap=previousComposite,visible=false)
+                val result=EditorLayer(name=operation.label,bitmap=rendered,originalBitmap=original,operations=stack.operations)
+                val updated=listOf(backup,result)
+                val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,rendered.width,rendered.height)}
+                layers=updated;selectedLayerId=result.id;bitmap=composite
+            }
+            return
+        }
         val selected=layers.firstOrNull{it.id==selectedLayerId}
         if(selected==null){commitEdit(edited,previousComposite);return}
         if(selected.locked){edited.recycle();exportStatus="Selected layer is locked. Unlock it before applying adjustments.";return}
