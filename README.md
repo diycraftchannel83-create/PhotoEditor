@@ -17,10 +17,10 @@ The roadmap below is the source of truth for continuing development. Update chec
 - RGB/composite Levels with input/output and gamma controls
 - Selective HSL color ranges (Red, Orange, Yellow, Green, Cyan, Blue, Purple, Magenta)
 - RGB and per-channel Curves with draggable control points
-- Layer manager: add transparent/photo layers, duplicate, rename, visibility, opacity, reorder, blend modes, lock/alpha-lock, contiguous groups/group opacity, mask creation/inversion/painting
+- Layer manager: add transparent/photo layers, duplicate, rename, visibility, opacity, reorder, blend modes, lock/alpha-lock, contiguous groups/group opacity, clipping-to-below, mask creation/inversion/painting
 - Brush and eraser
 - Rectangle, ellipse, polygon, color-range and contiguous magic-wand selections; crop/mask, invert, expand/contract and feather controls
-- Text and basic shape overlays with bold/italic/alignment/outline controls
+- Text and shape overlays with font families, bold/italic/alignment/outline/shadow, fill/outline shape mode and size controls
 - Linear/radial gradient layers with angle, color stops and opacity
 - Filter presets with adjustable strength; separate blur, motion blur, vignette and grain effects panel; offline .cube LUT import (1D/3D)
 - Retouch: blur, pixelate, clone stamp, spot-heal, dodge/burn and smudge processors (new processors pending verification)
@@ -28,7 +28,7 @@ The roadmap below is the source of truth for continuing development. Update chec
 - On-device AI person/background removal using bundled ML Kit Selfie Segmentation
 - Local project save/open with editable layer stack, visibility, opacity, blend mode, lock, masks, group metadata, selected layer and PNG assets; separate original+operation-stack project persistence foundation
 - JPEG and PNG export; JPEG quality and white/black flattening background
-- Bounded undo/redo bitmap history (5 snapshots; layer stack restore remains flattened)
+- Bounded undo/redo state history (30 states) preserving layer stack, selected layer and canvas; History panel can restore prior states
 - Private autosave snapshots and startup session recovery prompt
 - Canvas resize independent of image resize; perspective correction and arbitrary straighten rotation
 - Background replacement with solid, gradient or photo background
