@@ -26,7 +26,7 @@ class RecoveryStore(context:Context) {
             val maskAsset=layer.mask?.let{mask->val path="assets/mask_$index.png";File(staging,path).outputStream().use{mask.compress(Bitmap.CompressFormat.PNG,100,it)};path}
             entries.put(JSONObject().put("id",layer.id).put("name",layer.name).put("visible",layer.visible).put("opacity",layer.opacity).put("blendMode",layer.blendMode.name).put("locked",layer.locked).put("alphaLocked",layer.alphaLocked).put("groupId",layer.groupId).put("groupName",layer.groupName).put("groupOpacity",layer.groupOpacity).put("clipToBelow",layer.clipToBelow).put("asset",asset).apply{if(maskAsset!=null)put("maskAsset",maskAsset)})
         }
-        val json=JSONObject().put("schemaVersion",1).put("canvasWidth",canvasWidth).put("canvasHeight",canvasHeight).put("selectedLayerId",selectedLayerId).put("updatedAt",System.currentTimeMillis()).put("layers",entries)
+        val json=JSONObject().put("schemaVersion",2).put("canvasWidth",canvasWidth).put("canvasHeight",canvasHeight).put("selectedLayerId",selectedLayerId).put("updatedAt",System.currentTimeMillis()).put("layers",entries)
         File(staging,"recovery.json").writeText(json.toString(2))
         val target=File(root,"snapshot")
         val backup=File(root,"snapshot.bak")
