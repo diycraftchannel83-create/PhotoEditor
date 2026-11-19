@@ -23,7 +23,7 @@
 - [ ] Full crop/transform correctness and undo regression tests (test files authored; verification pending)
 - [x] Source-level repair of Text & Shapes multiline and line-spacing declarations (build deferred)
 - [x] Align non-destructive Transform replay with TransformProcessor API (build deferred)
-- [ ] Integrate full-resolution source/render pipeline (preview currently capped at ~2048px)
+- [x] Disk-backed original source cache foundation (copy original without decoding, transactional cache replacement, cache status surfaced; regression tests authored)\n- [ ] Integrate full-resolution source/render pipeline (preview currently capped at ~2048px; original retained but replay/export integration pending)
 
 ## Phase 2 — Color and tonal editing
 - [x] Basic adjustment processor and UI (brightness, contrast, exposure, saturation, hue, temperature, tint, RGB balance, highlights/shadows, whites/blacks, vibrance, clarity, sharpen)
@@ -153,7 +153,7 @@
 ## Phase 11 — Render/export and performance
 - [x] JPEG/PNG export, JPEG quality and background flattening controls
 - [x] Preview proxy limit to reduce memory pressure\n- [x] Bounds-first shared image decoder for main import and photo layers; rejects invalid/extreme dimensions and samples to 2048px preview; regression tests authored (verification deferred)
-- [ ] Full-resolution source/render/export path
+- [x] Disk-backed source cache and bounded original decode foundation (24 MP cap; tests authored, verification deferred)\n- [ ] Full-resolution source/render/export path with operation replay
 - [ ] Tile/region processing, memory-aware caches, background progress and cancellation
 - [ ] Metadata/EXIF policy, color profile consistency and export dimension tests
 - [ ] Benchmark low-RAM devices and large images
