@@ -34,7 +34,7 @@ The roadmap below is the source of truth for continuing development. Update chec
 - Bounded undo/redo state history (8 states, memory-conscious) preserving layer stack, selected layer and canvas; History panel can restore prior states
 - Non-destructive operation stack panel: enable/disable, reorder, remove and reset Basic Adjust, Levels, Curves, HSL, Crop/Transform, Effects, LUT and Retouch operations
 - Private autosave snapshots and startup session recovery prompt
-- Canvas resize independent of image resize; perspective correction (now replayable as a non-destructive operation with normalized corner parameters) and arbitrary straighten rotation
+- Canvas resize independent of image resize (now replayable with dimensions, anchor and background); perspective correction (now replayable as a non-destructive operation with normalized corner parameters) and arbitrary straighten rotation
 - Background replacement with solid, gradient or photo background
 - Memory-conscious image import (preview/editor canvas currently capped to 2048 px maximum dimension)
 
