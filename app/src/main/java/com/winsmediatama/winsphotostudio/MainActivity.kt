@@ -63,8 +63,27 @@ private fun WinsPhotoApp() {
     var curvesOpen by remember { mutableStateOf(false) }
     var layersOpen by remember { mutableStateOf(false) }
     var layers by remember { mutableStateOf<List<EditorLayer>>(emptyList()) }
+    var exportDialogOpen by remember { mutableStateOf(false) }
+    var exportQuality by remember { mutableFloatStateOf(92f)
+    }
+    var exportFormat by remember { mutableStateOf("JPEG") }
+    var exportStatus by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     var editHistory by remember { mutableStateOf<List<Bitmap>>(emptyList()) }
+    val jpegExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/jpeg")) { uri ->
+        val currentBitmap=bitmap
+        if(uri!=null && currentBitmap!=null) scope.launch {
+            val ok=withContext(Dispatchers.IO) { runCatching { context.contentResolver.openOutputStream(uri)?.use { currentBitmap.compress(Bitmap.CompressFormat.JPEG,exportQuality.toInt(),it) } ?: false }.getOrDefault(false) }
+            exportStatus=if(ok) "JPEG exported successfully" else "Export failed"
+        }
+    }
+    val pngExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/png")) { uri ->
+        val currentBitmap=bitmap
+        if(uri!=null && currentBitmap!=null) scope.launch {
+            val ok=withContext(Dispatchers.IO) { runCatching { context.contentResolver.openOutputStream(uri)?.use { currentBitmap.compress(Bitmap.CompressFormat.PNG,100,it) } ?: false }.getOrDefault(false) }
+            exportStatus=if(ok) "PNG exported successfully" else "Export failed"
+        }
+    }
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) { imageUri = uri; loading = true; error = null }
     }
@@ -127,9 +146,25 @@ private fun WinsPhotoApp() {
                 onLevels = { levelsOpen = true },
                 onCurves = { curvesOpen = true },
                 onLayers = { layersOpen = true },
+                onExport = { exportDialogOpen=true },
                 onUndo = { if (editHistory.isNotEmpty()) { bitmap = editHistory.last(); layers=listOf(EditorLayer(name="Background",bitmap=editHistory.last())); editHistory = editHistory.dropLast(1) } },
                 canUndo = editHistory.isNotEmpty()
             )
+            if(exportDialogOpen) AlertDialog(
+                onDismissRequest={exportDialogOpen=false},
+                title={Text("Export image")},
+                text={Column {
+                    Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) { listOf("JPEG","PNG").forEach { fmt->FilterChip(selected=exportFormat==fmt,onClick={exportFormat=fmt},label={Text(fmt)}) } }
+                    if(exportFormat=="JPEG") { Text("Quality: ${exportQuality.toInt()}%"); Slider(value=exportQuality,onValueChange={exportQuality=it},valueRange=50f..100f) }
+                    Text("Current canvas: ${bitmap?.width} × ${bitmap?.height}px",style=MaterialTheme.typography.bodySmall)
+                }},
+                confirmButton={TextButton(onClick={
+                    exportDialogOpen=false
+                    if(exportFormat=="PNG") pngExporter.launch("WinsPhotoStudio.png") else jpegExporter.launch("WinsPhotoStudio.jpg")
+                }){Text("Export")}},
+                dismissButton={TextButton(onClick={exportDialogOpen=false}){Text("Cancel")}}
+            )
+            exportStatus?.let { status-> AlertDialog(onDismissRequest={exportStatus=null},title={Text("Export")},text={Text(status)},confirmButton={TextButton(onClick={exportStatus=null}){Text("OK")}}) }
         }
     }
 }
@@ -160,7 +195,7 @@ private fun HomeScreen(loading: Boolean, error: String?, onImport: () -> Unit) {
 }
 
 @Composable
-private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onLevels: () -> Unit, onCurves: () -> Unit, onLayers: () -> Unit, onUndo: () -> Unit, canUndo: Boolean) {
+private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onLevels: () -> Unit, onCurves: () -> Unit, onLayers: () -> Unit, onExport: () -> Unit, onUndo: () -> Unit, canUndo: Boolean) {
     var zoom by remember { mutableFloatStateOf(1f) }
     var panX by remember { mutableFloatStateOf(0f) }
     var panY by remember { mutableFloatStateOf(0f) }
@@ -178,6 +213,7 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
             TextButton(onClick = onLevels) { Text("Levels") }
             TextButton(onClick = onCurves) { Text("Curves") }
             TextButton(onClick = onLayers) { Text("Layers") }
+            TextButton(onClick = onExport) { Text("Export") }
             TextButton(onClick = onImportAnother) { Text("Replace") }
         }
         Box(Modifier.weight(1f).fillMaxWidth().background(Color(0xFF25282D)).padding(12.dp).pointerInput(bitmap) {
