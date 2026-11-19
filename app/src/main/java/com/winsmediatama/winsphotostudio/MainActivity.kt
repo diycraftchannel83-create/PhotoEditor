@@ -62,6 +62,7 @@ import com.winsmediatama.winsphotostudio.core.history.NonDestructiveEditStack
 import com.winsmediatama.winsphotostudio.core.editor.LayerCompositeRenderer
 import com.winsmediatama.winsphotostudio.core.editor.AlphaLockProcessor
 import com.winsmediatama.winsphotostudio.core.storage.RecoveryStore
+import com.winsmediatama.winsphotostudio.core.export.FullResolutionExport
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -117,6 +118,9 @@ private fun WinsPhotoApp() {
     }
     var exportFormat by remember { mutableStateOf("JPEG") }
     var exportBackground by remember { mutableIntStateOf(android.graphics.Color.WHITE) }
+    var exportOriginalDimensions by remember { mutableStateOf(false) }
+    var sourceWidth by remember { mutableIntStateOf(0) }
+    var sourceHeight by remember { mutableIntStateOf(0) }
     var exportStatus by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -176,9 +180,12 @@ private fun WinsPhotoApp() {
         val currentBitmap=bitmap
         if(uri!=null && currentBitmap!=null) scope.launch {
             val ok=withContext(Dispatchers.IO) { runCatching { context.contentResolver.openOutputStream(uri)?.use { stream ->
-                val flattened=flattenForJpeg(currentBitmap,exportBackground)
+                val size=FullResolutionExport.targetSize(currentBitmap,sourceWidth,sourceHeight,exportOriginalDimensions)
+                val resized=FullResolutionExport.render(currentBitmap,size)
+                val flattened=flattenForJpeg(resized,exportBackground)
                 val compressed=flattened.compress(Bitmap.CompressFormat.JPEG,exportQuality.toInt(),stream)
                 flattened.recycle()
+                if(resized!==currentBitmap)resized.recycle()
                 compressed
             } ?: false }.getOrDefault(false) }
             exportStatus=if(ok) "JPEG exported successfully" else "Export failed"
@@ -187,7 +194,13 @@ private fun WinsPhotoApp() {
     val pngExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/png")) { uri ->
         val currentBitmap=bitmap
         if(uri!=null && currentBitmap!=null) scope.launch {
-            val ok=withContext(Dispatchers.IO) { runCatching { context.contentResolver.openOutputStream(uri)?.use { currentBitmap.compress(Bitmap.CompressFormat.PNG,100,it) } ?: false }.getOrDefault(false) }
+            val ok=withContext(Dispatchers.IO) { runCatching {
+                val size=FullResolutionExport.targetSize(currentBitmap,sourceWidth,sourceHeight,exportOriginalDimensions)
+                val resized=FullResolutionExport.render(currentBitmap,size)
+                val result=context.contentResolver.openOutputStream(uri)?.use { resized.compress(Bitmap.CompressFormat.PNG,100,it) } ?: false
+                if(resized!==currentBitmap)resized.recycle()
+                result
+            }.getOrDefault(false) }
             exportStatus=if(ok) "PNG exported successfully" else "Export failed"
         }
     }
@@ -227,15 +240,22 @@ private fun WinsPhotoApp() {
     }
     LaunchedEffect(imageUri) {
         val selected = imageUri ?: return@LaunchedEffect
-        bitmap = withContext(Dispatchers.IO) {
+        val decodedInfo = withContext(Dispatchers.IO) {
             runCatching {
                 val bounds = Options().apply { inJustDecodeBounds = true }
                 context.contentResolver.openInputStream(selected)?.use { BitmapFactory.decodeStream(it, null, bounds) }
-                val sample = calculateSampleSize(bounds.outWidth, bounds.outHeight, 2048)
+                val originalW=bounds.outWidth
+                val originalH=bounds.outHeight
+                val sample = calculateSampleSize(originalW, originalH, 2048)
                 val decodeOptions = Options().apply { inSampleSize = sample; inPreferredConfig = Bitmap.Config.ARGB_8888 }
-                context.contentResolver.openInputStream(selected)?.use { BitmapFactory.decodeStream(it, null, decodeOptions) }
+                val preview=context.contentResolver.openInputStream(selected)?.use { BitmapFactory.decodeStream(it, null, decodeOptions) }
+                Triple(preview,originalW,originalH)
             }.getOrNull()
         }
+        bitmap=decodedInfo?.first
+        sourceWidth=decodedInfo?.second?:0
+        sourceHeight=decodedInfo?.third?:0
+        exportOriginalDimensions=false
         loading = false
         bitmap?.let { loaded -> val bg=EditorLayer(name="Background",bitmap=loaded);layers=listOf(bg);selectedLayerId=bg.id }
         if (bitmap == null) error = "Unable to open image. Try JPG, PNG or WebP."
@@ -416,6 +436,17 @@ private fun WinsPhotoApp() {
                         }
                     }
                     Text("Current canvas: ${bitmap?.width} × ${bitmap?.height}px",style=MaterialTheme.typography.bodySmall)
+                    if(sourceWidth>0&&sourceHeight>0&&sourceWidth.toLong()*sourceHeight<=FullResolutionExport.MAX_EXPORT_PIXELS) {
+                        Row(verticalAlignment=Alignment.CenterVertically) {
+                            Checkbox(checked=exportOriginalDimensions,onCheckedChange={exportOriginalDimensions=it})
+                            Column {
+                                Text("Export at source dimensions")
+                                Text("${sourceWidth} × ${sourceHeight} px (resampled from preview)",style=MaterialTheme.typography.labelSmall,color=Color.LightGray)
+                            }
+                        }
+                    } else if(sourceWidth>0&&sourceHeight>0) {
+                        Text("Source is larger than the 60 MP export safety limit. Export will use current preview size.",color=Color(0xFFFFC107),style=MaterialTheme.typography.bodySmall)
+                    }
                 }},
                 confirmButton={TextButton(onClick={
                     exportDialogOpen=false
