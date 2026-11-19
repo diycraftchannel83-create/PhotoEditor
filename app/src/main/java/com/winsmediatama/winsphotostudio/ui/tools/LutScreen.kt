@@ -38,11 +38,11 @@ fun LutScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
         val text=lutText
         if(text!=null)value=withContext(Dispatchers.Default){CubeLut.parse(text).apply(source)}
     }
-    Column(Modifier.fillMaxSize().background(Color(0xFF101216))){
+    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.recycle()}}\n    Column(Modifier.fillMaxSize().background(Color(0xFF101216))){
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically){
             Text("LUT Import",Modifier.weight(1f),color=Color.White)
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(enabled=preview!=null,onClick={preview?.let(onApply)}){Text("Apply")}
+            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true))}}){Text("Apply")}
         }
         Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D)),contentAlignment=Alignment.Center){
             preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize().padding(8.dp),contentScale=ContentScale.Fit)}?:Text("Import a .cube LUT to preview",color=Color.LightGray)
