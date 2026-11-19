@@ -16,6 +16,8 @@ import com.winsmediatama.winsphotostudio.core.adjustments.HslColorRange
 import com.winsmediatama.winsphotostudio.core.adjustments.HslRangeAdjustment
 import com.winsmediatama.winsphotostudio.core.adjustments.HslProcessor
 import com.winsmediatama.winsphotostudio.core.adjustments.TransformProcessor
+import com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectSettings
+import com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectKind
 
 /**
  * Serializable, replayable edit stack. Operations retain parameters rather than requiring
@@ -73,6 +75,14 @@ sealed interface EditOperation {
         fun valid():Boolean=left.isFinite()&&top.isFinite()&&right.isFinite()&&bottom.isFinite()&&rotationDegrees.isFinite()&&left>=0f&&top>=0f&&right<=1f&&bottom<=1f&&left<right&&top<bottom&&outputWidth>=0&&outputHeight>=0
         override fun toJson()=JSONObject().put("id",id).put("type","transform").put("enabled",enabled).put("left",left).put("top",top).put("right",right).put("bottom",bottom).put("rotationDegrees",rotationDegrees).put("flipHorizontal",flipHorizontal).put("flipVertical",flipVertical).put("outputWidth",outputWidth).put("outputHeight",outputHeight)
     }
+    data class Effect(
+        override val id:String=java.util.UUID.randomUUID().toString(),
+        override val enabled:Boolean=true,
+        val settings:PhotoEffectSettings
+    ):EditOperation {
+        override val label="Effect: ${settings.kind.name.lowercase()}"
+        override fun toJson()=JSONObject().put("id",id).put("type","effect").put("enabled",enabled).put("kind",settings.kind.name).put("strength",settings.strength).put("angleDegrees",settings.angleDegrees)
+    }
     data class Crop(
         override val id: String = java.util.UUID.randomUUID().toString(),
         override val enabled: Boolean = true,
@@ -105,6 +115,7 @@ class NonDestructiveEditStack(
             is EditOperation.Crop -> operation.copy(id = id)
             is EditOperation.Hsl -> operation.copy(id = id)
             is EditOperation.Transform -> operation.copy(id=id)
+            is EditOperation.Effect -> operation.copy(id=id)
         }
         return true
     }
@@ -118,6 +129,7 @@ class NonDestructiveEditStack(
             is EditOperation.Crop -> old.copy(enabled = enabled)
             is EditOperation.Hsl -> old.copy(enabled = enabled)
             is EditOperation.Transform -> old.copy(enabled=enabled)
+            is EditOperation.Effect -> old.copy(enabled=enabled)
         }
         return true
     }
@@ -135,6 +147,7 @@ class NonDestructiveEditStack(
                 is EditOperation.Crop -> crop(current, operation)
                 is EditOperation.Hsl -> HslProcessor.apply(current,operation.values)
                 is EditOperation.Transform -> TransformProcessor.apply(current,operation.left,operation.top,operation.right,operation.bottom,operation.rotationDegrees,operation.flipHorizontal,operation.flipVertical,operation.outputWidth,operation.outputHeight)
+                is EditOperation.Effect -> operation.settings.apply(current)
             }
             if (next !== current && !current.isRecycled) current.recycle()
             current = next
@@ -166,6 +179,7 @@ class NonDestructiveEditStack(
                         if (crop.valid()) ops += crop
                     }
                     "hsl" -> ops += EditOperation.Hsl(id,enabled,hslFromJson(values))
+                    "effect" -> { val kind=runCatching{com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectKind.valueOf(item.optString("kind"))}.getOrNull(); if(kind!=null){val settings=PhotoEffectSettings(kind,item.optDouble("strength",.5).toFloat(),item.optDouble("angleDegrees",45.0).toFloat());if(settings.valid())ops+=EditOperation.Effect(id,enabled,settings)} }
                     "transform" -> { val op=EditOperation.Transform(id,enabled,item.optDouble("left",0.0).toFloat(),item.optDouble("top",0.0).toFloat(),item.optDouble("right",1.0).toFloat(),item.optDouble("bottom",1.0).toFloat(),item.optDouble("rotationDegrees",0.0).toFloat(),item.optBoolean("flipHorizontal",false),item.optBoolean("flipVertical",false),item.optInt("outputWidth",0),item.optInt("outputHeight",0));if(op.valid())ops+=op }
                 }
             }
