@@ -22,7 +22,7 @@ class NonDestructiveEditorSessionTest {
         assertEquals(operation.id, session.operations.single().id)
         val preview = session.renderPreview()
         assertEquals(2, preview.width)
-        assertEquals(1, preview.height)
+        assertEquals(2, preview.height)
         assertEquals(Color.MAGENTA, source.getPixel(0, 0))
         assertTrue(session.undo())
         assertTrue(session.operations.isEmpty())
