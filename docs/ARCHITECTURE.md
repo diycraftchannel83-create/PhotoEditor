@@ -25,7 +25,7 @@ Crop/selection/canvas-wide edits may flatten the composite and rebuild a simplif
 ## Non-destructive foundation
 NonDestructiveEditStack retains the original bitmap and ordered operation objects. Basic Adjust, Levels, Curves and normalized Crop operations are replayable and JSON serializable; operations can be enabled/disabled, replaced and removed. ProjectStore has a separate original-image plus operation JSON persistence path.
 
-**Integration limitation:** this operation stack is not yet the live editor's primary state. Most UI edits remain baked into bitmap layers. Operation-level undo/redo, live adjustment layers, operation serialization for all tools and history panel remain planned.
+**Integration limitation:** the operation stack is still not wired as the live editor's primary state. `NonDestructiveEditorSession` now provides a source-preserving controller with operation mutations, preview/final rendering, JSON export, and bounded operation-level undo/redo. UI tool routing, operation persistence/recovery integration, and operation coverage for all tools remain pending.
 
 ## Layers, masks and groups
 EditorLayer stores bitmap, visibility, opacity, blend mode, lock, alpha-lock, optional grayscale mask and group metadata. Mask pixels use white to reveal and black to hide; mask alpha is respected. Mask painting and inversion controls are available in the layer panel. Alpha-lock retains the original layer alpha during selected-layer edits. Contiguous groups have shared group name/opacity metadata and render through an offscreen group composite. Nested groups, clipping masks and group effects are not implemented yet.
