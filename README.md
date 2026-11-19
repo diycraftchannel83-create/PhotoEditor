@@ -244,6 +244,10 @@ The roadmap below is the source of truth for continuing development. Update chec
 - Added project lifecycle regression tests covering snapshot save/load, rename, duplicate, list and delete, plus blank-name validation. Verification pending.
 - Added operation-project round-trip tests for original-source preservation, parameter/operation IDs, disabled operations, crop serialization and replay after reload. Verification pending.
 
+## Recent continuation work
+
+- Project/recovery persistence hardening: canonical path validation prevents project and recovery manifest asset traversal; supported schema checks and safe bitmap decoding protect editable projects, snapshots, operation-project loads and recovery. Path-traversal regression tests authored, verification pending.
+
 ## Known limitations / items to verify
 
 - Feature checkboxes describe implementation presence, not production validation.
