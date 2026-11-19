@@ -46,6 +46,7 @@ import com.winsmediatama.winsphotostudio.ui.tools.TextShapeScreen
 import com.winsmediatama.winsphotostudio.ui.tools.FilterScreen
 import com.winsmediatama.winsphotostudio.ui.tools.EffectsScreen
 import com.winsmediatama.winsphotostudio.ui.tools.LutScreen
+import com.winsmediatama.winsphotostudio.ui.tools.CanvasSizeScreen
 import com.winsmediatama.winsphotostudio.ui.tools.HslScreen
 import com.winsmediatama.winsphotostudio.ui.tools.GradientScreen
 import com.winsmediatama.winsphotostudio.ui.tools.RetouchScreen
@@ -86,6 +87,7 @@ private fun WinsPhotoApp() {
     var filtersOpen by remember { mutableStateOf(false) }
     var effectsOpen by remember { mutableStateOf(false) }
     var lutOpen by remember { mutableStateOf(false) }
+    var canvasSizeOpen by remember { mutableStateOf(false) }
     var hslOpen by remember { mutableStateOf(false) }
     var gradientOpen by remember { mutableStateOf(false) }
     var retouchOpen by remember { mutableStateOf(false) }
@@ -213,6 +215,11 @@ private fun WinsPhotoApp() {
                 onCancel={hslOpen=false},
                 onApply={edited -> commitEdit(edited,current);hslOpen=false}
             )
+            else if (canvasSizeOpen) CanvasSizeScreen(
+                source=current,
+                onCancel={canvasSizeOpen=false},
+                onApply={edited -> commitEdit(edited,current,flatten=true);canvasSizeOpen=false}
+            )
             else if (lutOpen) LutScreen(
                 source=selectedBitmap,
                 onCancel={lutOpen=false},
@@ -299,6 +306,7 @@ private fun WinsPhotoApp() {
                 onFilters = { filtersOpen = true },
                 onEffects = { effectsOpen = true },
                 onLut = { lutOpen = true },
+                onCanvasSize = { canvasSizeOpen = true },
                 onHsl = { hslOpen = true },
                 onGradient = { gradientOpen = true },
                 onRetouch = { retouchOpen = true },
@@ -360,7 +368,7 @@ private fun HomeScreen(loading: Boolean, error: String?, onImport: () -> Unit) {
 }
 
 @Composable
-private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onLevels: () -> Unit, onCurves: () -> Unit, onLayers: () -> Unit, onProjects: () -> Unit, onBrush: () -> Unit, onSelection: () -> Unit, onTextShape: () -> Unit, onFilters: () -> Unit, onEffects: () -> Unit, onLut: () -> Unit, onHsl: () -> Unit, onGradient: () -> Unit, onRetouch: () -> Unit, onBackgroundRemove: () -> Unit, onAiBackgroundRemove: () -> Unit, onExport: () -> Unit, onUndo: () -> Unit, onRedo: () -> Unit, canUndo: Boolean, canRedo: Boolean) {
+private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onLevels: () -> Unit, onCurves: () -> Unit, onLayers: () -> Unit, onProjects: () -> Unit, onBrush: () -> Unit, onSelection: () -> Unit, onTextShape: () -> Unit, onFilters: () -> Unit, onEffects: () -> Unit, onLut: () -> Unit, onCanvasSize: () -> Unit, onHsl: () -> Unit, onGradient: () -> Unit, onRetouch: () -> Unit, onBackgroundRemove: () -> Unit, onAiBackgroundRemove: () -> Unit, onExport: () -> Unit, onUndo: () -> Unit, onRedo: () -> Unit, canUndo: Boolean, canRedo: Boolean) {
     var zoom by remember { mutableFloatStateOf(1f) }
     var panX by remember { mutableFloatStateOf(0f) }
     var panY by remember { mutableFloatStateOf(0f) }
@@ -390,6 +398,7 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
                 TextButton(onClick=onFilters){Text("Filters")}
                 TextButton(onClick=onEffects){Text("Effects")}
                 TextButton(onClick=onLut){Text("LUT")}
+                TextButton(onClick=onCanvasSize){Text("Canvas")}
                 TextButton(onClick=onHsl){Text("HSL")}
                 TextButton(onClick=onGradient){Text("Gradient")}
                 TextButton(onClick=onRetouch){Text("Retouch")}
