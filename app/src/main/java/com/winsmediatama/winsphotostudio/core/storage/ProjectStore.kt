@@ -6,10 +6,10 @@ import android.net.Uri
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
-import java.util.UUID
+import java.util.UUID\nimport com.winsmediatama.winsphotostudio.core.editor.EditorLayer\nimport com.winsmediatama.winsphotostudio.core.editor.EditorBlendMode
 
 /** Local project persistence. Assets are copied into the app-owned project folder; originals are untouched. */
-class ProjectStore(context: Context) {
+data class LoadedStudioProject(val name:String,val canvasWidth:Int,val canvasHeight:Int,val layers:List<EditorLayer>,val selectedLayerId:String?)\n\nclass ProjectStore(context: Context) {
     private val root = File(context.filesDir, "studio-projects").apply { mkdirs() }
 
     fun createProjectFromUri(context: Context, uri: Uri, projectName: String, width: Int, height: Int): File {
@@ -62,6 +62,46 @@ class ProjectStore(context: Context) {
     }
 
     fun projectName(projectFolder: File): String = readManifest(projectFolder).optString("name", projectFolder.name)
+
+    fun saveLayerProject(layers:List<EditorLayer>,selectedLayerId:String?,canvasWidth:Int,canvasHeight:Int,projectName:String):File {
+        val id=UUID.randomUUID().toString()
+        val folder=File(root,id).apply{mkdirs()}
+        val assets=File(folder,"assets").apply{mkdirs()}
+        val layerArray=JSONArray()
+        layers.forEachIndexed { index,layer ->
+            val assetPath="assets/layer_${index}.png"
+            File(folder,assetPath).outputStream().use { layer.bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
+            layerArray.put(JSONObject().put("id",layer.id).put("name",layer.name).put("visible",layer.visible).put("opacity",layer.opacity).put("blendMode",layer.blendMode.name).put("asset",assetPath))
+        }
+        val manifest=JSONObject().put("schemaVersion",2).put("projectId",id).put("name",projectName.trim().ifBlank{"Untitled Project"})
+            .put("canvasWidth",canvasWidth).put("canvasHeight",canvasHeight).put("createdAt",System.currentTimeMillis()).put("updatedAt",System.currentTimeMillis())
+            .put("selectedLayerId",selectedLayerId).put("layers",layerArray)
+        File(folder,"project.json").writeText(manifest.toString(2))
+        return folder
+    }
+
+    fun loadEditableProject(projectFolder:File):LoadedStudioProject? {
+        val manifest=readManifest(projectFolder)
+        val name=manifest.optString("name",projectFolder.name)
+        val width=manifest.optInt("canvasWidth",1).coerceAtLeast(1)
+        val height=manifest.optInt("canvasHeight",1).coerceAtLeast(1)
+        val array=manifest.optJSONArray("layers")
+        val layers=mutableListOf<EditorLayer>()
+        if(array!=null) for(i in 0 until array.length()) {
+            val item=array.optJSONObject(i) ?: continue
+            val asset=item.optString("asset",manifest.optString("snapshotAsset",""))
+            if(asset.isBlank()) continue
+            val bitmap=android.graphics.BitmapFactory.decodeFile(File(projectFolder,asset).absolutePath) ?: continue
+            val mode=runCatching{EditorBlendMode.valueOf(item.optString("blendMode","NORMAL"))}.getOrDefault(EditorBlendMode.NORMAL)
+            layers+=EditorLayer(id=item.optString("id",UUID.randomUUID().toString()),name=item.optString("name","Layer ${i+1}"),bitmap=bitmap,
+                visible=item.optBoolean("visible",true),opacity=item.optDouble("opacity",1.0).toFloat().coerceIn(0f,1f),blendMode=mode)
+        }
+        if(layers.isEmpty()) {
+            val snapshot=loadSnapshot(projectFolder) ?: return null
+            layers+=EditorLayer(name=name,bitmap=snapshot)
+        }
+        return LoadedStudioProject(name,width,height,layers,manifest.optString("selectedLayerId").takeIf{it.isNotBlank()})
+    }
 
     fun listProjects(): List<File> = root.listFiles()?.filter { it.isDirectory && File(it, "project.json").isFile }?.sortedByDescending { File(it, "project.json").lastModified() } ?: emptyList()
 
