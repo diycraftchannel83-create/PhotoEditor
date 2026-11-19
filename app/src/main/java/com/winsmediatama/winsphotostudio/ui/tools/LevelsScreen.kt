@@ -21,7 +21,7 @@ import kotlinx.coroutines.withContext
 private enum class LevelsTarget(val label:String) { RGB("RGB"), RED("Red"), GREEN("Green"), BLUE("Blue") }
 
 @Composable
-fun LevelsScreen(source: Bitmap, onCancel:()->Unit, onApply:(Bitmap)->Unit) {
+fun LevelsScreen(source: Bitmap, onCancel:()->Unit, onApply:(Bitmap,LevelsValues)->Unit) {
     var target by remember { mutableStateOf(LevelsTarget.RGB) }
     var composite by remember { mutableStateOf(LevelsChannel()) }
     var red by remember { mutableStateOf(LevelsChannel()) }
@@ -49,7 +49,7 @@ fun LevelsScreen(source: Bitmap, onCancel:()->Unit, onApply:(Bitmap)->Unit) {
             Text("Levels",Modifier.weight(1f),color=Color.White)
             TextButton(onClick={updateTarget(LevelsChannel())}){Text("Reset")}
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true))}}){Text("Apply")}
+            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true),values)}}){Text("Apply")}
         }
         Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D)),contentAlignment=Alignment.Center) {
             preview?.let { Image(it.asImageBitmap(),null,Modifier.fillMaxSize().padding(8.dp),contentScale=ContentScale.Fit) } ?: CircularProgressIndicator()
