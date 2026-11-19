@@ -39,7 +39,9 @@ fun TextShapeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
     var outline by remember{mutableStateOf(false)}
     var outlineWidth by remember{mutableFloatStateOf(4f)}
     var alignment by remember{mutableStateOf(TextAlignment.CENTER)}
-    var fontFamily by remember{mutableStateOf("sans-serif")}\n    var tracking by remember{mutableFloatStateOf(0f)}\n    var lineSpacing by remember{mutableFloatStateOf(0f)
+    var fontFamily by remember{mutableStateOf("sans-serif")}
+    var tracking by remember{mutableFloatStateOf(0f)}
+    var lineSpacing by remember{mutableFloatStateOf(0f)
     var fontMenu by remember{mutableStateOf(false)}
     var shadow by remember{mutableStateOf(false)}
     var shadowRadius by remember{mutableFloatStateOf(8f)}
@@ -65,11 +67,13 @@ fun TextShapeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
                     strokeWidth=(outlineWidth*scale).coerceAtLeast(1f)
                     typeface=Typeface.create(fontFamily,(if(bold)Typeface.BOLD else Typeface.NORMAL)or(if(italic)Typeface.ITALIC else 0))
                     textAlign=when(alignment){TextAlignment.LEFT->AndroidPaint.Align.LEFT;TextAlignment.CENTER->AndroidPaint.Align.CENTER;TextAlignment.RIGHT->AndroidPaint.Align.RIGHT}
-                    letterSpacing=tracking/100f\n                    if(shadow&&kind==OverlayKind.TEXT)setShadowLayer(shadowRadius*scale,2f*scale,2f*scale,android.graphics.Color.BLACK)
+                    letterSpacing=tracking/100f
+                    if(shadow&&kind==OverlayKind.TEXT)setShadowLayer(shadowRadius*scale,2f*scale,2f*scale,android.graphics.Color.BLACK)
                 }
                 nc.save();nc.rotate(rotation,cx,cy)
                 when(kind){
-                    OverlayKind.TEXT->{val lines=text.split('\n');val step=p.textSize+lineSpacing*scale;val startY=cy-(lines.size-1)*step/2f;if(outline){val stroke=AndroidPaint(p).apply{color=outlineColor.toArgb();style=AndroidPaint.Style.STROKE;strokeWidth=outlineWidth*scale;clearShadowLayer()};lines.forEachIndexed{index,line->nc.drawText(line,cx,startY+index*step,stroke)}};p.style=AndroidPaint.Style.FILL;lines.forEachIndexed{index,line->nc.drawText(line,cx,startY+index*step,p)}}
+                    OverlayKind.TEXT->{val lines=text.split('
+');val step=p.textSize+lineSpacing*scale;val startY=cy-(lines.size-1)*step/2f;if(outline){val stroke=AndroidPaint(p).apply{color=outlineColor.toArgb();style=AndroidPaint.Style.STROKE;strokeWidth=outlineWidth*scale;clearShadowLayer()};lines.forEachIndexed{index,line->nc.drawText(line,cx,startY+index*step,stroke)}};p.style=AndroidPaint.Style.FILL;lines.forEachIndexed{index,line->nc.drawText(line,cx,startY+index*step,p)}}
                     OverlayKind.RECTANGLE->{p.style=if(shapeFill)AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE;nc.drawRect(cx-size.width*shapeWidth/2,cy-size.height*shapeHeight/2,cx+size.width*shapeWidth/2,cy+size.height*shapeHeight/2,p)}
                     OverlayKind.ELLIPSE->{p.style=if(shapeFill)AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE;nc.drawOval(RectF(cx-size.width*shapeWidth/2,cy-size.height*shapeHeight/2,cx+size.width*shapeWidth/2,cy+size.height*shapeHeight/2),p)}
                     OverlayKind.LINE->{p.style=AndroidPaint.Style.STROKE;nc.drawLine(cx-size.width*shapeWidth/2,cy,cx+size.width*shapeWidth/2,cy,p)}
@@ -85,7 +89,9 @@ fun TextShapeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
                 Row(verticalAlignment=androidx.compose.ui.Alignment.CenterVertically){Checkbox(checked=bold,onCheckedChange={bold=it});Text("Bold",color=Color.White);Checkbox(checked=italic,onCheckedChange={italic=it});Text("Italic",color=Color.White);Checkbox(checked=outline,onCheckedChange={outline=it});Text("Outline",color=Color.White)}
                 Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(4.dp)){TextAlignment.entries.forEach{a->FilterChip(selected=alignment==a,onClick={alignment=a},label={Text(a.name)})}}
                 Row(verticalAlignment=androidx.compose.ui.Alignment.CenterVertically){Checkbox(checked=shadow,onCheckedChange={shadow=it});Text("Shadow",color=Color.White)}
-                if(shadow){Text("Shadow radius ${shadowRadius.toInt()}px",color=Color.LightGray);Slider(value=shadowRadius,onValueChange={shadowRadius=it},valueRange=0f..32f)}\n                Text("Letter spacing ${tracking.toInt()}px",color=Color.LightGray);Slider(value=tracking,onValueChange={tracking=it},valueRange=0f..24f)\n                Text("Line spacing ${lineSpacing.toInt()}px",color=Color.LightGray);Slider(value=lineSpacing,onValueChange={lineSpacing=it},valueRange=0f..100f)
+                if(shadow){Text("Shadow radius ${shadowRadius.toInt()}px",color=Color.LightGray);Slider(value=shadowRadius,onValueChange={shadowRadius=it},valueRange=0f..32f)}
+                Text("Letter spacing ${tracking.toInt()}px",color=Color.LightGray);Slider(value=tracking,onValueChange={tracking=it},valueRange=0f..24f)
+                Text("Line spacing ${lineSpacing.toInt()}px",color=Color.LightGray);Slider(value=lineSpacing,onValueChange={lineSpacing=it},valueRange=0f..100f)
                 if(outline){Text("Outline width ${outlineWidth.toInt()}px",color=Color.LightGray);Slider(value=outlineWidth,onValueChange={outlineWidth=it},valueRange=1f..24f);Text("Outline color",color=Color.LightGray);ColorPalette(palette,onSelect={outlineColor=it})}
             }
             Text("Fill color",color=Color.LightGray);ColorPalette(palette,onSelect={overlayColor=it})
@@ -105,7 +111,8 @@ private fun renderOverlay(source:Bitmap,kind:OverlayKind,text:String,color:Color
     val cx=x*source.width;val cy=y*source.height
     canvas.save();canvas.rotate(rotation,cx,cy)
     when(kind){
-        OverlayKind.TEXT->{val lines=text.split('\n');val step=p.textSize+lineSpacing;val startY=cy-(lines.size-1)*step/2f;if(outline){val stroke=AndroidPaint(p).apply{this.color=outlineColor.toArgb();style=AndroidPaint.Style.STROKE;strokeWidth=outlineWidth;clearShadowLayer()};lines.forEachIndexed{index,line->canvas.drawText(line,cx,startY+index*step,stroke)}};p.style=AndroidPaint.Style.FILL;lines.forEachIndexed{index,line->canvas.drawText(line,cx,startY+index*step,p)}}
+        OverlayKind.TEXT->{val lines=text.split('
+');val step=p.textSize+lineSpacing;val startY=cy-(lines.size-1)*step/2f;if(outline){val stroke=AndroidPaint(p).apply{this.color=outlineColor.toArgb();style=AndroidPaint.Style.STROKE;strokeWidth=outlineWidth;clearShadowLayer()};lines.forEachIndexed{index,line->canvas.drawText(line,cx,startY+index*step,stroke)}};p.style=AndroidPaint.Style.FILL;lines.forEachIndexed{index,line->canvas.drawText(line,cx,startY+index*step,p)}}
         OverlayKind.RECTANGLE->{p.style=if(shapeFill)AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE;canvas.drawRect(cx-source.width*shapeWidth/2,cy-source.height*shapeHeight/2,cx+source.width*shapeWidth/2,cy+source.height*shapeHeight/2,p)}
         OverlayKind.ELLIPSE->{p.style=if(shapeFill)AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE;canvas.drawOval(RectF(cx-source.width*shapeWidth/2,cy-source.height*shapeHeight/2,cx+source.width*shapeWidth/2,cy+source.height*shapeHeight/2),p)}
         OverlayKind.LINE->{p.style=AndroidPaint.Style.STROKE;canvas.drawLine(cx-source.width*shapeWidth/2,cy,cx+source.width*shapeWidth/2,cy,p)}
