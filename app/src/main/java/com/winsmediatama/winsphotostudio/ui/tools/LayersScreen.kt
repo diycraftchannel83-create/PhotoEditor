@@ -16,6 +16,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
 import com.winsmediatama.winsphotostudio.core.editor.EditorBlendMode
+import com.winsmediatama.winsphotostudio.core.editor.LayerMaskProcessor
 
 @Composable
 fun LayersScreen(layers:List<EditorLayer>,selectedLayerId:String?,onCancel:()->Unit,onAddImage:()->Unit,onApply:(List<EditorLayer>,String?)->Unit) {
@@ -57,6 +58,12 @@ fun LayersScreen(layers:List<EditorLayer>,selectedLayerId:String?,onCancel:()->U
                             Text("Opacity ${(layer.opacity*100).toInt()}%",color=Color.LightGray,style=MaterialTheme.typography.labelSmall)
                             Slider(value=layer.opacity,onValueChange={v->working=working.toMutableList().also{it[index]=layer.copy(opacity=v)}},modifier=Modifier.weight(1f))
                         }
+                        Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+                            OutlinedButton(onClick={val mask=LayerMaskProcessor.createWhiteMask(layer.bitmap.width,layer.bitmap.height);working=working.toMutableList().also{it[index]=layer.copy(mask=mask)}}){Text(if(layer.mask==null)"Add Mask" else "Reset Mask")}
+                            OutlinedButton(enabled=layer.mask!=null,onClick={val m=layer.mask?.let{LayerMaskProcessor.invert(it)};working=working.toMutableList().also{it[index]=layer.copy(mask=m)}}){Text("Invert")}
+                            OutlinedButton(enabled=layer.mask!=null,onClick={working=working.toMutableList().also{it[index]=layer.copy(mask=null)}}){Text("Remove Mask")}
+                        }
+                        layer.mask?.let{mask->Row(verticalAlignment=Alignment.CenterVertically){Image(mask.asImageBitmap(),null,Modifier.size(36.dp),contentScale=ContentScale.Crop);Text("Layer mask active",color=Color.LightGray,modifier=Modifier.padding(start=8.dp))}}
                         Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) {
                             OutlinedButton(enabled=index<working.lastIndex,onClick={working=working.toMutableList().also{val item=it.removeAt(index);it.add(index+1,item)}},modifier=Modifier.weight(1f)){Text("Up")}
                             OutlinedButton(enabled=index>0,onClick={working=working.toMutableList().also{val item=it.removeAt(index);it.add(index-1,item)}},modifier=Modifier.weight(1f)){Text("Down")}
