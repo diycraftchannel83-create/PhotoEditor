@@ -44,7 +44,7 @@ class ProjectStore(context: Context) {
         val folder = File(root, id).apply { mkdirs() }
         val assets = File(folder, "assets").apply { mkdirs() }
         val snapshot = File(assets, "canvas.png")
-        snapshot.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+        snapshot.outputStream().use { if(!bitmap.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write snapshot asset") }
         val manifest = JSONObject()
             .put("schemaVersion", 1)
             .put("projectId", id)
@@ -113,14 +113,14 @@ class ProjectStore(context: Context) {
         val folder=File(root,id).apply{mkdirs()}
         val assets=File(folder,"assets").apply{mkdirs()}
         val sourcePath="assets/original.png"
-        File(folder,sourcePath).outputStream().use{source.compress(Bitmap.CompressFormat.PNG,100,it)}
+        File(folder,sourcePath).outputStream().use{if(!source.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write original asset")}
         writeTextAtomically(File(folder,"operations.json"),operations.toString(2))
         val manifest=JSONObject().put("schemaVersion",3).put("projectId",id)
             .put("name",projectName.trim().ifBlank{"Untitled Project"})
             .put("canvasWidth",source.width).put("canvasHeight",source.height)
             .put("createdAt",System.currentTimeMillis()).put("updatedAt",System.currentTimeMillis())
             .put("originalAsset",sourcePath).put("operationsAsset","operations.json")
-        File(folder,"project.json").writeText(manifest.toString(2))
+        writeManifestAtomically(folder,manifest)
         return folder
     }
 
