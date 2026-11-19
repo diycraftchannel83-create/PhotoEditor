@@ -64,3 +64,19 @@
 - [ ] Accessibility and localization
 - [ ] Metadata/export quality audit
 - [ ] **Final build, CI verification, compile fixes and release audit (deferred by request)**
+## Release candidate work — November 2026
+
+- [x] Investigate latest GitHub Actions compile failure
+- [x] Fix HSL processor missing import
+- [x] Fix ML Kit segmentation result API usage
+- [x] Fix crop/transform slider syntax
+- [x] Fix retouch stroke loop syntax
+- [x] Fix text/shape Compose syntax
+- [x] Add launcher icon vector asset
+- [x] Disable automatic app backup pending privacy/data audit
+- [x] Expand CI to run unit-test task, lint, debug APK and unsigned release APK builds
+- [ ] Verify CI passes and resolve any remaining compile/lint issues
+- [ ] Add meaningful automated tests for image processors and project persistence
+- [ ] Device-level functional regression test
+- [ ] Release signing and Android App Bundle (AAB)
+- [ ] Privacy policy and Play Store declarations
