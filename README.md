@@ -10,7 +10,7 @@ The roadmap below is the source of truth for continuing development. Update chec
 
 ## Current implemented tools (not all production-verified)
 
-- RGB/luminance histogram displayed in the Adjustment panel (new implementation; verification pending)
+- RGB/luminance histogram displayed in the Adjustment panel with bounded regular-grid sampling for large images (implementation committed; verification pending)
 
 - Photo import and responsive editor preview
 - Crop presets: Original, Free, 1:1, 4:3, 3:2, 16:9, 9:16
@@ -65,7 +65,7 @@ The roadmap below is the source of truth for continuing development. Update chec
 - [x] Levels (composite/RGB)
 - [x] Curves (composite/RGB)
 - [x] Selective HSL
-- [x] Histogram (RGB and luminance; implementation added, CI verification pending)
+- [x] Histogram (RGB and luminance; bounded sampling avoids full-image pixel-array allocation; CI verification pending)
 - [ ] Validate adjustment math, clipping, alpha preservation and performance
 - [ ] Improve live preview responsiveness and controls
 - [ ] Add presets with editable/resettable parameter values
@@ -233,7 +233,7 @@ The roadmap below is the source of truth for continuing development. Update chec
 - ML Kit Selfie Segmentation (bundled on-device model)
 - Offline-first processing for implemented tools; no server/API required by current features
 
-## Known limitations / items to verify
+## Recent continuation work\n\n- Histogram processing now samples large images on a regular grid with a maximum of 1,000,000 examined pixels, avoiding a full-image `IntArray` allocation. A regression test was added for large-image sample bounds. Build/test verification remains deferred.\n\n## Known limitations / items to verify
 
 - Feature checkboxes describe implementation presence, not production validation.
 - Current editor preview/import canvas is capped at approximately 2048 px maximum dimension; full-resolution rendering/export is not yet complete.
