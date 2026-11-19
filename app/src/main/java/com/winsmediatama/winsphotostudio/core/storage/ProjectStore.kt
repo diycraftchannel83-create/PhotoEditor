@@ -75,7 +75,7 @@ class ProjectStore(context: Context) {
         layers.forEachIndexed { index,layer ->
             val assetPath="assets/layer_${index}.png"
             File(folder,assetPath).outputStream().use { layer.bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
-            layerArray.put(JSONObject().put("id",layer.id).put("name",layer.name).put("visible",layer.visible).put("opacity",layer.opacity).put("blendMode",layer.blendMode.name).put("locked",layer.locked).put("asset",assetPath).apply { layer.mask?.let { maskBitmap -> val maskPath="assets/mask_${index}.png"; File(folder,maskPath).outputStream().use { maskBitmap.compress(Bitmap.CompressFormat.PNG,100,it) }; put("maskAsset",maskPath) } })
+            layerArray.put(JSONObject().put("id",layer.id).put("name",layer.name).put("visible",layer.visible).put("opacity",layer.opacity).put("blendMode",layer.blendMode.name).put("locked",layer.locked).put("alphaLocked",layer.alphaLocked).put("asset",assetPath).apply { layer.mask?.let { maskBitmap -> val maskPath="assets/mask_${index}.png"; File(folder,maskPath).outputStream().use { maskBitmap.compress(Bitmap.CompressFormat.PNG,100,it) }; put("maskAsset",maskPath) } })
         }
         val manifest=JSONObject().put("schemaVersion",2).put("projectId",id).put("name",projectName.trim().ifBlank{"Untitled Project"})
             .put("canvasWidth",canvasWidth).put("canvasHeight",canvasHeight).put("createdAt",System.currentTimeMillis()).put("updatedAt",System.currentTimeMillis())
@@ -98,7 +98,7 @@ class ProjectStore(context: Context) {
             val bitmap=android.graphics.BitmapFactory.decodeFile(File(projectFolder,asset).absolutePath) ?: continue
             val mode=runCatching{EditorBlendMode.valueOf(item.optString("blendMode","NORMAL"))}.getOrDefault(EditorBlendMode.NORMAL)
             layers+=EditorLayer(id=item.optString("id",UUID.randomUUID().toString()),name=item.optString("name","Layer ${i+1}"),bitmap=bitmap,
-                visible=item.optBoolean("visible",true),opacity=item.optDouble("opacity",1.0).toFloat().coerceIn(0f,1f),blendMode=mode,locked=item.optBoolean("locked",false),mask=item.optString("maskAsset").takeIf{it.isNotBlank()}?.let{android.graphics.BitmapFactory.decodeFile(File(projectFolder,it).absolutePath)})
+                visible=item.optBoolean("visible",true),opacity=item.optDouble("opacity",1.0).toFloat().coerceIn(0f,1f),blendMode=mode,locked=item.optBoolean("locked",false),alphaLocked=item.optBoolean("alphaLocked",false),mask=item.optString("maskAsset").takeIf{it.isNotBlank()}?.let{android.graphics.BitmapFactory.decodeFile(File(projectFolder,it).absolutePath)})
         }
         if(layers.isEmpty()) {
             val snapshot=loadSnapshot(projectFolder) ?: return null
