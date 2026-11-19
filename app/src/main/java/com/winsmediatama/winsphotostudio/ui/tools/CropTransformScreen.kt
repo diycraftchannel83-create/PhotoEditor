@@ -58,10 +58,11 @@ fun CropTransformScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) 
     fun setPreset(p:CropPreset) {
         preset=p
         val ratio=p.ratio ?: if(p==CropPreset.ORIGINAL) sourceRatio else null
-        if(ratio==null) { settings=settings.copy(cropLeft=0f,cropTop=0f,cropRight=1f,cropBottom=1f,customResize=false);centerX=.5f;centerY=.5f }
+        if(ratio==null) { settings=settings.copy(customResize=false);centerX=.5f;centerY=.5f;updateCrop(0f,0f,1f,1f,false);settings=settings.copy(customResize=false) }
         else {
             val (cw,ch)=if(ratio>sourceRatio) 1f to (sourceRatio/ratio) else (ratio/sourceRatio) to 1f
             centerX=.5f;centerY=.5f
+            settings=settings.copy(customResize=false)
             updateCrop((1f-cw)/2f,(1f-ch)/2f,(1f+cw)/2f,(1f+ch)/2f,false)
             settings=settings.copy(customResize=false)
         }
@@ -69,10 +70,11 @@ fun CropTransformScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) 
     fun rotate(delta:Int) {
         val next=(settings.rotation+delta+360)%360
         val rotated=next%180!=0
+        val wasRotated=settings.rotation%180!=0
         val cropW=((settings.cropRight-settings.cropLeft)*source.width).roundToInt().coerceAtLeast(1)
         val cropH=((settings.cropBottom-settings.cropTop)*source.height).roundToInt().coerceAtLeast(1)
-        settings=settings.copy(rotation=next,outputWidth=if(settings.customResize) if(rotated)settings.outputHeight else settings.outputWidth else if(rotated)cropH else cropW,
-            outputHeight=if(settings.customResize) if(rotated)settings.outputWidth else settings.outputHeight else if(rotated)cropW else cropH)
+        settings=settings.copy(rotation=next,outputWidth=if(settings.customResize) if(rotated!=wasRotated)settings.outputHeight else settings.outputWidth else if(rotated)cropH else cropW,
+            outputHeight=if(settings.customResize) if(rotated!=wasRotated)settings.outputWidth else settings.outputHeight else if(rotated)cropW else cropH)
     }
 
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
