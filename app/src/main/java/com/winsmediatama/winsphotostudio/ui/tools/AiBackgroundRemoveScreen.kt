@@ -33,7 +33,7 @@ fun AiBackgroundRemoveScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->U
                 val segmenter=Segmentation.getClient(options)
                 try {
                     val result=Tasks.await(segmenter.process(InputImage.fromBitmap(source,0)))
-                    val mask=result.getMask()
+                    val mask=result
                     val buffer=mask.getBuffer().duplicate()
                     buffer.rewind()
                     val data=FloatArray(mask.getWidth()*mask.getHeight())
