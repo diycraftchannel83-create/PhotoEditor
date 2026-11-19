@@ -70,7 +70,7 @@
 - [x] Group metadata, contiguous grouping UI, group visibility/opacity, group-aware compositor
 - [x] Project and recovery metadata persistence for masks, locks and groups
 - [x] Clip-to-below alpha clipping and metadata persistence
-- [ ] Nested groups, group blend-mode controls and full layer-stack undo/redo
+- [x] Group blend-mode controls and metadata persistence\n- [ ] Nested groups and full layer-stack undo/redo
 - [ ] True adjustment layers, layer effects and group/mask integration with non-destructive history
 
 ## Phase 5 — Selection
