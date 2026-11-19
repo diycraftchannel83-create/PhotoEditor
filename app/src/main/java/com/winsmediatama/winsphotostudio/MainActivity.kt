@@ -290,7 +290,7 @@ private fun WinsPhotoApp() {
             else if (canvasSizeOpen) CanvasSizeScreen(
                 source=current,
                 onCancel={canvasSizeOpen=false},
-                onApply={edited -> commitEdit(edited,current,flatten=true);canvasSizeOpen=false}
+                onApply={edited,width,height,anchor,bg -> commitOperation(edited,current,EditOperation.CanvasSize(width=width,height=height,anchor=anchor,backgroundColor=bg),flatten=true);canvasSizeOpen=false}
             )
             else if (lutOpen) LutScreen(
                 source=selectedBitmap,
