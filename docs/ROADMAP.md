@@ -16,6 +16,7 @@
 - [x] Crop presets/free crop, rotate 90°, flips, resize preview/apply
 - [x] Arbitrary straighten rotation control
 - [x] Perspective correction model and UI
+- [x] Perspective correction integrated as replayable operation with normalized corner quad, output dimensions, JSON round-trip, toggle and renderer; regression test authored (verification deferred)
 - [x] Canvas-size processor and independent canvas-size UI with anchors/background
 - [ ] Full crop/transform correctness and undo regression tests (test files authored; verification pending)
 - [x] Source-level repair of Text & Shapes multiline and line-spacing declarations (build deferred)
