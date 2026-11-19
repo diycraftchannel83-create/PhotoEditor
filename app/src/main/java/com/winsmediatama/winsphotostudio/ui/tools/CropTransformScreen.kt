@@ -119,8 +119,8 @@ fun CropTransformScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) 
     if(showResize) AlertDialog(onDismissRequest={showResize=false},title={Text("Resize image")},text={Column {
         OutlinedTextField(value=widthText,onValueChange={widthText=it.filter(Char::isDigit)},label={Text("Width (px)")},singleLine=true)
         OutlinedTextField(value=heightText,onValueChange={heightText=it.filter(Char::isDigit)},label={Text("Height (px)")},singleLine=true)
-        Text("Resize applies after crop and rotation.",style=MaterialTheme.typography.bodySmall)
-    }},confirmButton={TextButton(onClick={val w=widthText.toIntOrNull()?.coerceIn(1,12000)?:source.width;val h=heightText.toIntOrNull()?.coerceIn(1,12000)?:source.height;settings=settings.copy(outputWidth=w,outputHeight=h,customResize=true);showResize=false}){Text("Apply size")}},dismissButton={TextButton(onClick={showResize=false}){Text("Cancel")}})
+        Text("Resize applies after crop and rotation. Max dimension: 2048 px.",style=MaterialTheme.typography.bodySmall)
+    }},confirmButton={TextButton(onClick={val w=widthText.toIntOrNull()?.coerceIn(1,2048?:source.width;val h=heightText.toIntOrNull()?.coerceIn(1,12000)?:source.height;settings=settings.copy(outputWidth=w,outputHeight=h,customResize=true);showResize=false}){Text("Apply size")}},dismissButton={TextButton(onClick={showResize=false}){Text("Cancel")}})
 }
 
 private fun renderCropTransform(bitmap:Bitmap,s:TransformSettings):Bitmap {
@@ -134,7 +134,7 @@ private fun renderCropTransform(bitmap:Bitmap,s:TransformSettings):Bitmap {
         val transformed=Bitmap.createBitmap(crop,0,0,crop.width,crop.height,matrix,true)
         if(transformed!==crop)crop.recycle();crop=transformed
     }
-    val w=s.outputWidth.coerceIn(1,12000);val h=s.outputHeight.coerceIn(1,12000)
+    val w=s.outputWidth.coerceIn(1,2048);val h=s.outputHeight.coerceIn(1,2048)
     if(crop.width==w&&crop.height==h)return crop
     val resized=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888)
     Canvas(resized).drawBitmap(crop,null,android.graphics.Rect(0,0,w,h),Paint(Paint.FILTER_BITMAP_FLAG));crop.recycle();return resized
