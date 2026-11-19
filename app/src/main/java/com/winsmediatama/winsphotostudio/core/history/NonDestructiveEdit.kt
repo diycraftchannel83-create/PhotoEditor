@@ -19,6 +19,10 @@ import com.winsmediatama.winsphotostudio.core.adjustments.TransformProcessor
 import com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectSettings
 import com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectKind
 import com.winsmediatama.winsphotostudio.core.adjustments.CubeLut
+import com.winsmediatama.winsphotostudio.core.tools.RetouchMode
+import com.winsmediatama.winsphotostudio.core.tools.RetouchStroke
+import com.winsmediatama.winsphotostudio.core.tools.RetouchStrokeCodec
+import com.winsmediatama.winsphotostudio.core.tools.RetouchRenderer
 
 /**
  * Serializable, replayable edit stack. Operations retain parameters rather than requiring
@@ -103,6 +107,22 @@ sealed interface EditOperation {
         override fun toJson() = JSONObject().put("id",id).put("type","crop").put("enabled",enabled)
             .put("left",left).put("top",top).put("right",right).put("bottom",bottom)
     }
+    data class Retouch(
+        override val id: String = java.util.UUID.randomUUID().toString(),
+        override val enabled: Boolean = true,
+        val strokes: List<RetouchStroke>,
+        val strength: Float = 1f,
+        val offsetX: Float = 0f,
+        val offsetY: Float = 0f
+    ) : EditOperation {
+        override val label = "Retouch"
+        fun valid(): Boolean = strokes.size <= 10000 && strokes.all { it.valid() } &&
+            strength.isFinite() && strength in 0f..1f && offsetX.isFinite() && offsetY.isFinite() &&
+            kotlin.math.abs(offsetX) <= 10000f && kotlin.math.abs(offsetY) <= 10000f
+        override fun toJson() = JSONObject().put("id", id).put("type", "retouch").put("enabled", enabled)
+            .put("strokes", RetouchStrokeCodec.encode(strokes)).put("strength", strength)
+            .put("offsetX", offsetX).put("offsetY", offsetY)
+    }
 }
 
 class NonDestructiveEditStack(
@@ -127,6 +147,7 @@ class NonDestructiveEditStack(
             is EditOperation.Transform -> operation.copy(id=id)
             is EditOperation.Effect -> operation.copy(id=id)
             is EditOperation.Lut -> operation.copy(id=id)
+            is EditOperation.Retouch -> operation.copy(id=id)
         }
         return true
     }
@@ -142,6 +163,7 @@ class NonDestructiveEditStack(
             is EditOperation.Transform -> old.copy(enabled=enabled)
             is EditOperation.Effect -> old.copy(enabled=enabled)
             is EditOperation.Lut -> old.copy(enabled=enabled)
+            is EditOperation.Retouch -> old.copy(enabled=enabled)
         }
         return true
     }
@@ -161,6 +183,7 @@ class NonDestructiveEditStack(
                 is EditOperation.Transform -> TransformProcessor.apply(current,operation.left,operation.top,operation.right,operation.bottom,operation.rotationDegrees,operation.flipHorizontal,operation.flipVertical,operation.outputWidth,operation.outputHeight)
                 is EditOperation.Effect -> operation.settings.apply(current)
                 is EditOperation.Lut -> CubeLut.parse(operation.cubeText).apply(current)
+                is EditOperation.Retouch -> RetouchRenderer.render(current, operation.strokes, operation.strength, operation.offsetX, operation.offsetY)
             }
             if (next !== current && !current.isRecycled) current.recycle()
             current = next
@@ -194,6 +217,7 @@ class NonDestructiveEditStack(
                     "hsl" -> ops += EditOperation.Hsl(id,enabled,hslFromJson(values))
                     "lut" -> { val op=EditOperation.Lut(id,enabled,item.optString("cubeText",""));if(op.valid())ops+=op }
                     "effect" -> { val kind=runCatching{com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectKind.valueOf(item.optString("kind"))}.getOrNull(); if(kind!=null){val settings=PhotoEffectSettings(kind,item.optDouble("strength",.5).toFloat(),item.optDouble("angleDegrees",45.0).toFloat());if(settings.valid())ops+=EditOperation.Effect(id,enabled,settings)} }
+                    "retouch" -> { val op=EditOperation.Retouch(id,enabled,RetouchStrokeCodec.decode(item.optString("strokes","[]")),item.optDouble("strength",1.0).toFloat(),item.optDouble("offsetX",0.0).toFloat(),item.optDouble("offsetY",0.0).toFloat());if(op.valid())ops+=op }
                     "transform" -> { val op=EditOperation.Transform(id,enabled,item.optDouble("left",0.0).toFloat(),item.optDouble("top",0.0).toFloat(),item.optDouble("right",1.0).toFloat(),item.optDouble("bottom",1.0).toFloat(),item.optDouble("rotationDegrees",0.0).toFloat(),item.optBoolean("flipHorizontal",false),item.optBoolean("flipVertical",false),item.optInt("outputWidth",0),item.optInt("outputHeight",0));if(op.valid())ops+=op }
                 }
             }
