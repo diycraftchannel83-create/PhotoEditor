@@ -35,7 +35,7 @@
 - [x] Replayable edit-operation model (Basic Adjust, Levels, Curves, Crop)
 - [x] Enable/disable, replace and remove operations
 - [x] JSON serialization/deserialization and replay tests authored\n- [x] Operation-stack ordering, toggle, replace/remove and clear tests authored (verification pending)
-- [x] Persist original bitmap separately from operation JSON in a project-store foundation
+- [x] Persist original bitmap separately from operation JSON in a project-store foundation\n- [x] Operation-project round-trip tests authored (original preservation, IDs/parameters, disabled ops, crop replay; verification pending)
 - [ ] Integrate operation stack into the live MainActivity/editor workflow
 - [ ] Add transform, HSL, selection, retouch, LUT/effect and layer operations to stack
 - [x] Layer-preserving bounded undo/redo snapshots and History panel restore
@@ -104,7 +104,7 @@
 - [x] Private recovery snapshots and startup recovery/discard prompt
 - [x] Schema version bumps and atomic manifest writes; optional-field backward-compatible loading
 - [ ] Full migrations, corrupt/missing asset handling
-- [x] Duplicate, rename and delete APIs are implemented; lifecycle tests authored (verification pending)\n- [ ] Save-as UI, recent projects, unsaved-changes protection
+- [x] Duplicate, rename and delete APIs are implemented; lifecycle tests authored (verification pending)\n- [x] Non-destructive operation-project save/load/replay regression tests authored (verification pending)\n- [ ] Save-as UI, recent projects, unsaved-changes protection
 - [ ] Operation stack/live adjustment persistence and full editable-state recovery
 
 ## Phase 11 — Render/export and performance
