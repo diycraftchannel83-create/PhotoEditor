@@ -27,6 +27,8 @@ import com.winsmediatama.winsphotostudio.core.tools.PerspectiveQuad
 import com.winsmediatama.winsphotostudio.core.tools.PerspectiveTransformProcessor
 import com.winsmediatama.winsphotostudio.core.tools.CanvasAnchor
 import com.winsmediatama.winsphotostudio.core.tools.CanvasResizeProcessor
+import com.winsmediatama.winsphotostudio.core.tools.BackgroundReplacementProcessor
+import android.util.Base64
 
 /**
  * Serializable, replayable edit stack. Operations retain parameters rather than requiring
@@ -111,6 +113,18 @@ sealed interface EditOperation {
         override fun toJson() = JSONObject().put("id",id).put("type","crop").put("enabled",enabled)
             .put("left",left).put("top",top).put("right",right).put("bottom",bottom)
     }
+    data class BackgroundReplace(
+        override val id:String=java.util.UUID.randomUUID().toString(),
+        override val enabled:Boolean=true,
+        val mode:String="gradient",
+        val startColor:Int=0xFF77D7C0.toInt(),
+        val endColor:Int=0xFF102A43.toInt(),
+        val photoPngBase64:String=""
+    ):EditOperation {
+        override val label="Background replacement"
+        fun valid():Boolean=mode in setOf("solid","gradient","photo")&&photoPngBase64.length<=24_000_000&&(mode!="photo"||photoPngBase64.isNotBlank())
+        override fun toJson()=JSONObject().put("id",id).put("type","backgroundReplace").put("enabled",enabled).put("mode",mode).put("startColor",startColor).put("endColor",endColor).put("photoPngBase64",photoPngBase64)
+    }
     data class CanvasSize(
         override val id:String=java.util.UUID.randomUUID().toString(),
         override val enabled:Boolean=true,
@@ -182,6 +196,7 @@ class NonDestructiveEditStack(
             is EditOperation.Retouch -> operation.copy(id=id)
             is EditOperation.Perspective -> operation.copy(id=id)
             is EditOperation.CanvasSize -> operation.copy(id=id)
+            is EditOperation.BackgroundReplace -> operation.copy(id=id)
         }
         return true
     }
@@ -220,6 +235,7 @@ class NonDestructiveEditStack(
                 is EditOperation.Retouch -> RetouchRenderer.render(current, operation.strokes, operation.strength, operation.offsetX, operation.offsetY)
                 is EditOperation.Perspective -> PerspectiveTransformProcessor.warp(current,operation.quad,operation.outputWidth.takeIf{it>0}?:current.width,operation.outputHeight.takeIf{it>0}?:current.height)
                 is EditOperation.CanvasSize -> CanvasResizeProcessor.resize(current,operation.width,operation.height,operation.anchor,operation.backgroundColor)
+                is EditOperation.BackgroundReplace -> BackgroundReplacementProcessor.apply(current,operation.mode,operation.startColor,operation.endColor,operation.photoPngBase64)
             }
             if (next !== current && !current.isRecycled) current.recycle()
             current = next
@@ -253,6 +269,7 @@ class NonDestructiveEditStack(
                     "hsl" -> ops += EditOperation.Hsl(id,enabled,hslFromJson(values))
                     "lut" -> { val op=EditOperation.Lut(id,enabled,item.optString("cubeText",""));if(op.valid())ops+=op }
                     "effect" -> { val kind=runCatching{com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectKind.valueOf(item.optString("kind"))}.getOrNull(); if(kind!=null){val settings=PhotoEffectSettings(kind,item.optDouble("strength",.5).toFloat(),item.optDouble("angleDegrees",45.0).toFloat());if(settings.valid())ops+=EditOperation.Effect(id,enabled,settings)} }
+                    "backgroundReplace" -> { val op=EditOperation.BackgroundReplace(id,enabled,item.optString("mode","gradient"),item.optInt("startColor",0xFF77D7C0.toInt()),item.optInt("endColor",0xFF102A43.toInt()),item.optString("photoPngBase64",""));if(op.valid())ops+=op }
                     "canvasSize" -> { val anchor=runCatching{CanvasAnchor.valueOf(item.optString("anchor","CENTER"))}.getOrDefault(CanvasAnchor.CENTER);val op=EditOperation.CanvasSize(id,enabled,item.optInt("width",0),item.optInt("height",0),anchor,item.optInt("backgroundColor",android.graphics.Color.TRANSPARENT));if(op.valid())ops+=op }
                     "perspective" -> { val q=PerspectiveQuad(item.optDouble("tlx",0.0).toFloat() to item.optDouble("tly",0.0).toFloat(),item.optDouble("trx",1.0).toFloat() to item.optDouble("tryy",0.0).toFloat(),item.optDouble("brx",1.0).toFloat() to item.optDouble("bry",1.0).toFloat(),item.optDouble("blx",0.0).toFloat() to item.optDouble("bly",1.0).toFloat());val op=EditOperation.Perspective(id,enabled,q,item.optInt("outputWidth",0),item.optInt("outputHeight",0));if(op.valid())ops+=op }
                     "retouch" -> { val op=EditOperation.Retouch(id,enabled,RetouchStrokeCodec.decode(item.optString("strokes","[]")),item.optDouble("strength",1.0).toFloat(),item.optDouble("offsetX",0.0).toFloat(),item.optDouble("offsetY",0.0).toFloat());if(op.valid())ops+=op }
