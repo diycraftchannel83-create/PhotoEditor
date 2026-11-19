@@ -45,7 +45,7 @@ Project and recovery loaders now resolve canonical paths under their app-owned f
 Bitmap undo/redo remains bounded to five composite snapshots to limit memory. Undo/redo restores a simplified flattened layer state; complete layer-tree history and operation-level commands are future work.
 
 ## Export
-JPEG/PNG export uses Android document destinations. JPEG can flatten transparency to a chosen white/black background. An optional source-dimension resampling mode now records import dimensions and resamples the edited preview to those dimensions, guarded at 24 megapixels. This is not native-resolution edit replay and cannot recover detail lost in the 2048px preview. Color profile, EXIF policy, tile/region rendering and high-resolution operation replay remain incomplete; regression tests are authored but verification is deferred.
+JPEG/PNG export uses Android document destinations. JPEG can flatten transparency to a chosen white/black background. An optional source-dimension resampling mode now records import dimensions and resamples the edited preview to those dimensions, guarded at 24 megapixels. This is not native-resolution edit replay and cannot recover detail lost in the 2048px preview. A disk-backed original source cache has been added as groundwork, but full-resolution operation replay and export integration remain pending. Color profile, EXIF policy, tile/region rendering and high-resolution operation replay remain incomplete; regression tests are authored but verification is deferred.
 
 ## Verification status
 No build, CI, lint or tests were run during this feature pass, by request. New tests were authored but are pending execution. Source-level audit is ongoing.
