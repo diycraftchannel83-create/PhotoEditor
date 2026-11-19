@@ -69,6 +69,7 @@ private fun WinsPhotoApp() {
     var exportFormat by remember { mutableStateOf("JPEG") }
     var exportStatus by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+    val context = androidx.compose.ui.platform.LocalContext.current
     var editHistory by remember { mutableStateOf<List<Bitmap>>(emptyList()) }
     val jpegExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/jpeg")) { uri ->
         val currentBitmap=bitmap
@@ -87,7 +88,6 @@ private fun WinsPhotoApp() {
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) { imageUri = uri; loading = true; error = null }
     }
-    val context = androidx.compose.ui.platform.LocalContext.current
     LaunchedEffect(imageUri) {
         val selected = imageUri ?: return@LaunchedEffect
         bitmap = withContext(Dispatchers.IO) {
