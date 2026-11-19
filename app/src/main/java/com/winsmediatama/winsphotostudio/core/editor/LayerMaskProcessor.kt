@@ -26,6 +26,16 @@ object LayerMaskProcessor {
         output.setPixels(sourcePixels,0,source.width,0,0,source.width,source.height)
         return output
     }
+    /** Multiplies two reveal masks; white keeps and black removes. */
+    fun combineMultiply(first:Bitmap,second:Bitmap):Bitmap {
+        val w=first.width;val h=first.height
+        val a=Bitmap.createScaledBitmap(first,w,h,true)
+        val b=Bitmap.createScaledBitmap(second,w,h,true)
+        val ap=IntArray(w*h);val bp=IntArray(w*h);a.getPixels(ap,0,w,0,0,w,h);b.getPixels(bp,0,w,0,0,w,h)
+        if(a!==first)a.recycle();if(b!==second)b.recycle()
+        val out=IntArray(w*h){i->val av=ap[i] and 255;val bv=bp[i] and 255;val v=av*bv/255;android.graphics.Color.argb(255,v,v,v)}
+        return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(out,0,w,0,0,w,h)}
+    }
     fun createWhiteMask(width:Int,height:Int):Bitmap=Bitmap.createBitmap(width.coerceAtLeast(1),height.coerceAtLeast(1),Bitmap.Config.ARGB_8888).apply{eraseColor(android.graphics.Color.WHITE)}
     fun invert(mask:Bitmap):Bitmap {
         val result=Bitmap.createBitmap(mask.width,mask.height,Bitmap.Config.ARGB_8888)
