@@ -19,7 +19,7 @@ import com.winsmediatama.winsphotostudio.core.editor.EditorBlendMode
 import com.winsmediatama.winsphotostudio.core.editor.LayerMaskProcessor
 
 @Composable
-fun LayersScreen(layers:List<EditorLayer>,selectedLayerId:String?,onCancel:()->Unit,onAddImage:()->Unit,onApply:(List<EditorLayer>,String?)->Unit) {
+fun LayersScreen(layers:List<EditorLayer>,selectedLayerId:String?,onCancel:()->Unit,onAddImage:()->Unit,onEditMask:(String,Bitmap)->Unit,onApply:(List<EditorLayer>,String?)->Unit) {
     var working by remember(layers) { mutableStateOf(layers) }
     var selectedId by remember(layers,selectedLayerId) { mutableStateOf(selectedLayerId ?: layers.lastOrNull()?.id) }
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
@@ -60,6 +60,7 @@ fun LayersScreen(layers:List<EditorLayer>,selectedLayerId:String?,onCancel:()->U
                         }
                         Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) {
                             OutlinedButton(onClick={val mask=LayerMaskProcessor.createWhiteMask(layer.bitmap.width,layer.bitmap.height);working=working.toMutableList().also{it[index]=layer.copy(mask=mask)}}){Text(if(layer.mask==null)"Add Mask" else "Reset Mask")}
+                            OutlinedButton(enabled=layer.mask!=null,onClick={layer.mask?.let{onEditMask(layer.id,it)}}){Text("Paint Mask")}
                             OutlinedButton(enabled=layer.mask!=null,onClick={val m=layer.mask?.let{LayerMaskProcessor.invert(it)};working=working.toMutableList().also{it[index]=layer.copy(mask=m)}}){Text("Invert")}
                             OutlinedButton(enabled=layer.mask!=null,onClick={working=working.toMutableList().also{it[index]=layer.copy(mask=null)}}){Text("Remove Mask")}
                         }
