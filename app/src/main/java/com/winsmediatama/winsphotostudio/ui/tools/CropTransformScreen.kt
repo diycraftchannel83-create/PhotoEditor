@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.Dispatchers
+import com.winsmediatama.winsphotostudio.core.history.EditOperation\nimport kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 
@@ -34,7 +34,7 @@ private data class TransformSettings(
 )
 
 @Composable
-fun CropTransformScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
+fun CropTransformScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,EditOperation.Transform)->Unit) {
     var preset by remember { mutableStateOf(CropPreset.ORIGINAL) }
     var settings by remember { mutableStateOf(TransformSettings(outputWidth=source.width,outputHeight=source.height)) }
     var centerX by remember { mutableFloatStateOf(.5f) }
