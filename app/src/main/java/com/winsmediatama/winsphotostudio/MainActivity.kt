@@ -160,39 +160,40 @@ private fun WinsPhotoApp() {
     MaterialTheme(colorScheme = darkColorScheme(background = StudioBackground, surface = StudioSurface, primary = StudioAccent, onPrimary = Color(0xFF08231D), onBackground = Color.White, onSurface = Color.White)) {
         Surface(Modifier.fillMaxSize(), color = StudioBackground) {
             val current = bitmap
+            val selectedBitmap = layers.firstOrNull{it.id==selectedLayerId}?.bitmap ?: current
             if (current == null) HomeScreen(loading, error) { imagePicker.launch(arrayOf("image/*")) }
             else if (aiBackgroundRemoveOpen) AiBackgroundRemoveScreen(
-                source=current,
+                source=selectedBitmap,
                 onCancel={aiBackgroundRemoveOpen=false},
                 onApply={edited -> commitEdit(edited,current);aiBackgroundRemoveOpen=false}
             )
             else if (backgroundRemoveOpen) BackgroundRemoveScreen(
-                source=current,
+                source=selectedBitmap,
                 onCancel={backgroundRemoveOpen=false},
                 onApply={edited -> commitEdit(edited,current);backgroundRemoveOpen=false}
             )
             else if (retouchOpen) RetouchScreen(
-                source=current,
+                source=selectedBitmap,
                 onCancel={retouchOpen=false},
                 onApply={edited -> commitEdit(edited,current);retouchOpen=false}
             )
             else if (filtersOpen) FilterScreen(
-                source=current,
+                source=selectedBitmap,
                 onCancel={filtersOpen=false},
                 onApply={edited -> commitEdit(edited,current);filtersOpen=false}
             )
             else if (textShapeOpen) TextShapeScreen(
-                source=current,
+                source=selectedBitmap,
                 onCancel={textShapeOpen=false},
                 onApply={edited -> commitEdit(edited,current);textShapeOpen=false}
             )
             else if (selectionOpen) SelectionScreen(
-                source=current,
+                source=selectedBitmap,
                 onCancel={selectionOpen=false},
                 onApply={edited -> commitEdit(edited,current,flatten=true);selectionOpen=false}
             )
             else if (brushOpen) BrushScreen(
-                source=current,
+                source=selectedBitmap,
                 onCancel={brushOpen=false},
                 onApply={edited -> commitEdit(edited,current);brushOpen=false}
             )
@@ -209,12 +210,12 @@ private fun WinsPhotoApp() {
                 onApply={newLayers,newSelected -> layersOpen=false;selectedLayerId=newSelected; scope.launch { val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(newLayers,current.width,current.height)}; layers=newLayers; bitmap=composite }}
             )
             else if (curvesOpen) CurvesScreen(
-                source=current,
+                source=selectedBitmap,
                 onCancel={curvesOpen=false},
                 onApply={edited -> commitEdit(edited,current);curvesOpen=false}
             )
             else if (levelsOpen) LevelsScreen(
-                source=current,
+                source=selectedBitmap,
                 onCancel={levelsOpen=false},
                 onApply={edited -> commitEdit(edited,current);levelsOpen=false}
             )
