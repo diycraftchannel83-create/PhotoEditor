@@ -38,6 +38,7 @@
 - [x] Operation-stack ordering, toggle, replace/remove and clear tests authored (verification pending)\n- [x] Invalid crop JSON is rejected safely; operation replacement preserves stable IDs (tests authored, verification pending)
 - [x] Persist original bitmap separately from operation JSON in a project-store foundation
 - [x] Operation-project round-trip tests authored (original preservation, IDs/parameters, disabled ops, crop replay; verification pending)
+- [x] Add source-preserving operation-session controller with bounded undo/redo, render preview/final and JSON export (controller foundation; UI integration pending)
 - [ ] Integrate operation stack into the live MainActivity/editor workflow
 - [ ] Add transform, HSL, selection, retouch, LUT/effect and layer operations to stack
 - [x] Layer-preserving bounded undo/redo snapshots and History panel restore
