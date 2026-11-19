@@ -33,7 +33,7 @@ private val filters=listOf(
 )
 
 @Composable
-fun FilterScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
+fun FilterScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,BasicAdjustmentValues)->Unit) {
     var selected by remember { mutableStateOf(filters.first()) }
     var strength by remember { mutableFloatStateOf(1f) }
     val preview by produceState<Bitmap?>(null,source,selected,strength) { value?.takeIf { it !== source }?.recycle(); value=null; value=withContext(Dispatchers.IO){BasicAdjustmentProcessor.apply(source,scaledFilterValues(selected.values,strength))} }
@@ -43,7 +43,7 @@ fun FilterScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
             Text("Filters",Modifier.weight(1f),color=Color.White)
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true))}}){Text("Apply")}
+            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true),scaledFilterValues(selected.values,strength))}}){Text("Apply")}
         }
         Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D)),contentAlignment=Alignment.Center) {
             preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize().padding(8.dp),contentScale=ContentScale.Fit)}?:CircularProgressIndicator()
