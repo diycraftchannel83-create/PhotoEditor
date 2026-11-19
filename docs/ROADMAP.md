@@ -120,7 +120,7 @@
 ## Phase 10 — Project, autosave and recovery
 - [x] Project save/open for editable bitmap layer stacks
 - [x] Persist visibility, opacity, blend mode, selected layer, masks, locks and group metadata
-- [x] Per-layer non-destructive Basic Adjustment, Levels, Curves, HSL and Transform operations live-integrated; operation metadata and original layer sources persist in projects/recovery
+- [x] Per-layer non-destructive Basic Adjustment, Levels, Curves, HSL, Crop/Transform, Effects and LUT operations live-integrated; operation metadata and original layer sources persist in projects/recovery
 - [x] Private recovery snapshots and startup recovery/discard prompt
 - [x] Schema version bumps and atomic manifest writes; optional-field backward-compatible loading
 - [x] Editable-project loader validates manifest asset paths, rejects traversal and fails safely on missing/corrupt layer/mask assets (tests authored; verification pending)
@@ -131,7 +131,7 @@
 - [x] Recent/saved project list with open, rename, duplicate, delete (existing ProjectScreen; refresh-on-action)
 - [ ] Unsaved-changes protection
 - [x] Basic Adjustment operation stack is live-integrated and per-layer operation metadata is saved in projects/recovery
-- [x] Levels, Curves, HSL and Transform live operation integration and per-layer persistence
+- [x] Levels, Curves, HSL, Transform, Effects and LUT live operation integration and per-layer persistence
 - [x] Operation stack toggle, reorder, remove and reset UI
 - [ ] Parameter editing inside existing operations, full editable-state recovery
 
