@@ -17,6 +17,13 @@ class LayerCompositeRendererTest {
         val pixel=result.getPixel(0,0)
         assertEquals(255,Color.red(pixel));assertEquals(0,Color.green(pixel));assertEquals(255,Color.blue(pixel))
     }
+    @Test fun clippingMaskRestrictsUpperLayerToLowerAlpha() {
+        val base=Bitmap.createBitmap(2,1,Bitmap.Config.ARGB_8888).apply{setPixel(0,0,Color.BLUE);setPixel(1,0,Color.TRANSPARENT)}
+        val top=Bitmap.createBitmap(2,1,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.RED)}
+        val result=LayerCompositeRenderer.render(listOf(EditorLayer(name="Base",bitmap=base),EditorLayer(name="Clip",bitmap=top,clipToBelow=true)),2,1)
+        assertEquals(Color.RED,result.getPixel(0,0))
+        assertEquals(0,Color.alpha(result.getPixel(1,0)))
+    }
     @Test fun groupOpacityIsAppliedToCombinedLayers() {
         val red=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.RED)}
         val blue=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.BLUE)}
