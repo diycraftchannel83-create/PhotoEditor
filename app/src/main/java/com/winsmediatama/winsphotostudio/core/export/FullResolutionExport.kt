@@ -6,7 +6,7 @@ import android.graphics.Paint
 
 /** Memory-guarded export sizing. Upscaling preview is explicit and is not native-resolution edit replay. */
 object FullResolutionExport {
-    const val MAX_EXPORT_PIXELS:Long=60_000_000L
+    const val MAX_EXPORT_PIXELS:Long=24_000_000L
 
     data class Size(val width:Int,val height:Int) {
         val pixelCount:Long get()=width.toLong()*height.toLong()
@@ -15,7 +15,7 @@ object FullResolutionExport {
 
     fun targetSize(preview:Bitmap,sourceWidth:Int,sourceHeight:Int,useOriginalDimensions:Boolean):Size {
         val size=if(useOriginalDimensions&&sourceWidth>0&&sourceHeight>0)Size(sourceWidth,sourceHeight)else Size(preview.width,preview.height)
-        require(size.valid()) { "Export dimensions exceed the 60 megapixel safety limit" }
+        require(size.valid()) { "Export dimensions exceed the 24 megapixel safety limit" }
         return size
     }
 
