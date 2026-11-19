@@ -435,6 +435,9 @@ private fun WinsPhotoApp() {
                         }
                     }
                     Text("Current canvas: ${bitmap?.width} × ${bitmap?.height}px",style=MaterialTheme.typography.bodySmall)
+                    if(sourceWidth>0&&sourceHeight>0) {
+                        Text(if(originalSourceCached) "Original source retained on disk (${originalSourceBytes/1024} KB)" else "Original source cache unavailable; preview remains editable",style=MaterialTheme.typography.labelSmall,color=if(originalSourceCached)Color(0xFF77D7C0) else Color(0xFFFFC107))
+                    }
                     if(sourceWidth>0&&sourceHeight>0&&sourceWidth.toLong()*sourceHeight<=FullResolutionExport.MAX_EXPORT_PIXELS) {
                         Row(verticalAlignment=Alignment.CenterVertically) {
                             Checkbox(checked=exportOriginalDimensions,onCheckedChange={exportOriginalDimensions=it})
