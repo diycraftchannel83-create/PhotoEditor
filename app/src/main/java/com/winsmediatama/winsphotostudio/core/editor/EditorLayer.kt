@@ -19,7 +19,7 @@ data class EditorLayer(
     val alphaLocked:Boolean=false,
     val groupId:String?=null,
     val groupName:String?=null,
-    val groupOpacity:Float=1f,
+    val groupOpacity:Float=1f,\n    val groupBlendMode:EditorBlendMode?=null,
     val clipToBelow:Boolean=false,
     val originalBitmap:Bitmap?=null,
     val operations:List<EditOperation> = emptyList()
