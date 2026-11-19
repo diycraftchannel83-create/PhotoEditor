@@ -66,7 +66,7 @@
 - [ ] Refine edge, saved selections, copy/cut/paste selection as layers, regression verification
 
 ## Phase 6 — Retouch and paint
-- [x] Brush and eraser UI
+- [x] Brush and eraser with size, opacity, hardness and straight-line controls with size, opacity, hardness and straight-line controls UI
 - [x] Blur, pixelate and clone-stamp foundations
 - [x] Spot-heal, dodge/burn and smudge processors (UI integration/verification pending)
 - [x] Spot-heal, dodge/burn and smudge UI modes integrated
