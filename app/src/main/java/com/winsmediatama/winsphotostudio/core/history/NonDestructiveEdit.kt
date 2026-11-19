@@ -105,7 +105,7 @@ class NonDestructiveEditStack(
             is EditOperation.Levels -> operation.copy(id = id)
             is EditOperation.Curves -> operation.copy(id = id)
             is EditOperation.Crop -> operation.copy(id = id)
-            is EditOperation.Hsl -> operation.copy(id = id)
+            is EditOperation.Hsl -> operation.copy(id = id)\n            is EditOperation.Transform -> operation.copy(id=id)
         }
         return true
     }
@@ -135,7 +135,7 @@ class NonDestructiveEditStack(
                 is EditOperation.Curves -> CurvesProcessor.apply(current, operation.values)
                 is EditOperation.Crop -> crop(current, operation)
                 is EditOperation.Hsl -> HslProcessor.apply(current,operation.values)
-                is EditOperation.Transform -> TransformProcessor.apply(current,operation.left,operation.top,operation.right,operation.bottom,operation.rotationDegrees,operation.flipHorizontal,operation.flipVertical,operation.outputWidth,operation.outputHeight))
+                is EditOperation.Transform -> TransformProcessor.apply(current,TransformSpec(operation.left,operation.top,operation.right,operation.bottom,operation.rotationDegrees,operation.flipHorizontal,operation.flipVertical,operation.outputWidth,operation.outputHeight))
             }
             if (next !== current && !current.isRecycled) current.recycle()
             current = next
