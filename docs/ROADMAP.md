@@ -52,6 +52,7 @@
 - [x] Filter screen commits selected preset and strength as replayable Basic Adjust operation (source implementation; verification deferred)
 - [x] Effects screen commits effect kind, strength and angle as replayable Effect operation (source implementation; verification deferred)
 - [x] Effect operation can be enabled/disabled from operation stack and replays from retained source
+- [x] Imported .cube LUT text is retained in a replayable LUT operation, with parse validation and stack toggle
 - [ ] Add selection, retouch, LUT/effect and remaining tool operations to stack
 - [x] Filter presets now preserve parameter values in operation stack (source implementation; verification deferred)
 - [x] Blur, motion blur, vignette and grain parameters are serializable and replayable through Effect operation
