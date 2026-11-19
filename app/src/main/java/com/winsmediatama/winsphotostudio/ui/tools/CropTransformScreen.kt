@@ -42,7 +42,7 @@ fun CropTransformScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) 
     var widthText by remember { mutableStateOf(source.width.toString()) }
     var heightText by remember { mutableStateOf(source.height.toString()) }
     var showResize by remember { mutableStateOf(false) }
-    val preview by produceState<Bitmap?>(null,source,settings) { value?.takeIf { it !== source }?.recycle(); value=null; value=withContext(Dispatchers.IO){renderCropTransform(source,settings)} }
+    val preview by produceState<Bitmap?>(null,source,settings) { value?.takeIf { it !== source }?.recycle(); value=null; value=withContext(Dispatchers.IO){renderCropTransform(source,settings)} }\n    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==source}?.recycle()}}
     val sourceRatio=source.width.toFloat()/source.height.coerceAtLeast(1)
 
     fun updateCrop(l:Float,t:Float,r:Float,b:Float,markFree:Boolean=true) {
@@ -82,7 +82,7 @@ fun CropTransformScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) 
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
             Text("Crop & Transform",Modifier.weight(1f),fontWeight=FontWeight.Bold,color=Color.White)
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(enabled=preview!=null,onClick={preview?.let(onApply)}){Text("Apply")}
+            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true))}}){Text("Apply")}
         }
         Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D),RoundedCornerShape(12.dp)),contentAlignment=Alignment.Center) {
             preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize().padding(8.dp),contentScale=ContentScale.Fit)}?:CircularProgressIndicator()
