@@ -59,7 +59,12 @@ object LayerCompositeRenderer {
         val masked=layer.mask?.takeUnless{it.isRecycled}?.let{LayerMaskProcessor.apply(layer.bitmap,it)}
         val source=masked?:layer.bitmap
         val paint=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply{alpha=(layer.opacity.coerceIn(0f,1f)*255f).toInt()}
-        if(layer.blendMode==EditorBlendMode.DIFFERENCE&&Build.VERSION.SDK_INT<29){\n            drawDifference(canvas,source,dest,paint.alpha)\n            if(masked!=null&&!masked.isRecycled)masked.recycle()\n            return\n        }\n        if(layer.blendMode==EditorBlendMode.DIFFERENCE&&Build.VERSION.SDK_INT>=29){
+        if(layer.blendMode==EditorBlendMode.DIFFERENCE&&Build.VERSION.SDK_INT<29){
+            drawDifference(canvas,source,dest,paint.alpha)
+            if(masked!=null&&!masked.isRecycled)masked.recycle()
+            return
+        }
+        if(layer.blendMode==EditorBlendMode.DIFFERENCE&&Build.VERSION.SDK_INT>=29){
             paint.xfermode=null;paint.blendMode=BlendMode.DIFFERENCE
         }else{
             paint.blendMode=null
