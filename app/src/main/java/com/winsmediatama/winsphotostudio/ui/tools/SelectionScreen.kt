@@ -19,7 +19,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 
 private enum class SelectionShape { RECTANGLE, ELLIPSE, POLYGON, FREEHAND, COLOR_RANGE, MAGIC_WAND }
-enum class SelectionAction { CROP, MASK, COPY_LAYER }\ndata class SelectionOutput(val bitmap:Bitmap,val action:SelectionAction)
+enum class SelectionAction { CROP, MASK, COPY_LAYER }
+data class SelectionOutput(val bitmap:Bitmap,val action:SelectionAction)
 
 @Composable
 fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->Unit) {
