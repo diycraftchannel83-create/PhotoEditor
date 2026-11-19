@@ -50,8 +50,10 @@
 - [x] Crop/Transform screen now returns normalized operation parameters and commits non-destructively as a flattened replayable layer (verification pending)
 - [ ] Integrate remaining tools and full operation history into live editor
 - [x] Filter screen commits selected preset and strength as replayable Basic Adjust operation (source implementation; verification deferred)
+- [x] Effects screen commits effect kind, strength and angle as replayable Effect operation (source implementation; verification deferred)
 - [ ] Add selection, retouch, LUT/effect and remaining tool operations to stack
 - [x] Filter presets now preserve parameter values in operation stack (source implementation; verification deferred)
+- [x] Blur, motion blur, vignette and grain parameters are serializable and replayable through Effect operation
 - [x] Layer-preserving bounded undo/redo snapshots and History panel restore
 - [x] Named operation states save/restore/remove API with regression tests authored (verification pending)
 - [ ] Parameter-level operation history
