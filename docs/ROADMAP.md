@@ -138,8 +138,8 @@
 - [x] Per-layer non-destructive Basic Adjustment, Levels, Curves, HSL, Crop/Transform, Effects and LUT operations live-integrated; operation metadata and original layer sources persist in projects/recovery
 - [x] Private recovery snapshots and startup recovery/discard prompt
 - [x] Schema version bumps and atomic manifest writes; optional-field backward-compatible loading
-- [x] Editable-project loader validates manifest asset paths, rejects traversal and fails safely on missing/corrupt layer/mask assets (tests authored; verification pending)
-- [ ] Full migrations, corrupt/missing asset handling (schema migration coverage still pending)
+- [x] Editable-project loader validates canonical project-folder and asset paths, rejects traversal, limits supported schema versions, and safely handles missing/corrupt bitmap assets; snapshot and operation-project asset loading hardened (tests authored; verification pending)
+- [ ] Full migrations and project/recovery corruption coverage (asset-path hardening implemented; tests authored, verification pending)
 - [x] Duplicate, rename and delete APIs are implemented; lifecycle tests authored (verification pending)
 - [x] Non-destructive operation-project save/load/replay regression tests authored (verification pending)
 - [x] Save-as UI (save current with a new project name)
