@@ -74,7 +74,7 @@ private val StudioBackground = Color(0xFF101216)
 private val StudioSurface = Color(0xFF1B1E24)
 private val StudioAccent = Color(0xFF77D7C0)
 
-private data class EditorSnapshot(val layers:List<EditorLayer>,val selectedLayerId:String?,val canvas:Bitmap,val label:String)
+private data class EditorSnapshot(val layers:List<EditorLayer>,val selectedLayerId:String?,val canvas:Bitmap,val label:String)\nprivate const val MAX_HISTORY_STATES=8
 
 @Composable
 private fun WinsPhotoApp() {
@@ -117,7 +117,7 @@ private fun WinsPhotoApp() {
     val context = androidx.compose.ui.platform.LocalContext.current
     var editHistory by remember { mutableStateOf<List<EditorSnapshot>>(emptyList()) }
     var redoHistory by remember { mutableStateOf<List<EditorSnapshot>>(emptyList()) }
-    fun recordUndo(canvas:Bitmap,label:String){editHistory=(editHistory+EditorSnapshot(layers.toList(),selectedLayerId,canvas,label)).takeLast(30);redoHistory=emptyList()}
+    fun recordUndo(canvas:Bitmap,label:String){editHistory=(editHistory+EditorSnapshot(layers.toList(),selectedLayerId,canvas,label)).takeLast(MAX_HISTORY_STATES);redoHistory=emptyList()}
     fun restoreSnapshot(snapshot:EditorSnapshot){layers=snapshot.layers;selectedLayerId=snapshot.selectedLayerId;bitmap=snapshot.canvas}
     var recoveryCandidate by remember { mutableStateOf<RecoveryStore.Recovered?>(null) }
     fun commitEdit(edited:Bitmap,previousComposite:Bitmap,flatten:Boolean=false) {
