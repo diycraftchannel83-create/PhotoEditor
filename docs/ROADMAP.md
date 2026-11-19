@@ -76,7 +76,7 @@
 - [x] Rectangle, ellipse and line overlays
 - [x] Linear/radial gradients
 - [x] System font-family picker and text shadow controls
-- [x] Shape fill/outline and width/height controls
+- [x] Shape fill/outline and width/height controls\n- [x] Text and shape rotation
 - [ ] Font import, tracking, line spacing and gradient text
 - [ ] Custom paths, stickers/assets, transform handles and reusable layer styles
 
