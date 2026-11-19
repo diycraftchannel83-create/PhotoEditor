@@ -153,7 +153,7 @@
 ## Phase 11 — Render/export and performance
 - [x] JPEG/PNG export, JPEG quality and background flattening controls
 - [x] Preview proxy limit to reduce memory pressure\n- [x] Bounds-first shared image decoder for main import and photo layers; rejects invalid/extreme dimensions and samples to 2048px preview; regression tests authored (verification deferred)
-- [x] Disk-backed source cache and bounded original decode foundation (24 MP cap; tests authored, verification deferred)\n- [ ] Full-resolution source/render/export path with operation replay
+- [x] Disk-backed source cache and bounded original decode foundation (24 MP cap; tests authored, verification deferred)\n- [x] Native source-layer replay path for source-dimension JPEG/PNG export; replayable operations scaled to source dimensions with 24 MP guards; destructive/non-replayable fallback remains (tests authored, verification pending)
 - [ ] Tile/region processing, memory-aware caches, background progress and cancellation
 - [ ] Metadata/EXIF policy, color profile consistency and export dimension tests
 - [ ] Benchmark low-RAM devices and large images
@@ -193,5 +193,5 @@
 - [x] Optional source-dimension export sizing for PNG/JPEG, with preview-size default.
 - [x] Resampling renderer and 24 MP pixel-count guard.
 - [x] Regression tests authored for dimension choice, identity path and oversize rejection.
-- [ ] Native-resolution edit replay/rendering; current export resamples the 2048px edited preview, so this improves output dimensions but does not restore source-level detail.
+- [x] Native-resolution source-layer replay integrated into JPEG/PNG source-dimension export when the imported source layer and replayable operations are retained; otherwise preview resampling fallback (tests authored, verification pending).
 - [ ] Build/test verification (deferred).
