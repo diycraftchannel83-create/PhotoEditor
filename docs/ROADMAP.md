@@ -37,7 +37,7 @@
 - [x] Persist original bitmap separately from operation JSON in a project-store foundation
 - [ ] Integrate operation stack into the live MainActivity/editor workflow
 - [ ] Add transform, HSL, selection, retouch, LUT/effect and layer operations to stack
-- [ ] Operation-level undo/redo, history panel, named states
+- [x] Layer-preserving bounded undo/redo snapshots and History panel restore\n- [ ] Parameter-level operation history and named states
 - [ ] True live adjustment layers and render-cache invalidation
 
 ## Phase 4 — Layers, masks and compositing
@@ -48,7 +48,7 @@
 - [x] Grayscale layer masks, mask inversion, mask persistence and mask painting UI
 - [x] Group metadata, contiguous grouping UI, group visibility/opacity, group-aware compositor
 - [x] Project and recovery metadata persistence for masks, locks and groups
-- [ ] Nested groups, clipping masks, group blend-mode controls and full layer-stack undo/redo
+- [x] Clip-to-below alpha clipping and metadata persistence\n- [ ] Nested groups, group blend-mode controls and full layer-stack undo/redo
 - [ ] True adjustment layers, layer effects and group/mask integration with non-destructive history
 
 ## Phase 5 — Selection
@@ -64,7 +64,7 @@
 - [x] Brush and eraser UI
 - [x] Blur, pixelate and clone-stamp foundations
 - [x] Spot-heal, dodge/burn and smudge processors (UI integration/verification pending)
-- [ ] Healing/retouch on masks, pressure/hardware support, stabilized strokes, brush presets/hardness/spacing
+- [x] Spot-heal, dodge/burn and smudge UI modes integrated\n- [ ] Healing/retouch on masks, pressure/hardware support, stabilized strokes, brush presets/hardness/spacing
 - [ ] Validate clone source workflow and high-resolution brush performance
 
 ## Phase 7 — Typography and design
@@ -72,7 +72,7 @@
 - [x] Text bold, italic, alignment, fill/outline and stroke-width controls
 - [x] Rectangle, ellipse and line overlays
 - [x] Linear/radial gradients
-- [ ] Font picker/import, tracking, line spacing, text shadows/gradient fill
+- [x] System font-family picker and text shadow controls\n- [x] Shape fill/outline and width/height controls\n- [ ] Font import, tracking, line spacing and gradient text
 - [ ] Custom paths, stickers/assets, transform handles and reusable layer styles
 
 ## Phase 8 — Filters and effects
@@ -95,7 +95,7 @@
 - [x] Persist visibility, opacity, blend mode, selected layer, masks, locks and group metadata
 - [x] Original-source plus replayable operation project persistence foundation
 - [x] Private recovery snapshots and startup recovery/discard prompt
-- [ ] Project format versioning/migrations, robust atomic recovery swap, corrupt/missing asset handling
+- [x] Schema version bumps and atomic manifest writes; optional-field backward-compatible loading\n- [ ] Full migrations, corrupt/missing asset handling
 - [ ] Save-as, duplicate, rename/delete, recent projects, unsaved-changes protection
 - [ ] Operation stack/live adjustment persistence and full editable-state recovery
 
@@ -129,7 +129,7 @@
 - [x] Fix earlier source-level Compose/Kotlin issues reported by CI (verification not rerun in this pass)
 - [x] Crop model tests added
 - [x] Histogram tests present
-- [x] Non-destructive stack, mask/group/lock models and processors added
+- [x] Non-destructive operation model and project persistence foundation\n- [x] Layer-preserving undo/redo history and History panel\n- [x] Mask/group/lock/clipping models, processors and persistence
 - [x] Selection, retouch, effect, LUT, perspective, canvas-size, background replacement and recovery feature batches added
 - [ ] **No build, CI, lint or test execution during this feature pass by request.**
 - [ ] Source-level audit and final feature integration pass still required before build/CI verification.
