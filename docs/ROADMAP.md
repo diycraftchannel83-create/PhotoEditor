@@ -31,7 +31,7 @@
 - [x] Visibility and opacity
 - [x] Blend modes (Normal, Multiply, Screen, Overlay, Darken, Lighten, Add, Difference)
 - [ ] Groups, layer masks and true adjustment layers
-- [ ] Full editable layer document persistence (currently project snapshots are flattened)
+- [x] Layer PNG assets and metadata project save/open (tool adjustments are baked into layer bitmaps)
 
 ## Phase 4 — Selections and retouching
 - [x] Rectangle and ellipse selection
@@ -55,9 +55,9 @@
 - [ ] Fonts, stroke/fill controls, gradients, LUT support, layer effects
 
 ## Phase 7 — Project and production hardening
-- [x] Local snapshot project save/open
+- [x] Local project save/open with editable bitmap layers and layer metadata
 - [x] Bounded undo history for applied edits
-- [ ] Full non-destructive parameter/layer document persistence
+- [ ] Live adjustment-layer parameter persistence, masks, groups and operation-level history
 - [ ] Autosave/recovery and crash recovery
 - [ ] Large-image, memory and device compatibility testing
 - [ ] Accessibility and localization
