@@ -13,13 +13,15 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.winsmediatama.winsphotostudio.core.adjustments.EffectProcessor
+import com.winsmediatama.winsphotostudio.core.adjustments.PhotoPhotoEffectKind
+import com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-private enum class EffectKind { BLUR, MOTION, VIGNETTE, GRAIN }
+
 
 @Composable
-fun EffectsScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
+fun EffectsScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,PhotoEffectSettings)->Unit) {
     var kind by remember{mutableStateOf(EffectKind.VIGNETTE)}
     var strength by remember{mutableFloatStateOf(.5f)}
     var angle by remember{mutableFloatStateOf(45f)}
@@ -38,7 +40,7 @@ fun EffectsScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically){
             Text("Effects",Modifier.weight(1f),color=Color.White)
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true))}}){Text("Apply")}
+            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true),PhotoEffectSettings(kind,strength,angle))}}){Text("Apply")}
         }
         Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D)),contentAlignment=Alignment.Center){
             preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize().padding(8.dp),contentScale=ContentScale.Fit)}?:CircularProgressIndicator()
