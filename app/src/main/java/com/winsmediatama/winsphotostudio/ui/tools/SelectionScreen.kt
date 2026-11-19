@@ -46,10 +46,10 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
         }
         Canvas(Modifier.weight(1f).fillMaxWidth().aspectRatio(source.width.toFloat()/source.height).padding(12.dp).background(Color(0xFF25282D))
             .pointerInput(shape) {
-                detectDragGestures(onDragStart={start->dragStart=Offset(start.x/size.width,start.y/size.height);rect=Rect(dragStart!!,dragStart!!)},onDragEnd={dragStart=null}) { change,_->
+                detectDragGestures(onDragStart={start->dragStart=Offset(start.x/size.width,start.y/size.height);rect=Rect(dragStart!!.x,dragStart!!.y,dragStart!!.x,dragStart!!.y)},onDragEnd={dragStart=null}) { change,_->
                     val start=dragStart ?: return@detectDragGestures
                     val end=Offset(change.position.x/size.width,change.position.y/size.height)
-                    rect=Rect(start,end).normalize().clampUnit()
+                    rect=Rect(start.x,start.y,end.x,end.y).normalize().clampUnit()
                     change.consume()
                 }
             }) {
