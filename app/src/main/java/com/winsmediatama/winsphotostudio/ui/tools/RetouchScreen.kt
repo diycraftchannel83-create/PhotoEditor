@@ -34,6 +34,7 @@ fun RetouchScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
     var offsetX by remember { mutableFloatStateOf(100f) }
     var offsetY by remember { mutableFloatStateOf(100f) }
     val preview by produceState<Bitmap?>(null,source,strokes,active,mode,brushSize,strength,offsetX,offsetY) {
+        value?.takeIf { it !== source }?.recycle()
         value=null
         value=withContext(Dispatchers.IO){renderRetouch(source,strokes+listOfNotNull(active),strength,offsetX,offsetY)}
     }
