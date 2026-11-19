@@ -45,7 +45,7 @@
 - [x] Layer compositor now replays operation metadata for individual and grouped layers (regression test authored; verification pending)
 - [x] Operation-replay compositor test authored to catch stale rendered bitmap usage (verification pending)
 - [x] Integrate Basic Adjustments, Levels, Curves and HSL parameter callbacks into MainActivity operation stack (verification pending)
-- [ ] Integrate remaining tools, Crop/Transform and full operation history into live editor
+- [x] Crop/Transform screen now returns normalized operation parameters and commits non-destructively as a flattened replayable layer (verification pending)\n- [ ] Integrate remaining tools and full operation history into live editor
 - [ ] Add selection, retouch, LUT/effect and remaining tool operations to stack
 - [x] Layer-preserving bounded undo/redo snapshots and History panel restore
 - [x] Named operation states save/restore/remove API with regression tests authored (verification pending)
