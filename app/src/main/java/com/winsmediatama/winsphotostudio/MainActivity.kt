@@ -3,6 +3,9 @@ package com.winsmediatama.winsphotostudio
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.BitmapFactory.Options
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -101,6 +104,26 @@ private fun WinsPhotoApp() {
             exportStatus=if(ok) "PNG exported successfully" else "Export failed"
         }
     }
+    val layerImagePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        val canvasBitmap=bitmap
+        if(uri!=null && canvasBitmap!=null) scope.launch {
+            val decoded=withContext(Dispatchers.IO) {
+                runCatching {
+                    val bounds=Options().apply{inJustDecodeBounds=true}
+                    context.contentResolver.openInputStream(uri)?.use{BitmapFactory.decodeStream(it,null,bounds)}
+                    val sample=calculateSampleSize(bounds.outWidth,bounds.outHeight,4096)
+                    val opts=Options().apply{inSampleSize=sample;inPreferredConfig=Bitmap.Config.ARGB_8888}
+                    context.contentResolver.openInputStream(uri)?.use{BitmapFactory.decodeStream(it,null,opts)}
+                }.getOrNull()
+            }
+            if(decoded!=null) {
+                val fitted=withContext(Dispatchers.IO){fitBitmapToCanvas(decoded,canvasBitmap.width,canvasBitmap.height)}
+                val updated=layers+EditorLayer(name="Photo Layer ${layers.size+1}",bitmap=fitted)
+                val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,canvasBitmap.width,canvasBitmap.height)}
+                layers=updated;bitmap=composite
+            }
+        }
+    }
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) { imageUri = uri; loading = true; error = null }
     }
@@ -166,6 +189,7 @@ private fun WinsPhotoApp() {
             else if (layersOpen) LayersScreen(
                 layers=layers,
                 onCancel={layersOpen=false},
+                onAddImage={layerImagePicker.launch(arrayOf("image/*"))},
                 onApply={newLayers -> layersOpen=false; scope.launch { val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(newLayers,current.width,current.height)}; layers=newLayers; bitmap=composite }}
             )
             else if (curvesOpen) CurvesScreen(
@@ -301,6 +325,16 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
             Text("Crop, transform, adjustments and undo are available. Source image is retained separately from the edit result.", color = Color.LightGray, style = MaterialTheme.typography.bodySmall)
         }
     }
+}
+
+private fun fitBitmapToCanvas(source:Bitmap,width:Int,height:Int):Bitmap {
+    val output=Bitmap.createBitmap(width,height,Bitmap.Config.ARGB_8888)
+    val canvas=Canvas(output)
+    val scale=minOf(width.toFloat()/source.width,height.toFloat()/source.height)
+    val drawW=(source.width*scale).toInt();val drawH=(source.height*scale).toInt()
+    val left=(width-drawW)/2;val top=(height-drawH)/2
+    canvas.drawBitmap(source,null,Rect(left,top,left+drawW,top+drawH),Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
+    return output
 }
 
 private fun calculateSampleSize(width: Int, height: Int, maxDimension: Int): Int {
