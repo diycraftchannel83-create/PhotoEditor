@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 
 private enum class SelectionShape { RECTANGLE, ELLIPSE, POLYGON, FREEHAND, COLOR_RANGE, MAGIC_WAND }
 enum class SelectionAction { CROP, MASK, COPY_LAYER }
-data class SelectionOutput(val bitmap:Bitmap,val action:SelectionAction)
+data class SelectionOutput(val bitmap:Bitmap,val action:SelectionAction,val selectionMask:Bitmap?=null)
 
 @Composable
 fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->Unit) {
@@ -45,7 +45,7 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->U
             Text("Selection",Modifier.weight(1f),color=Color.White)
             TextButton(onClick={rect=Rect(0f,0f,1f,1f);polygonPoints=emptyList()}){Text("Select all")}
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(enabled=(shape!=SelectionShape.POLYGON&&shape!=SelectionShape.FREEHAND)||(polygonPoints.size>=3),onClick={onApply(SelectionOutput(renderSelection(source,rect,shape,action,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection),action))}){Text("Apply")}
+            Button(enabled=(shape!=SelectionShape.POLYGON&&shape!=SelectionShape.FREEHAND)||(polygonPoints.size>=3),onClick={onApply(renderSelection(source,rect,shape,action,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection))}){Text("Apply")}
         }
         Row(Modifier.fillMaxWidth().padding(8.dp),horizontalArrangement=Arrangement.spacedBy(4.dp)){
             SelectionShape.entries.forEach{s->FilterChip(selected=shape==s,onClick={shape=s},label={Text(s.name.replace("_"," "))})}
@@ -109,7 +109,7 @@ private fun buildSelectionOverlay(source:Bitmap,shape:SelectionShape,rect:Rect,p
 private fun Rect.normalize()=Rect(minOf(left,right),minOf(top,bottom),maxOf(left,right),maxOf(top,bottom))
 private fun Rect.clampUnit()=Rect(left.coerceIn(0f,1f),top.coerceIn(0f,1f),right.coerceIn(0f,1f),bottom.coerceIn(0f,1f))
 
-private fun renderSelection(source:Bitmap,selection:Rect,shape:SelectionShape,action:SelectionAction,polygonPoints:List<Pair<Float,Float>>,sampleColor:Int,tolerance:Float,softness:Float,seedPoint:Pair<Float,Float>,featherRadius:Float,expandRadius:Float,invertSelection:Boolean):Bitmap {
+private fun renderSelection(source:Bitmap,selection:Rect,shape:SelectionShape,action:SelectionAction,polygonPoints:List<Pair<Float,Float>>,sampleColor:Int,tolerance:Float,softness:Float,seedPoint:Pair<Float,Float>,featherRadius:Float,expandRadius:Float,invertSelection:Boolean):SelectionOutput {
     val masks=com.winsmediatama.winsphotostudio.core.tools.SelectionMaskProcessor
     val mask=when(shape){
         SelectionShape.RECTANGLE->masks.rectangle(source.width,source.height,selection.left,selection.top,selection.right,selection.bottom)
@@ -122,12 +122,11 @@ private fun renderSelection(source:Bitmap,selection:Rect,shape:SelectionShape,ac
     if(invertSelection)processed=masks.invert(processed)
     if(expandRadius.toInt()!=0)processed=masks.expandContract(processed,expandRadius.toInt())
     if(featherRadius.toInt()>0)processed=masks.feather(processed,featherRadius.toInt())
-    if(action==SelectionAction.MASK||action==SelectionAction.COPY_LAYER)return applyMask(source,processed)
+    if(action==SelectionAction.MASK)return SelectionOutput(applyMask(source,processed),action,processed)\n    if(action==SelectionAction.COPY_LAYER)return SelectionOutput(applyMask(source,processed),action)
     val pixels=IntArray(source.width*source.height);processed.getPixels(pixels,0,source.width,0,0,source.width,source.height)
     var minX=source.width;var minY=source.height;var maxX=-1;var maxY=-1
     for(y in 0 until source.height)for(x in 0 until source.width)if(android.graphics.Color.red(pixels[y*source.width+x])>0){minX=minOf(minX,x);minY=minOf(minY,y);maxX=maxOf(maxX,x);maxY=maxOf(maxY,y)}
-    if(maxX<minX||maxY<minY)return source.copy(Bitmap.Config.ARGB_8888,true)
-    return Bitmap.createBitmap(source,minX,minY,maxX-minX+1,maxY-minY+1)
+    if(maxX<minX||maxY<minY)return SelectionOutput(source.copy(Bitmap.Config.ARGB_8888,true),action)\n    return SelectionOutput(Bitmap.createBitmap(source,minX,minY,maxX-minX+1,maxY-minY+1),action)
 }
 private fun applyMask(source:Bitmap,mask:Bitmap):Bitmap {
     val w=source.width;val h=source.height;val pixels=IntArray(w*h);source.getPixels(pixels,0,w,0,0,w,h);val mp=IntArray(w*h);mask.getPixels(mp,0,w,0,0,w,h)
