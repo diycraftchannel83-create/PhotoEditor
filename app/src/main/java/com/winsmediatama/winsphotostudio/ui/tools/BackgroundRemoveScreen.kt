@@ -26,6 +26,7 @@ fun BackgroundRemoveScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Uni
     var feather by remember { mutableFloatStateOf(20f) }
     var sampled by remember { mutableStateOf(false) }
     val preview by produceState<Bitmap?>(null,source,sample,tolerance,feather,sampled) {
+        value=null
         value=withContext(Dispatchers.IO){if(sampled) removeColorBackground(source,sample,tolerance,feather) else source}
     }
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
