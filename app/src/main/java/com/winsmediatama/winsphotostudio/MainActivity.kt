@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.winsmediatama.winsphotostudio.ui.tools.CropTransformScreen
 import com.winsmediatama.winsphotostudio.ui.tools.AdjustmentScreen
+import com.winsmediatama.winsphotostudio.ui.tools.LevelsScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -53,6 +54,7 @@ private fun WinsPhotoApp() {
     var error by remember { mutableStateOf<String?>(null) }
     var cropTransformOpen by remember { mutableStateOf(false) }
     var adjustmentOpen by remember { mutableStateOf(false) }
+    var levelsOpen by remember { mutableStateOf(false) }
     var editHistory by remember { mutableStateOf<List<Bitmap>>(emptyList()) }
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) { imageUri = uri; loading = true; error = null }
@@ -76,6 +78,11 @@ private fun WinsPhotoApp() {
         Surface(Modifier.fillMaxSize(), color = StudioBackground) {
             val current = bitmap
             if (current == null) HomeScreen(loading, error) { imagePicker.launch(arrayOf("image/*")) }
+            else if (levelsOpen) LevelsScreen(
+                source=current,
+                onCancel={levelsOpen=false},
+                onApply={edited -> editHistory=editHistory+current; bitmap=edited; levelsOpen=false}
+            )
             else if (adjustmentOpen) AdjustmentScreen(
                 source = current,
                 onCancel = { adjustmentOpen = false },
@@ -129,7 +136,7 @@ private fun HomeScreen(loading: Boolean, error: String?, onImport: () -> Unit) {
 }
 
 @Composable
-private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onUndo: () -> Unit, canUndo: Boolean) {
+private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onLevels: () -> Unit, onUndo: () -> Unit, canUndo: Boolean) {
     var zoom by remember { mutableFloatStateOf(1f) }
     var panX by remember { mutableFloatStateOf(0f) }
     var panY by remember { mutableFloatStateOf(0f) }
@@ -143,7 +150,7 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
             TextButton(onClick = { zoom = 1f; panX = 0f; panY = 0f }) { Text("Fit") }
             TextButton(onClick = onUndo, enabled = canUndo) { Text("Undo") }
             TextButton(onClick = onCropTransform) { Text("Crop / Transform") }
-            TextButton(onClick = onAdjustments) { Text("Adjust") }
+            TextButton(onClick = onAdjustments) { Text("Adjust") }\n            TextButton(onClick = onLevels) { Text("Levels") }
             TextButton(onClick = onImportAnother) { Text("Replace") }
         }
         Box(Modifier.weight(1f).fillMaxWidth().background(Color(0xFF25282D)).padding(12.dp).pointerInput(bitmap) {
