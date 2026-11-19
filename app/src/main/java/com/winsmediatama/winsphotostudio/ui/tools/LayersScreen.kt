@@ -14,7 +14,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import com.winsmediatama.winsphotostudio.core.editor.EditorLayer\nimport com.winsmediatama.winsphotostudio.core.editor.EditorBlendMode
+import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
+import com.winsmediatama.winsphotostudio.core.editor.EditorBlendMode
 
 @Composable
 fun LayersScreen(layers:List<EditorLayer>,selectedLayerId:String?,onCancel:()->Unit,onAddImage:()->Unit,onApply:(List<EditorLayer>,String?)->Unit) {
@@ -32,7 +33,8 @@ fun LayersScreen(layers:List<EditorLayer>,selectedLayerId:String?,onCancel:()->U
         LazyColumn(Modifier.weight(1f),contentPadding=PaddingValues(8.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
             itemsIndexed(working.asReversed(),key={_,l->l.id}) { reverseIndex, layer ->
                 val index=working.lastIndex-reverseIndex
-                var rename by remember(layer.id) { mutableStateOf(layer.name) }\n                var blendMenu by remember(layer.id) { mutableStateOf(false) }
+                var rename by remember(layer.id) { mutableStateOf(layer.name) }
+                var blendMenu by remember(layer.id) { mutableStateOf(false) }
                 Card(colors=CardDefaults.cardColors(containerColor=Color(0xFF20242A))) {
                     Column(Modifier.fillMaxWidth().padding(10.dp)) {
                         Row(verticalAlignment=Alignment.CenterVertically) {
