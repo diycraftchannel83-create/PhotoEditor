@@ -3,7 +3,7 @@ package com.winsmediatama.winsphotostudio.core.editor
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.Rect
+import android.graphics.Rect\nimport android.graphics.PorterDuff\nimport android.graphics.PorterDuffXfermode
 
 object LayerCompositeRenderer {
     fun render(layers:List<EditorLayer>,width:Int,height:Int):Bitmap {
