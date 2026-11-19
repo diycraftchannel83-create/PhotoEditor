@@ -70,7 +70,8 @@
 - [x] Group metadata, contiguous grouping UI, group visibility/opacity, group-aware compositor
 - [x] Project and recovery metadata persistence for masks, locks and groups
 - [x] Clip-to-below alpha clipping and metadata persistence
-- [x] Group blend-mode controls and metadata persistence\n- [ ] Nested groups and full layer-stack undo/redo
+- [x] Group blend-mode controls and metadata persistence
+- [ ] Nested groups and full layer-stack undo/redo
 - [ ] True adjustment layers, layer effects and group/mask integration with non-destructive history
 
 ## Phase 5 — Selection
@@ -80,7 +81,9 @@
 - [x] Contiguous magic-wand selection
 - [x] Crop, alpha-mask and copy-selection-as-layer and apply-as-layer-mask output
 - [x] Invert, expand/contract and feather controls
-- [x] App-private saved-selection mask storage API (named masks, load/rename/delete, PNG assets and JSON metadata)\n- [x] Selection UI can capture/save the current processed mask with a user-provided name\n- [ ] Saved-mask browse/load/rename/delete UI and apply loaded mask to selection workflow
+- [x] App-private saved-selection mask storage API (named masks, load/rename/delete, PNG assets and JSON metadata)
+- [x] Selection UI can capture/save the current processed mask with a user-provided name
+- [ ] Saved-mask browse/load/rename/delete UI and apply loaded mask to selection workflow
 - [ ] Refine edge, integrate saved-selection UI, copy/cut/paste selection as layers, regression verification
 
 ## Phase 6 — Retouch and paint
