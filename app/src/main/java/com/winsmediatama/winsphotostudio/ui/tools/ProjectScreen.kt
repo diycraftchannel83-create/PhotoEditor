@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.winsmediatama.winsphotostudio.core.storage.ProjectStore
-import com.winsmediatama.winsphotudio.core.storage.LoadedStudioProject
+import com.winsmediatama.winsphotostudio.core.storage.LoadedStudioProject
 import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
