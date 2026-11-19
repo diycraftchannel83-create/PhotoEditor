@@ -30,6 +30,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.winsmediatama.winsphotostudio.ui.tools.CropTransformScreen
+import com.winsmediatama.winsphotostudio.ui.tools.AdjustmentScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -51,6 +52,7 @@ private fun WinsPhotoApp() {
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var cropTransformOpen by remember { mutableStateOf(false) }
+    var adjustmentOpen by remember { mutableStateOf(false) }
     var editHistory by remember { mutableStateOf<List<Bitmap>>(emptyList()) }
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) { imageUri = uri; loading = true; error = null }
@@ -74,6 +76,11 @@ private fun WinsPhotoApp() {
         Surface(Modifier.fillMaxSize(), color = StudioBackground) {
             val current = bitmap
             if (current == null) HomeScreen(loading, error) { imagePicker.launch(arrayOf("image/*")) }
+            else if (adjustmentOpen) AdjustmentScreen(
+                source = current,
+                onCancel = { adjustmentOpen = false },
+                onApply = { edited -> editHistory = editHistory + current; bitmap = edited; adjustmentOpen = false }
+            )
             else if (cropTransformOpen) CropTransformScreen(
                 source = current,
                 onCancel = { cropTransformOpen = false },
@@ -88,6 +95,7 @@ private fun WinsPhotoApp() {
                 onBack = { bitmap = null; imageUri = null; editHistory = emptyList() },
                 onImportAnother = { imagePicker.launch(arrayOf("image/*")) },
                 onCropTransform = { cropTransformOpen = true },
+                onAdjustments = { adjustmentOpen = true },
                 onUndo = { if (editHistory.isNotEmpty()) { bitmap = editHistory.last(); editHistory = editHistory.dropLast(1) } },
                 canUndo = editHistory.isNotEmpty()
             )
@@ -121,7 +129,7 @@ private fun HomeScreen(loading: Boolean, error: String?, onImport: () -> Unit) {
 }
 
 @Composable
-private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onUndo: () -> Unit, canUndo: Boolean) {
+private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onUndo: () -> Unit, canUndo: Boolean) {
     var zoom by remember { mutableFloatStateOf(1f) }
     var panX by remember { mutableFloatStateOf(0f) }
     var panY by remember { mutableFloatStateOf(0f) }
@@ -135,6 +143,7 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
             TextButton(onClick = { zoom = 1f; panX = 0f; panY = 0f }) { Text("Fit") }
             TextButton(onClick = onUndo, enabled = canUndo) { Text("Undo") }
             TextButton(onClick = onCropTransform) { Text("Crop / Transform") }
+            TextButton(onClick = onAdjustments) { Text("Adjust") }
             TextButton(onClick = onImportAnother) { Text("Replace") }
         }
         Box(Modifier.weight(1f).fillMaxWidth().background(Color(0xFF25282D)).padding(12.dp).pointerInput(bitmap) {
@@ -147,7 +156,7 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
         }
         Column(Modifier.fillMaxWidth().background(StudioSurface).padding(16.dp)) {
             Text("WinsPhoto Studio • Editor", fontWeight = FontWeight.Bold, color = StudioAccent)
-            Text("Crop, rotate, flip, resize and undo are available. Source image is retained separately from the edit result.", color = Color.LightGray, style = MaterialTheme.typography.bodySmall)
+            Text("Crop, transform, adjustments and undo are available. Source image is retained separately from the edit result.", color = Color.LightGray, style = MaterialTheme.typography.bodySmall)
         }
     }
 }
