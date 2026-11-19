@@ -7,7 +7,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.util.UUID
-import com.winsmediatama.winsphotostudio.core.editor.EditorLayer\nimport com.winsmediatama.winsphotostudio.core.history.NonDestructiveEditStack
+import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
+import com.winsmediatama.winsphotostudio.core.history.NonDestructiveEditStack
 import com.winsmediatama.winsphotostudio.core.editor.EditorBlendMode
 
 /** Local project persistence. Assets are copied into the app-owned project folder; originals are untouched. */
