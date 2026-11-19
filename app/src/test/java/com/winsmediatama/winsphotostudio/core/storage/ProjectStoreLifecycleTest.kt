@@ -54,4 +54,27 @@ class ProjectStoreLifecycleTest {
         assertEquals("Keep Name", store.projectName(project))
         bitmap.recycle()
     }
+    @Test
+    fun editableProjectRejectsAssetPathTraversal() {
+        val context = RuntimeEnvironment.getApplication()
+        val store = ProjectStore(context)
+        val bitmap = Bitmap.createBitmap(3, 3, Bitmap.Config.ARGB_8888)
+        val project = store.saveSnapshot(bitmap, "Traversal Test")
+        val manifest = store.readManifest(project)
+        manifest.put("snapshotAsset", "../outside.png")
+        java.io.File(project, "project.json").writeText(manifest.toString())
+        assertNull(store.loadEditableProject(project))
+        bitmap.recycle()
+    }
+
+    @Test
+    fun editableProjectFailsWhenSnapshotAssetIsMissing() {
+        val context = RuntimeEnvironment.getApplication()
+        val store = ProjectStore(context)
+        val bitmap = Bitmap.createBitmap(3, 3, Bitmap.Config.ARGB_8888)
+        val project = store.saveSnapshot(bitmap, "Missing Asset Test")
+        java.io.File(project, "assets/canvas.png").delete()
+        assertNull(store.loadEditableProject(project))
+        bitmap.recycle()
+    }
 }
