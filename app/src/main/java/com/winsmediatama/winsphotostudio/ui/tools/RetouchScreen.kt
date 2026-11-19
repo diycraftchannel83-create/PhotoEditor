@@ -87,14 +87,20 @@ private fun renderRetouch(source:Bitmap,strokes:List<RetouchStroke>,strength:Flo
             }
         }}
         when(mode){
-            RetouchMode.SPOT_HEAL->{group.forEach{stroke->stroke.points.forEach{point->
-                val working=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(result,0,w,0,0,w,h)}
-                val healed=com.winsmediatama.winsphotostudio.core.tools.RetouchProcessors.spotHeal(working,(point.x*w).toInt(),(point.y*h).toInt(),(stroke.size/2).toInt().coerceAtLeast(1))
-                if(healed!==working&&!working.isRecycled)working.recycle()
-                val hp=IntArray(w*h);healed.getPixels(hp,0,w,0,0,w,h);if(!healed.isRecycled)healed.recycle()
-                val cx=(point.x*w).toInt();val cy=(point.y*h).toInt();val radius=(stroke.size/2).toInt().coerceAtLeast(1)
-                for(y in (cy-radius).coerceAtLeast(0)..(cy+radius).coerceAtMost(h-1))for(x in (cx-radius).coerceAtLeast(0)..(cx+radius).coerceAtMost(w-1)){val i=y*w+x;val d=(x-cx)*(x-cx)+(y-cy)*(y-cy);if(d<=radius*radius){val t=mask[i]*strength*(1f-kotlin.math.sqrt(d.toFloat())/radius).coerceIn(0f,1f);result[i]=blend(result[i],hp[i],t)}}
-            }}}
+            RetouchMode.SPOT_HEAL->group.forEach{stroke->stroke.points.forEach{point->
+                val cx=(point.x*w).toInt();val cy=(point.y*h).toInt();val radius=(stroke.size/2f).toInt().coerceAtLeast(1);val ring=(radius/2).coerceAtLeast(2)
+                var rr=0L;var gg=0L;var bb=0L;var count=0
+                for(y in (cy-radius-ring).coerceAtLeast(0)..(cy+radius+ring).coerceAtMost(h-1))for(x in (cx-radius-ring).coerceAtLeast(0)..(cx+radius+ring).coerceAtMost(w-1)){
+                    val d=kotlin.math.sqrt(((x-cx)*(x-cx)+(y-cy)*(y-cy)).toFloat())
+                    if(d>radius&&d<=radius+ring){val q=result[y*w+x];rr+=(q shr 16)and 255;gg+=(q shr 8)and 255;bb+=q and 255;count++}
+                }
+                if(count>0){val healing=(rr/count shl 16)or(gg/count shl 8)or(bb/count)
+                    for(y in (cy-radius).coerceAtLeast(0)..(cy+radius).coerceAtMost(h-1))for(x in (cx-radius).coerceAtLeast(0)..(cx+radius).coerceAtMost(w-1)){
+                        val i=y*w+x;val d=kotlin.math.sqrt(((x-cx)*(x-cx)+(y-cy)*(y-cy)).toFloat())
+                        if(d<=radius){val t=(strength*(1f-d/radius).coerceIn(0f,1f));result[i]=blend(result[i],(result[i] and 0xFF000000)or healing,t)}
+                    }
+                }
+            }}
             RetouchMode.DODGE,RetouchMode.BURN->{
                 val maskBitmap=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888);val mp=IntArray(w*h){i->val v=(mask[i]*255).toInt();android.graphics.Color.argb(255,v,v,v)};maskBitmap.setPixels(mp,0,w,0,0,w,h)
                 val adjusted=com.winsmediatama.winsphotostudio.core.tools.RetouchProcessors.dodgeBurn(Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(result,0,w,0,0,w,h)},if(mode==RetouchMode.DODGE).5f else -.5f,.5f,maskBitmap)
