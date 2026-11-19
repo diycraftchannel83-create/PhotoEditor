@@ -163,7 +163,7 @@ private fun buildSelectionOverlay(source:Bitmap,shape:SelectionShape,rect:Rect,p
         SelectionShape.COLOR_RANGE->processor.colorRange(source,sampleColor,tolerance,softness)
         SelectionShape.MAGIC_WAND->processor.magicWand(source,(seed.first*source.width).toInt(),(seed.second*source.height).toInt(),tolerance)
     }
-    val processed=processSelectionMask(mask,processor,invertSelection,expandRadius.toInt(),featherRadius.toInt())
+    val processed=processSelectionMask(mask,invertSelection,expandRadius.toInt(),featherRadius.toInt())
     val overlay=buildMaskOverlay(source,processed);processed.recycle();return overlay
 }
 private fun Rect.normalize()=Rect(minOf(left,right),minOf(top,bottom),maxOf(left,right),maxOf(top,bottom))
@@ -207,7 +207,7 @@ private fun renderSavedMask(source:Bitmap,mask:Bitmap,action:SelectionAction,inv
     val w=source.width;val h=source.height
     val base=if(mask.width==w&&mask.height==h)mask.copy(Bitmap.Config.ARGB_8888,true)else Bitmap.createScaledBitmap(mask,w,h,true)
     val processor=com.winsmediatama.winsphotostudio.core.tools.SelectionMaskProcessor
-    val processed=processSelectionMask(base,processor,invert,expand,feather)
+    val processed=processSelectionMask(base,invert,expand,feather)
     if(action==SelectionAction.MASK)return SelectionOutput(applyMask(source,processed),action,processed)
     if(action==SelectionAction.COPY_LAYER){val out=applyMask(source,processed);processed.recycle();return SelectionOutput(out,action)}
     val pixels=IntArray(w*h);processed.getPixels(pixels,0,w,0,0,w,h)
@@ -234,9 +234,4 @@ private fun createCurrentSelectionMask(source:Bitmap,shape:SelectionShape,rect:R
         SelectionShape.MAGIC_WAND->processor.magicWand(source,(seed.first*source.width).toInt(),(seed.second*source.height).toInt(),tolerance)
     }
     return processSelectionMask(mask,processor,invertSelection,expandRadius.toInt(),featherRadius.toInt())
-}
-    if(invertSelection){val next=processor.invert(mask);mask.recycle();mask=next}
-    if(expandRadius.toInt()!=0){val next=processor.expandContract(mask,expandRadius.toInt());mask.recycle();mask=next}
-    if(featherRadius.toInt()>0){val next=processor.feather(mask,featherRadius.toInt());mask.recycle();mask=next}
-    return mask
 }
