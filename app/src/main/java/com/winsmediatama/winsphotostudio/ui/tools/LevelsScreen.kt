@@ -43,7 +43,8 @@ fun LevelsScreen(source: Bitmap, onCancel:()->Unit, onApply:(Bitmap)->Unit) {
         }
     }
     val channel=when(target) { LevelsTarget.RGB->composite; LevelsTarget.RED->red; LevelsTarget.GREEN->green; LevelsTarget.BLUE->blue }
-    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==source}?.recycle()}}\n    Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
+    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==source}?.recycle()}}
+    Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
             Text("Levels",Modifier.weight(1f),color=Color.White)
             TextButton(onClick={updateTarget(LevelsChannel())}){Text("Reset")}
