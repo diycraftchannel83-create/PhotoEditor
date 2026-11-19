@@ -27,7 +27,7 @@ fun EffectsScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
         value?.takeIf{it!==source}?.recycle();value=null
         value=withContext(Dispatchers.Default){when(kind){
             EffectKind.BLUR->EffectProcessor.gaussianBlur(source,(strength*24).toInt())
-            EffectKind.MOTION->EffectProcessor.motionBlur(source,(strength*24).toInt().coerceAtLeast(1),angle)
+            EffectKind.MOTION->if(strength<=0f)source.copy(Bitmap.Config.ARGB_8888,true) else EffectProcessor.motionBlur(source,(strength*24).toInt().coerceAtLeast(1),angle)
             EffectKind.VIGNETTE->EffectProcessor.vignette(source,strength)
             EffectKind.GRAIN->EffectProcessor.grain(source,strength,seed=101)
         }}
