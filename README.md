@@ -19,7 +19,7 @@ The roadmap below is the source of truth for continuing development. Update chec
 - RGB/composite Levels with input/output and gamma controls (replayable non-destructive per-layer operation)
 - Selective HSL color ranges (Red, Orange, Yellow, Green, Cyan, Blue, Purple, Magenta; replayable per-layer operation)
 - RGB and per-channel Curves with draggable control points (replayable non-destructive per-layer operation)
-- Layer manager: add transparent/photo layers, duplicate, rename, visibility, opacity, reorder, blend modes, lock/alpha-lock, contiguous groups/group opacity, clipping-to-below, mask creation/inversion/painting
+- Layer manager: add transparent/photo layers, duplicate, rename, visibility, opacity, reorder, blend modes, lock/alpha-lock, contiguous groups/group opacity/group blend modes, clipping-to-below, mask creation/inversion/painting
 - Brush and eraser with size, opacity, hardness and straight-line controls
 - Rectangle, ellipse, polygon, color-range and contiguous magic-wand selections; crop/mask/copy-to-layer/apply-as-layer-mask, invert, expand/contract and feather controls
 - Saved selection masks: capture/save current selection with a name from the Selection tool; app-private PNG/JSON storage supports reload/rename/delete (management UI now supports load/reuse, rename and delete; build verification pending)
