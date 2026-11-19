@@ -12,7 +12,9 @@ import com.winsmediatama.winsphotostudio.core.adjustments.CurvePoint
 import com.winsmediatama.winsphotostudio.core.adjustments.CurvesValues
 import com.winsmediatama.winsphotostudio.core.adjustments.HslAdjustments
 import com.winsmediatama.winsphotostudio.core.adjustments.HslColorRange
-import com.winsmediatama.winsphotostudio.core.adjustments.HslRangeAdjustment\nimport com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectKind\nimport com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectSettings
+import com.winsmediatama.winsphotostudio.core.adjustments.HslRangeAdjustment
+import com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectKind
+import com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectSettings
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[28])
@@ -34,12 +36,14 @@ class NonDestructiveEditStackTest {
         val src=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888);src.setPixel(0,0,Color.GRAY)
         val stack=NonDestructiveEditStack(src).apply {
             append(EditOperation.BasicAdjust(values=BasicAdjustmentValues(exposure=1f)))
-            append(EditOperation.Curves(values=CurvesValues(composite=listOf(CurvePoint(0f,0f),CurvePoint(.5f,.7f),CurvePoint(1f,1f)))))\n            append(EditOperation.Effect(settings=PhotoEffectSettings(kind=PhotoEffectKind.VIGNETTE,strength=.3f)))
+            append(EditOperation.Curves(values=CurvesValues(composite=listOf(CurvePoint(0f,0f),CurvePoint(.5f,.7f),CurvePoint(1f,1f)))))
+            append(EditOperation.Effect(settings=PhotoEffectSettings(kind=PhotoEffectKind.VIGNETTE,strength=.3f)))
         }
         val restored=NonDestructiveEditStack.fromJson(src,stack.toJson())
         assertEquals(3,restored.operations.size)
         assertTrue(restored.operations[0] is EditOperation.BasicAdjust)
-        assertTrue(restored.operations[1] is EditOperation.Curves)\n        assertTrue(restored.operations[2] is EditOperation.Effect)
+        assertTrue(restored.operations[1] is EditOperation.Curves)
+        assertTrue(restored.operations[2] is EditOperation.Effect)
         assertEquals(stack.toJson().toString(),restored.toJson().toString())
     }
     @Test fun transformOperationReplaysAndSerializes() {
