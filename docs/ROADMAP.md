@@ -90,7 +90,7 @@
 - [x] System font-family picker and text shadow controls
 - [x] Shape fill/outline and width/height controls
 - [x] Text and shape rotation
-- [x] Text tracking and multiline line-spacing controls (source implemented; verification pending)
+- [x] Text tracking and multiline line-spacing controls
 - [ ] Font import and gradient text
 - [ ] Custom paths, stickers/assets, transform handles and reusable layer styles
 
