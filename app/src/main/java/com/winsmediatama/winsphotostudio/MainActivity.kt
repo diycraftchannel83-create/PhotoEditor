@@ -57,7 +57,7 @@ private fun WinsPhotoApp() {
         loading = false
         if (bitmap == null) error = "Unable to open image. Try JPG, PNG or WebP."
     }
-    MaterialTheme(colorScheme = darkColorScheme(background = StudioBackground, surface = StudioSurface, primary = StudioAccent, onPrimary = Color(0xFF08231D, ), onBackground = Color.White, onSurface = Color.White)) {
+    MaterialTheme(colorScheme = darkColorScheme(background = StudioBackground, surface = StudioSurface, primary = StudioAccent, onPrimary = Color(0xFF08231D), onBackground = Color.White, onSurface = Color.White)) {
         Surface(Modifier.fillMaxSize(), color = StudioBackground) {
             val current = bitmap
             if (current == null) HomeScreen(loading, error) { imagePicker.launch(arrayOf("image/*")) }
