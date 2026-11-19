@@ -40,7 +40,7 @@
 - [x] Persist original bitmap separately from operation JSON in a project-store foundation
 - [x] Operation-project round-trip tests authored (original preservation, IDs/parameters, disabled ops, crop replay; verification pending)
 - [x] Add source-preserving operation-session controller with bounded undo/redo, render preview/final and JSON export (controller foundation; UI integration pending)
-- [ ] Integrate operation stack into the live MainActivity/editor workflow
+- [x] Add LayerOperationRenderer utility to reconstruct replayable layers from preserved source + operation metadata (tests authored; verification pending)\n- [ ] Integrate operation stack into the live MainActivity/editor workflow
 - [ ] Add transform, HSL, selection, retouch, LUT/effect and layer operations to stack
 - [x] Layer-preserving bounded undo/redo snapshots and History panel restore
 - [ ] Parameter-level operation history and named states
@@ -83,7 +83,7 @@
 - [x] System font-family picker and text shadow controls
 - [x] Shape fill/outline and width/height controls
 - [x] Text and shape rotation
-- [ ] Font import, tracking, line spacing and gradient text
+- [x] Text tracking and multiline line-spacing controls (source implemented; verification pending)\n- [ ] Font import and gradient text
 - [ ] Custom paths, stickers/assets, transform handles and reusable layer styles
 
 ## Phase 8 — Filters and effects
