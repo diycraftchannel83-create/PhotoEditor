@@ -8,6 +8,8 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.ui.platform.LocalContext
+import com.winsmediatama.winsphotostudio.core.selection.SavedSelectionStore
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -37,13 +39,35 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->U
     var featherRadius by remember{mutableFloatStateOf(0f)}
     var expandRadius by remember{mutableFloatStateOf(0f)}
     var invertSelection by remember{mutableStateOf(false)}
+    val context=LocalContext.current
+    val savedSelectionStore=remember(context){SavedSelectionStore(context.filesDir)}
+    var saveDialogOpen by remember{mutableStateOf(false)}
+    var selectionName by remember{mutableStateOf("")}
+    var savedSelectionMessage by remember{mutableStateOf<String?>(null)}
     val selectionOverlay by produceState<Bitmap?>(null,source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection){
         value?.takeIf{it!==source}?.recycle();value=null
         value=withContext(Dispatchers.Default){runCatching{buildSelectionOverlay(source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection)}.getOrNull()}
     }
+    if(saveDialogOpen) AlertDialog(
+        onDismissRequest={saveDialogOpen=false},
+        title={Text("Save selection mask")},
+        text={Column(verticalArrangement=Arrangement.spacedBy(8.dp)){
+            Text("Save the current selection mask for reuse later.")
+            OutlinedTextField(value=selectionName,onValueChange={selectionName=it},label={Text("Selection name")},singleLine=true)
+            savedSelectionMessage?.let{Text(it,color=MaterialTheme.colorScheme.error)}
+        }},
+        confirmButton={TextButton(onClick={
+            val mask=runCatching{createCurrentSelectionMask(source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection)}.getOrNull()
+            if(mask==null)savedSelectionMessage="Unable to generate selection mask."
+            else runCatching{savedSelectionStore.save(selectionName,mask)}.onSuccess{savedSelectionMessage="Saved: ${it.name}";saveDialogOpen=false;selectionName=""}.onFailure{savedSelectionMessage=it.message?: "Save failed"}
+            mask?.recycle()
+        },enabled=selectionName.isNotBlank()){Text("Save")}},
+        dismissButton={TextButton(onClick={saveDialogOpen=false}){Text("Cancel")}}
+    )
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))){
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(10.dp)){
             Text("Selection",Modifier.weight(1f),color=Color.White)
+            TextButton(onClick={saveDialogOpen=true}){Text("Save selection")}
             TextButton(onClick={rect=Rect(0f,0f,1f,1f);polygonPoints=emptyList()}){Text("Select all")}
             TextButton(onClick=onCancel){Text("Cancel")}
             Button(enabled=(shape!=SelectionShape.POLYGON&&shape!=SelectionShape.FREEHAND)||(polygonPoints.size>=3),onClick={onApply(renderSelection(source,rect,shape,action,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection))}){Text("Apply")}
@@ -135,4 +159,18 @@ private fun applyMask(source:Bitmap,mask:Bitmap):Bitmap {
     val w=source.width;val h=source.height;val pixels=IntArray(w*h);source.getPixels(pixels,0,w,0,0,w,h);val mp=IntArray(w*h);mask.getPixels(mp,0,w,0,0,w,h)
     for(i in pixels.indices){val p=pixels[i];val m=android.graphics.Color.red(mp[i]);val a=(p ushr 24)*m/255;pixels[i]=(a shl 24) or (p and 0x00FFFFFF)}
     return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(pixels,0,w,0,0,w,h)}
+}
+private fun createCurrentSelectionMask(source:Bitmap,shape:SelectionShape,rect:Rect,points:List<Pair<Float,Float>>,sampleColor:Int,tolerance:Float,softness:Float,seed:Pair<Float,Float>,featherRadius:Float,expandRadius:Float,invertSelection:Boolean):Bitmap {
+    val processor=com.winsmediatama.winsphotostudio.core.tools.SelectionMaskProcessor
+    var mask=when(shape){
+        SelectionShape.RECTANGLE->processor.rectangle(source.width,source.height,rect.left,rect.top,rect.right,rect.bottom)
+        SelectionShape.ELLIPSE->processor.ellipse(source.width,source.height,rect.left,rect.top,rect.right,rect.bottom)
+        SelectionShape.POLYGON,SelectionShape.FREEHAND->processor.polygon(source.width,source.height,points)
+        SelectionShape.COLOR_RANGE->processor.colorRange(source,sampleColor,tolerance,softness)
+        SelectionShape.MAGIC_WAND->processor.magicWand(source,(seed.first*source.width).toInt(),(seed.second*source.height).toInt(),tolerance)
+    }
+    if(invertSelection){val next=processor.invert(mask);mask.recycle();mask=next}
+    if(expandRadius.toInt()!=0){val next=processor.expandContract(mask,expandRadius.toInt());mask.recycle();mask=next}
+    if(featherRadius.toInt()>0){val next=processor.feather(mask,featherRadius.toInt());mask.recycle();mask=next}
+    return mask
 }
