@@ -26,7 +26,7 @@ The roadmap below is the source of truth for continuing development. Update chec
 - Text and shape overlays with font families, bold/italic/alignment/outline/shadow/rotation/tracking/line spacing, fill/outline shape mode and size controls
 - Linear/radial gradient layers with angle, color stops and opacity
 - Filter presets with adjustable strength; separate blur, motion blur, vignette and grain effects panel; offline .cube LUT import (1D/3D)
-- Retouch: blur, pixelate, clone stamp, spot-heal, dodge/burn and smudge; interpolated strokes, chronological application, soft brush falloff, undo-stroke and clear controls; stroke processing now respects chronological order, soft falloff, stroke undo and clear controls (source-level implementation; verification pending)
+- Retouch: blur, pixelate, clone stamp, spot-heal, dodge/burn and smudge; interpolated strokes, chronological application, soft brush falloff, undo-stroke and clear controls; Core normalized retouch stroke model with validation and JSON codec added (persistence integration pending; verification deferred)
 - Color-key background removal with sample, tolerance and feather
 - On-device AI person/background removal using bundled ML Kit Selfie Segmentation
 - Local project save/open/rename/duplicate/delete with editable layer stack, visibility, opacity, blend mode, lock, masks, group metadata, selected layer, original sources and per-layer operation metadata
