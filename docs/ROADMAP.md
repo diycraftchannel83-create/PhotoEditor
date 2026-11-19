@@ -80,7 +80,7 @@
 - [x] Contiguous magic-wand selection
 - [x] Crop, alpha-mask and copy-selection-as-layer and apply-as-layer-mask output
 - [x] Invert, expand/contract and feather controls
-- [x] App-private saved-selection mask storage API (named masks, load/rename/delete, PNG assets and JSON metadata; UI integration pending)
+- [x] App-private saved-selection mask storage API (named masks, load/rename/delete, PNG assets and JSON metadata)\n- [x] Selection UI can capture/save the current processed mask with a user-provided name\n- [ ] Saved-mask browse/load/rename/delete UI and apply loaded mask to selection workflow
 - [ ] Refine edge, integrate saved-selection UI, copy/cut/paste selection as layers, regression verification
 
 ## Phase 6 — Retouch and paint
