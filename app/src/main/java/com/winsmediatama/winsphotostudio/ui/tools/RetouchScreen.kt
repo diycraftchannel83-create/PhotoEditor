@@ -34,7 +34,11 @@ fun RetouchScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
     var strength by remember { mutableFloatStateOf(.6f) }
     var offsetX by remember { mutableFloatStateOf(100f) }
     var offsetY by remember { mutableFloatStateOf(100f) }
-    val preview by produceState<Bitmap?>(null,source,strokes,active,mode,brushSize,strength,offsetX,offsetY) {\n        value?.takeIf{it!==source}?.recycle();value=null\n        value=withContext(Dispatchers.IO){renderRetouch(source,strokes+listOfNotNull(active),strength,offsetX,offsetY)}\n    }\n    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==source}?.recycle()}}
+    val preview by produceState<Bitmap?>(null,source,strokes,active,mode,brushSize,strength,offsetX,offsetY) {
+        value?.takeIf{it!==source}?.recycle();value=null
+        value=withContext(Dispatchers.IO){renderRetouch(source,strokes+listOfNotNull(active),strength,offsetX,offsetY)}
+    }
+    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==source}?.recycle()}}
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(10.dp)) {
             Text("Retouch",Modifier.weight(1f),color=Color.White)
