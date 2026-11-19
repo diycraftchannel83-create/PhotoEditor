@@ -35,7 +35,7 @@ fun AdjustmentScreen(source: Bitmap, onCancel: () -> Unit, onApply: (Bitmap) -> 
         previousPreview?.takeIf { it !== source }?.recycle()
         value = withContext(Dispatchers.IO) { BasicAdjustmentProcessor.apply(source, values) }
     }
-    Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
+    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==source}?.recycle()}}\n    Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp), verticalAlignment=Alignment.CenterVertically) {
             Text("Adjustments", Modifier.weight(1f), color=Color.White, fontWeight=FontWeight.Bold)
             TextButton(onClick={values=BasicAdjustmentValues(); resetKey++}) { Text("Reset") }
