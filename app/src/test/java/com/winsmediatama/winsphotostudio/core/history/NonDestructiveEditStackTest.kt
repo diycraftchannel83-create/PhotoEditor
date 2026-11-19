@@ -83,6 +83,28 @@ DOMAIN_MAX 1 1 1
         assertTrue(restored.operations.first() is EditOperation.Hsl)
         assertEquals(stack.toJson().toString(),restored.toJson().toString())
     }
+    @Test fun retouchOperationSerializesReplaysAndCanBeDisabled() {
+        val src=Bitmap.createBitmap(16,16,Bitmap.Config.ARGB_8888).apply { eraseColor(Color.RED) }
+        val stroke=com.winsmediatama.winsphotostudio.core.tools.RetouchStroke(
+            points=listOf(com.winsmediatama.winsphotostudio.core.tools.RetouchPoint(.5f,.5f)),
+            size=8f,mode=com.winsmediatama.winsphotostudio.core.tools.RetouchMode.PIXELATE)
+        val operation=EditOperation.Retouch(strokes=listOf(stroke),strength=.8f,offsetX=2f,offsetY=-1f)
+        val stack=NonDestructiveEditStack(src).apply{append(operation)}
+        val restored=NonDestructiveEditStack.fromJson(src,stack.toJson())
+        val replayed=restored.render()
+        assertEquals(1,restored.operations.size)
+        val loaded=restored.operations.first() as EditOperation.Retouch
+        assertEquals(stroke.id,loaded.strokes.first().id)
+        assertEquals(.8f,loaded.strength,.0001f)
+        assertEquals(2f,loaded.offsetX,.0001f)
+        assertEquals(-1f,loaded.offsetY,.0001f)
+        assertEquals(stack.toJson().toString(),restored.toJson().toString())
+        assertTrue(restored.toggle(loaded.id,false))
+        val disabledReplay=restored.render()
+        assertEquals(Color.RED,disabledReplay.getPixel(0,0))
+        assertEquals(Color.RED,src.getPixel(0,0))
+        replayed.recycle();disabledReplay.recycle();src.recycle()
+    }
     @Test fun stackSupportsInsertAndReorder() {
         val src=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
         val first=EditOperation.BasicAdjust(values=BasicAdjustmentValues(brightness=.1f))
