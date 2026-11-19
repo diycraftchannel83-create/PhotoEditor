@@ -274,3 +274,9 @@ Build verification and release readiness must be tracked honestly. Check the lat
 - PNG/JPEG export has an optional source-dimension resampling switch, while preview dimensions remain the default.
 - Resampling is capped at 24 MP to reduce memory risk; test coverage authored, not executed.
 - This is output-size support, not full-resolution processing: native-resolution source/edit replay remains a future task.
+
+
+### Import memory-safety continuation
+- Added a bounds-first preview decoder shared by main-image and photo-layer import.
+- Decode retains source dimensions separately, samples down to a maximum preview dimension of 2048, rejects invalid/extreme source bounds, and uses ARGB_8888 for alpha fidelity.
+- Sample-size and invalid-bounds regression tests authored; build/test verification remains deferred.
