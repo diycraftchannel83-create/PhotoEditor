@@ -7,7 +7,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import com.winsmediatama.winsphotostudio.core.editor.EditorLayer\nimport com.winsmediatama.winsphotostudio.core.editor.EditorBlendMode
+import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
+import com.winsmediatama.winsphotostudio.core.editor.EditorBlendMode
 import com.winsmediatama.winsphotostudio.core.history.EditOperation
 import com.winsmediatama.winsphotostudio.core.adjustments.HslAdjustments
 import com.winsmediatama.winsphotostudio.core.adjustments.HslColorRange
