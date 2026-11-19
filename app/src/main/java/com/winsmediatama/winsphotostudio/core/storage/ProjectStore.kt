@@ -16,7 +16,7 @@ class ProjectStore(context: Context) {
         val folder = File(root, id).apply { mkdirs() }
         val assets = File(folder, "assets").apply { mkdirs() }
         val imageFile = File(assets, "source-image")
-        context.contentResolver.openInputStream(uri)?.use { input -> imageFile.outputStream().use(input::copyTo) }
+        context.contentResolver.openInputStream(uri)?.use { input -> imageFile.outputStream().use { output -> input.copyTo(output) } }
             ?: throw IllegalStateException("Cannot open selected image URI")
         val manifest = JSONObject()
             .put("schemaVersion", 1)
