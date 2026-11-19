@@ -63,6 +63,7 @@ import com.winsmediatama.winsphotostudio.core.editor.LayerCompositeRenderer
 import com.winsmediatama.winsphotostudio.core.editor.AlphaLockProcessor
 import com.winsmediatama.winsphotostudio.core.storage.RecoveryStore
 import com.winsmediatama.winsphotostudio.core.export.FullResolutionExport
+import com.winsmediatama.winsphotostudio.core.importer.PreviewImageDecoder
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -208,13 +209,7 @@ private fun WinsPhotoApp() {
         val canvasBitmap=bitmap
         if(uri!=null && canvasBitmap!=null) scope.launch {
             val decoded=withContext(Dispatchers.IO) {
-                runCatching {
-                    val bounds=Options().apply{inJustDecodeBounds=true}
-                    context.contentResolver.openInputStream(uri)?.use{BitmapFactory.decodeStream(it,null,bounds)}
-                    val sample=calculateSampleSize(bounds.outWidth,bounds.outHeight,2048)
-                    val opts=Options().apply{inSampleSize=sample;inPreferredConfig=Bitmap.Config.ARGB_8888}
-                    context.contentResolver.openInputStream(uri)?.use{BitmapFactory.decodeStream(it,null,opts)}
-                }.getOrNull()
+                runCatching { PreviewImageDecoder.decode(context.contentResolver, uri)?.bitmap }.getOrNull()
             }
             if(decoded!=null) {
                 val fitted=withContext(Dispatchers.IO){fitBitmapToCanvas(decoded,canvasBitmap.width,canvasBitmap.height)}
@@ -241,20 +236,11 @@ private fun WinsPhotoApp() {
     LaunchedEffect(imageUri) {
         val selected = imageUri ?: return@LaunchedEffect
         val decodedInfo = withContext(Dispatchers.IO) {
-            runCatching {
-                val bounds = Options().apply { inJustDecodeBounds = true }
-                context.contentResolver.openInputStream(selected)?.use { BitmapFactory.decodeStream(it, null, bounds) }
-                val originalW=bounds.outWidth
-                val originalH=bounds.outHeight
-                val sample = calculateSampleSize(originalW, originalH, 2048)
-                val decodeOptions = Options().apply { inSampleSize = sample; inPreferredConfig = Bitmap.Config.ARGB_8888 }
-                val preview=context.contentResolver.openInputStream(selected)?.use { BitmapFactory.decodeStream(it, null, decodeOptions) }
-                Triple(preview,originalW,originalH)
-            }.getOrNull()
+            runCatching { PreviewImageDecoder.decode(context.contentResolver, selected) }.getOrNull()
         }
-        bitmap=decodedInfo?.first
-        sourceWidth=decodedInfo?.second?:0
-        sourceHeight=decodedInfo?.third?:0
+        bitmap=decodedInfo?.bitmap
+        sourceWidth=decodedInfo?.sourceWidth?:0
+        sourceHeight=decodedInfo?.sourceHeight?:0
         exportOriginalDimensions=false
         loading = false
         bitmap?.let { loaded -> val bg=EditorLayer(name="Background",bitmap=loaded);layers=listOf(bg);selectedLayerId=bg.id }
