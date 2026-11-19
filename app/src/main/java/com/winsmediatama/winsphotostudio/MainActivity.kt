@@ -95,7 +95,7 @@ private fun WinsPhotoApp() {
     val context = androidx.compose.ui.platform.LocalContext.current
     var editHistory by remember { mutableStateOf<List<Bitmap>>(emptyList()) }
     fun commitEdit(edited:Bitmap,previousComposite:Bitmap,flatten:Boolean=false) {
-        editHistory=editHistory+previousComposite
+        editHistory=(editHistory+previousComposite).takeLast(5)
         val selected=layers.firstOrNull{it.id==selectedLayerId}
         if(!flatten && selected!=null) {
             val updated=layers.map{if(it.id==selected.id)it.copy(bitmap=edited) else it}
@@ -140,8 +140,8 @@ private fun WinsPhotoApp() {
                 }.getOrNull()
             }
             if(decoded!=null) {
-                val fitted=withContext(Dispatchers.IO){fitBitmapToCanvas(decoded,canvasBitmap.width,canvasBitmap.height)}
-                editHistory=editHistory+canvasBitmap
+                val fitted=withContext(Dispatchers.IO){fitBitmapToCanvas(decoded,canvasBitmap.width,canvasBitmap.height)}\n                decoded.recycle()
+                editHistory=(editHistory+canvasBitmap).takeLast(5)
                 val updated=layers+EditorLayer(name="Photo Layer ${layers.size+1}",bitmap=fitted)
                 val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,canvasBitmap.width,canvasBitmap.height)}
                 layers=updated;bitmap=composite
@@ -216,7 +216,7 @@ private fun WinsPhotoApp() {
                 selectedLayerId=selectedLayerId,
                 onCancel={layersOpen=false},
                 onAddImage={layerImagePicker.launch(arrayOf("image/*"))},
-                onApply={newLayers,newSelected -> editHistory=editHistory+current;layersOpen=false;selectedLayerId=newSelected; scope.launch { val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(newLayers,current.width,current.height)}; layers=newLayers; bitmap=composite }}
+                onApply={newLayers,newSelected -> editHistory=(editHistory+current).takeLast(5);layersOpen=false;selectedLayerId=newSelected; scope.launch { val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(newLayers,current.width,current.height)}; layers=newLayers; bitmap=composite }}
             )
             else if (curvesOpen) CurvesScreen(
                 source=selectedBitmap,
