@@ -34,16 +34,13 @@ fun RetouchScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
     var strength by remember { mutableFloatStateOf(.6f) }
     var offsetX by remember { mutableFloatStateOf(100f) }
     var offsetY by remember { mutableFloatStateOf(100f) }
-    val preview by produceState<Bitmap?>(null,source,strokes,active,mode,brushSize,strength,offsetX,offsetY) {
-        value=null
-        value=withContext(Dispatchers.IO){renderRetouch(source,strokes+listOfNotNull(active),strength,offsetX,offsetY)}
-    }
+    val preview by produceState<Bitmap?>(null,source,strokes,active,mode,brushSize,strength,offsetX,offsetY) {\n        value?.takeIf{it!==source}?.recycle();value=null\n        value=withContext(Dispatchers.IO){renderRetouch(source,strokes+listOfNotNull(active),strength,offsetX,offsetY)}\n    }\n    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==source}?.recycle()}}
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(10.dp)) {
             Text("Retouch",Modifier.weight(1f),color=Color.White)
             TextButton(onClick={if(strokes.isNotEmpty())strokes=strokes.dropLast(1)}){Text("Undo")}
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(enabled=preview!=null,onClick={preview?.let(onApply)}){Text("Apply")}
+            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true))}}){Text("Apply")}
         }
         Box(Modifier.weight(1f).fillMaxWidth().aspectRatio(source.width.toFloat()/source.height).padding(12.dp).background(Color(0xFF25282D))) {
             preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize())}
