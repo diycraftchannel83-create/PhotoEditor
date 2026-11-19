@@ -366,7 +366,8 @@ private fun WinsPhotoApp() {
                     commitOperation(edited,current,transform,flatten=true)
                     cropTransformOpen = false
                 }
-            )            else if(operationsOpen) {val target=layers.firstOrNull{it.id==selectedLayerId};if(target!=null)OperationStackScreen(layer=target,onCancel={operationsOpen=false},onApply={updatedLayer->recordUndo(current,"Operation stack");scope.launch{val updated=layers.map{if(it.id==updatedLayer.id)updatedLayer else it};val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,current.width,current.height)};layers=updated;selectedLayerId=updatedLayer.id;bitmap=composite;operationsOpen=false}}) else Text("No selected layer",color=Color.White)}
+            )
+            else if(operationsOpen) {val target=layers.firstOrNull{it.id==selectedLayerId};if(target!=null)OperationStackScreen(layer=target,onCancel={operationsOpen=false},onApply={updatedLayer->recordUndo(current,"Operation stack");scope.launch{val updated=layers.map{if(it.id==updatedLayer.id)updatedLayer else it};val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,current.width,current.height)};layers=updated;selectedLayerId=updatedLayer.id;bitmap=composite;operationsOpen=false}}) else Text("No selected layer",color=Color.White)}
             else if(historyOpen) HistoryPanel(history=editHistory,onCancel={historyOpen=false},onRestore={index->val target=editHistory[index];restoreSnapshot(target);editHistory=editHistory.take(index);redoHistory=emptyList();historyOpen=false})
             else EditorPreviewScreen(
                 current,
