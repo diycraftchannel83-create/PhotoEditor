@@ -82,6 +82,7 @@ private fun WinsPhotoApp() {
     var backgroundRemoveOpen by remember { mutableStateOf(false) }
     var aiBackgroundRemoveOpen by remember { mutableStateOf(false) }
     var layers by remember { mutableStateOf<List<EditorLayer>>(emptyList()) }
+    var selectedLayerId by remember { mutableStateOf<String?>(null) }
     var exportDialogOpen by remember { mutableStateOf(false) }
     var exportQuality by remember { mutableFloatStateOf(92f)
     }
@@ -90,6 +91,20 @@ private fun WinsPhotoApp() {
     val scope = rememberCoroutineScope()
     val context = androidx.compose.ui.platform.LocalContext.current
     var editHistory by remember { mutableStateOf<List<Bitmap>>(emptyList()) }
+    fun commitEdit(edited:Bitmap,previousComposite:Bitmap,flatten:Boolean=false) {
+        editHistory=editHistory+previousComposite
+        val selected=layers.firstOrNull{it.id==selectedLayerId}
+        if(!flatten && selected!=null) {
+            val updated=layers.map{if(it.id==selected.id)it.copy(bitmap=edited) else it}
+            scope.launch {
+                val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,previousComposite.width,previousComposite.height)}
+                layers=updated;selectedLayerId=updated.lastOrNull()?.id;bitmap=composite
+            }
+        } else {
+            val newLayer=EditorLayer(name="Background",bitmap=edited)
+            layers=listOf(newLayer);selectedLayerId=newLayer.id;bitmap=edited
+        }
+    }
     val jpegExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/jpeg")) { uri ->
         val currentBitmap=bitmap
         if(uri!=null && currentBitmap!=null) scope.launch {
@@ -139,7 +154,7 @@ private fun WinsPhotoApp() {
             }.getOrNull()
         }
         loading = false
-        bitmap?.let { loaded -> layers = listOf(EditorLayer(name="Background",bitmap=loaded)) }
+        bitmap?.let { loaded -> val bg=EditorLayer(name="Background",bitmap=loaded);layers=listOf(bg);selectedLayerId=bg.id }
         if (bitmap == null) error = "Unable to open image. Try JPG, PNG or WebP."
     }
     MaterialTheme(colorScheme = darkColorScheme(background = StudioBackground, surface = StudioSurface, primary = StudioAccent, onPrimary = Color(0xFF08231D), onBackground = Color.White, onSurface = Color.White)) {
@@ -149,77 +164,76 @@ private fun WinsPhotoApp() {
             else if (aiBackgroundRemoveOpen) AiBackgroundRemoveScreen(
                 source=current,
                 onCancel={aiBackgroundRemoveOpen=false},
-                onApply={edited -> editHistory=editHistory+current;bitmap=edited;layers=listOf(EditorLayer(name="Background",bitmap=edited));aiBackgroundRemoveOpen=false}
+                onApply={edited -> commitEdit(edited,current);aiBackgroundRemoveOpen=false}
             )
             else if (backgroundRemoveOpen) BackgroundRemoveScreen(
                 source=current,
                 onCancel={backgroundRemoveOpen=false},
-                onApply={edited -> editHistory=editHistory+current;bitmap=edited;layers=listOf(EditorLayer(name="Background",bitmap=edited));backgroundRemoveOpen=false}
+                onApply={edited -> commitEdit(edited,current);backgroundRemoveOpen=false}
             )
             else if (retouchOpen) RetouchScreen(
                 source=current,
                 onCancel={retouchOpen=false},
-                onApply={edited -> editHistory=editHistory+current;bitmap=edited;layers=listOf(EditorLayer(name="Background",bitmap=edited));retouchOpen=false}
+                onApply={edited -> commitEdit(edited,current);retouchOpen=false}
             )
             else if (filtersOpen) FilterScreen(
                 source=current,
                 onCancel={filtersOpen=false},
-                onApply={edited -> editHistory=editHistory+current;bitmap=edited;layers=listOf(EditorLayer(name="Background",bitmap=edited));filtersOpen=false}
+                onApply={edited -> commitEdit(edited,current);filtersOpen=false}
             )
             else if (textShapeOpen) TextShapeScreen(
                 source=current,
                 onCancel={textShapeOpen=false},
-                onApply={edited -> editHistory=editHistory+current;bitmap=edited;layers=listOf(EditorLayer(name="Background",bitmap=edited));textShapeOpen=false}
+                onApply={edited -> commitEdit(edited,current);textShapeOpen=false}
             )
             else if (selectionOpen) SelectionScreen(
                 source=current,
                 onCancel={selectionOpen=false},
-                onApply={edited -> editHistory=editHistory+current;bitmap=edited;layers=listOf(EditorLayer(name="Background",bitmap=edited));selectionOpen=false}
+                onApply={edited -> commitEdit(edited,current,flatten=true);selectionOpen=false}
             )
             else if (brushOpen) BrushScreen(
                 source=current,
                 onCancel={brushOpen=false},
-                onApply={edited -> editHistory=editHistory+current;bitmap=edited;layers=listOf(EditorLayer(name="Background",bitmap=edited));brushOpen=false}
+                onApply={edited -> commitEdit(edited,current);brushOpen=false}
             )
             else if (projectsOpen) ProjectScreen(
                 source=current,
                 onCancel={projectsOpen=false},
-                onOpen={loaded,projectName -> bitmap=loaded;layers=listOf(EditorLayer(name=projectName,bitmap=loaded));editHistory=emptyList();projectsOpen=false}
+                onOpen={loaded,projectName -> bitmap=loaded;val layer=EditorLayer(name=projectName,bitmap=loaded);layers=listOf(layer);selectedLayerId=layer.id;editHistory=emptyList();projectsOpen=false}
             )
             else if (layersOpen) LayersScreen(
                 layers=layers,
+                selectedLayerId=selectedLayerId,
                 onCancel={layersOpen=false},
                 onAddImage={layerImagePicker.launch(arrayOf("image/*"))},
-                onApply={newLayers -> layersOpen=false; scope.launch { val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(newLayers,current.width,current.height)}; layers=newLayers; bitmap=composite }}
+                onApply={newLayers,newSelected -> layersOpen=false;selectedLayerId=newSelected; scope.launch { val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(newLayers,current.width,current.height)}; layers=newLayers; bitmap=composite }}
             )
             else if (curvesOpen) CurvesScreen(
                 source=current,
                 onCancel={curvesOpen=false},
-                onApply={edited -> editHistory=editHistory+current; bitmap=edited; layers=listOf(EditorLayer(name="Background",bitmap=edited)); curvesOpen=false}
+                onApply={edited -> commitEdit(edited,current);curvesOpen=false}
             )
             else if (levelsOpen) LevelsScreen(
                 source=current,
                 onCancel={levelsOpen=false},
-                onApply={edited -> editHistory=editHistory+current; bitmap=edited; layers=listOf(EditorLayer(name="Background",bitmap=edited)); levelsOpen=false}
+                onApply={edited -> commitEdit(edited,current);levelsOpen=false}
             )
             else if (adjustmentOpen) AdjustmentScreen(
                 source = current,
                 onCancel = { adjustmentOpen = false },
-                onApply = { edited -> editHistory = editHistory + current; bitmap = edited; layers=listOf(EditorLayer(name="Background",bitmap=edited)); adjustmentOpen = false }
+                onApply = { edited -> commitEdit(edited,current);adjustmentOpen = false }
             )
             else if (cropTransformOpen) CropTransformScreen(
                 source = current,
                 onCancel = { cropTransformOpen = false },
                 onApply = { edited ->
-                    editHistory = editHistory + current
-                    bitmap = edited
-                    layers=listOf(EditorLayer(name="Background",bitmap=edited))
+                    commitEdit(edited,current,flatten=true)
                     cropTransformOpen = false
                 }
             )
             else EditorPreviewScreen(
                 current,
-                onBack = { bitmap = null; imageUri = null; editHistory = emptyList(); layers=emptyList() },
+                onBack = { bitmap = null; imageUri = null; editHistory = emptyList(); layers=emptyList();selectedLayerId=null },
                 onImportAnother = { imagePicker.launch(arrayOf("image/*")) },
                 onCropTransform = { cropTransformOpen = true },
                 onAdjustments = { adjustmentOpen = true },
@@ -235,7 +249,7 @@ private fun WinsPhotoApp() {
                 onBackgroundRemove = { backgroundRemoveOpen = true },
                 onAiBackgroundRemove = { aiBackgroundRemoveOpen = true },
                 onExport = { exportDialogOpen=true },
-                onUndo = { if (editHistory.isNotEmpty()) { bitmap = editHistory.last(); layers=listOf(EditorLayer(name="Background",bitmap=editHistory.last())); editHistory = editHistory.dropLast(1) } },
+                onUndo = { if (editHistory.isNotEmpty()) { bitmap = editHistory.last();val restored=EditorLayer(name="Background",bitmap=editHistory.last());layers=listOf(restored);selectedLayerId=restored.id;editHistory = editHistory.dropLast(1) } },
                 canUndo = editHistory.isNotEmpty()
             )
             if(exportDialogOpen) AlertDialog(
