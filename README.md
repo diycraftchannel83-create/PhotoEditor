@@ -14,6 +14,7 @@
 - Brush and eraser
 - Rectangle/ellipse selection with crop or mask
 - Text and basic shape overlays
+- Linear/radial gradient layers with angle, color stops and opacity
 - Filter presets: Vivid, Warm, Cool, Vintage, Cinematic, Soft, Mono and Fade
 - Retouch: blur, pixelate and clone stamp
 - Color-key background removal with sample, tolerance and feather
