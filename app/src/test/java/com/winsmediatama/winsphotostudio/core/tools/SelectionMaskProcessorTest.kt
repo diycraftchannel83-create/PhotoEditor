@@ -30,7 +30,7 @@ class SelectionMaskProcessorTest {
         assertEquals(255,Color.red(mask.getPixel(0,0)))
         assertEquals(0,Color.red(mask.getPixel(1,0)))
     }
-    @Test fun rectangleCreatesExpectedSelection() {
+    @Test fun colorRangeMaskPreservesSourceAlphaAndMagicWandIgnoresTransparentPixels() {\n        val source=android.graphics.Bitmap.createBitmap(2,1,android.graphics.Bitmap.Config.ARGB_8888)\n        source.setPixel(0,0,Color.argb(255,255,0,0));source.setPixel(1,0,Color.argb(0,255,0,0))\n        val range=SelectionMaskProcessor.colorRange(source,Color.RED,.1f)\n        assertEquals(255,Color.alpha(range.getPixel(0,0)))\n        assertEquals(0,Color.alpha(range.getPixel(1,0)))\n        val wand=SelectionMaskProcessor.magicWand(source,0,0,.1f)\n        assertEquals(255,Color.red(wand.getPixel(0,0)))\n        assertEquals(0,Color.red(wand.getPixel(1,0)))\n    }\n    @Test fun rectangleCreatesExpectedSelection() {
         val m=SelectionMaskProcessor.rectangle(10,10,.2f,.2f,.6f,.6f)
         assertEquals(255,Color.red(m.getPixel(3,3)))
         assertEquals(0,Color.red(m.getPixel(0,0)))
