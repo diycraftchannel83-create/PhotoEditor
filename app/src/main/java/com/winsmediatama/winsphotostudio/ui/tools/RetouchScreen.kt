@@ -90,14 +90,14 @@ private fun renderRetouch(source:Bitmap,strokes:List<RetouchStroke>,strength:Flo
     var result=base.copyOf()
     val blur=if(strokes.any{it.mode==RetouchMode.BLUR})boxBlur(base,w,h,3)else base
     val pixel=if(strokes.any{it.mode==RetouchMode.PIXELATE})pixelate(base,w,h,12)else base
-    for(mode in RetouchMode.entries){
-        val group=strokes.filter{it.mode==mode}
-        if(group.isEmpty())continue
+    for(stroke in strokes){
+        val mode=stroke.mode
+        val group=listOf(stroke)
         val mask=FloatArray(w*h)
         group.forEach{stroke->stroke.points.forEach{point->
             val cx=(point.x*w).toInt();val cy=(point.y*h).toInt();val radius=(stroke.size/2f).toInt().coerceAtLeast(1)
             for(y in (cy-radius).coerceAtLeast(0)..(cy+radius).coerceAtMost(h-1))for(x in (cx-radius).coerceAtLeast(0)..(cx+radius).coerceAtMost(w-1)){
-                val d=(x-cx)*(x-cx)+(y-cy)*(y-cy);if(d<=radius*radius)mask[y*w+x]=1f
+                val d=kotlin.math.sqrt(((x-cx)*(x-cx)+(y-cy)*(y-cy)).toFloat());if(d<=radius){val edge=(1f-d/radius).coerceIn(0f,1f);val smooth=edge*edge*(3f-2f*edge);mask[y*w+x]=maxOf(mask[y*w+x],smooth)}
             }
         }}
         when(mode){
