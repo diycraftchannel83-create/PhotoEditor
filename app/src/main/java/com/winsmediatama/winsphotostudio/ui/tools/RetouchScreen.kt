@@ -79,12 +79,14 @@ private fun renderRetouch(source:Bitmap,strokes:List<RetouchStroke>,strength:Flo
         val group=strokes.filter{it.mode==mode}
         if(group.isEmpty())continue
         val mask=FloatArray(w*h)
-        group.forEach{s->s.points.forEach { point->
-            val cx=(point.x*w).toInt();val cy=(point.y*h).toInt();val radius=(s.size/2f).toInt().coerceAtLeast(1)
-            for(y in (cy-radius).coerceAtLeast(0)..(cy+radius).coerceAtMost(h-1))for(x in (cx-radius).coerceAtLeast(0)..(cx+radius).coerceAtMost(w-1)) {
-                val d=(x-cx)*(x-cx)+(y-cy)*(y-cy);if(d<=radius*radius)mask[y*w+x]=1f
+        group.forEach { stroke ->
+            stroke.points.forEach { point ->
+                val cx=(point.x*w).toInt();val cy=(point.y*h).toInt();val radius=(stroke.size/2f).toInt().coerceAtLeast(1)
+                for(y in (cy-radius).coerceAtLeast(0)..(cy+radius).coerceAtMost(h-1)) for(x in (cx-radius).coerceAtLeast(0)..(cx+radius).coerceAtMost(w-1)) {
+                    val d=(x-cx)*(x-cx)+(y-cy)*(y-cy);if(d<=radius*radius)mask[y*w+x]=1f
+                }
             }
-        }}
+        }
         for(i in result.indices) {
             val m=mask[i]*strength;if(m<=0f)continue
             val target=when(mode) {
