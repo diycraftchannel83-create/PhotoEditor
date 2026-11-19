@@ -31,7 +31,8 @@ fun LayersScreen(layers:List<EditorLayer>,onCancel:()->Unit,onAddImage:()->Unit,
         LazyColumn(Modifier.weight(1f),contentPadding=PaddingValues(8.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
             itemsIndexed(working.asReversed(),key={_,l->l.id}) { reverseIndex, layer ->
                 val index=working.lastIndex-reverseIndex
-                var rename by remember(layer.id) { mutableStateOf(layer.name) }\n                Card(colors=CardDefaults.cardColors(containerColor=Color(0xFF20242A))) {
+                var rename by remember(layer.id) { mutableStateOf(layer.name) }
+                Card(colors=CardDefaults.cardColors(containerColor=Color(0xFF20242A))) {
                     Column(Modifier.fillMaxWidth().padding(10.dp)) {
                         Row(verticalAlignment=Alignment.CenterVertically) {
                             Image(layer.bitmap.asImageBitmap(),null,Modifier.size(56.dp),contentScale=ContentScale.Crop)
