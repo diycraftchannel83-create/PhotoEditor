@@ -24,6 +24,7 @@ fun AdjustmentScreen(source: Bitmap, onCancel: () -> Unit, onApply: (Bitmap) -> 
     var values by remember { mutableStateOf(BasicAdjustmentValues()) }
     var resetKey by remember { mutableIntStateOf(0) }
     val preview by produceState<Bitmap?>(initialValue=null, source, values, resetKey) {
+        value = null
         value = withContext(Dispatchers.IO) { BasicAdjustmentProcessor.apply(source, values) }
     }
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
