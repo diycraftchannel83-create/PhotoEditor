@@ -21,7 +21,8 @@ The roadmap below is the source of truth for continuing development. Update chec
 - RGB and per-channel Curves with draggable control points (replayable non-destructive per-layer operation)
 - Layer manager: add transparent/photo layers, duplicate, rename, visibility, opacity, reorder, blend modes, lock/alpha-lock, contiguous groups/group opacity, clipping-to-below, mask creation/inversion/painting
 - Brush and eraser with size, opacity, hardness and straight-line controls
-- Rectangle, ellipse, polygon, color-range and contiguous magic-wand selections; crop/mask/copy-to-layer/apply-as-layer-mask, invert, expand/contract and feather controls\n- App-private saved-selection mask storage API: named masks, reload, rename/delete and PNG/JSON persistence (UI integration pending)
+- Rectangle, ellipse, polygon, color-range and contiguous magic-wand selections; crop/mask/copy-to-layer/apply-as-layer-mask, invert, expand/contract and feather controls
+- App-private saved-selection mask storage API: named masks, reload, rename/delete and PNG/JSON persistence (UI integration pending)
 - Text and shape overlays with font families, bold/italic/alignment/outline/shadow/rotation/tracking/line spacing, fill/outline shape mode and size controls
 - Linear/radial gradient layers with angle, color stops and opacity
 - Filter presets with adjustable strength; separate blur, motion blur, vignette and grain effects panel; offline .cube LUT import (1D/3D)
@@ -31,7 +32,7 @@ The roadmap below is the source of truth for continuing development. Update chec
 - Local project save/open/rename/duplicate/delete with editable layer stack, visibility, opacity, blend mode, lock, masks, group metadata, selected layer, original sources and per-layer operation metadata
 - JPEG and PNG export; JPEG quality and white/black flattening background
 - Bounded undo/redo state history (8 states, memory-conscious) preserving layer stack, selected layer and canvas; History panel can restore prior states
-- Non-destructive operation stack panel: enable/disable, reorder, remove and reset Basic Adjust, Levels, Curves, HSL and Crop/Transform operations
+- Non-destructive operation stack panel: enable/disable, reorder, remove and reset Basic Adjust, Levels, Curves, HSL, Crop/Transform, Effects and LUT operations
 - Private autosave snapshots and startup session recovery prompt
 - Canvas resize independent of image resize; perspective correction and arbitrary straighten rotation
 - Background replacement with solid, gradient or photo background
