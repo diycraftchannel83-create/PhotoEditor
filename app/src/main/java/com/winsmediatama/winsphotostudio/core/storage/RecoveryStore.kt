@@ -45,14 +45,21 @@ class RecoveryStore(context:Context) {
     }
     fun exists():Boolean=manifest.isFile
     fun recover():Recovered?=runCatching{
-        val snapshot=File(root,JSONObject(manifest.readText()).optString("snapshot"))
-        val json=JSONObject(snapshot.readText());val layerArray=json.optJSONArray("layers")?:JSONArray();val folder=snapshot.parentFile?:root
+        val manifestJson=JSONObject(manifest.readText())
+        val snapshotPath=manifestJson.optString("snapshot")
+        require(snapshotPath.isNotBlank()) { "Recovery snapshot path is empty" }
+        val snapshot=resolveRecoveryPath(root,snapshotPath)
+        require(snapshot.isFile) { "Recovery snapshot manifest is missing" }
+        val json=JSONObject(snapshot.readText())
+        val schema=json.optInt("schemaVersion",1)
+        require(schema in 1..3) { "Unsupported recovery schema: $schema" }
+        val layerArray=json.optJSONArray("layers")?:JSONArray();val folder=snapshot.parentFile?:root
         val layers=mutableListOf<EditorLayer>()
         for(i in 0 until layerArray.length()){
             val item=layerArray.optJSONObject(i)?:continue
-            val bitmap=BitmapFactory.decodeFile(File(folder,item.optString("asset")).absolutePath)?:continue
-            val mask=item.optString("maskAsset").takeIf{it.isNotBlank()}?.let{BitmapFactory.decodeFile(File(folder,it).absolutePath)}
-            val original=item.optString("originalAsset").takeIf{it.isNotBlank()}?.let{BitmapFactory.decodeFile(File(folder,it).absolutePath)}
+            val bitmap=decodeRecoveryBitmap(folder,item.optString("asset"))?:continue
+            val mask=item.optString("maskAsset").takeIf{it.isNotBlank()}?.let{decodeRecoveryBitmap(folder,it)}
+            val original=item.optString("originalAsset").takeIf{it.isNotBlank()}?.let{decodeRecoveryBitmap(folder,it)}
             val operations=item.optJSONArray("operations")?.let{array->original?.let{NonDestructiveEditStack.fromJson(it,array).operations}}?:emptyList()
             val mode=runCatching{EditorBlendMode.valueOf(item.optString("blendMode","NORMAL"))}.getOrDefault(EditorBlendMode.NORMAL)
             layers+=EditorLayer(id=item.optString("id"),name=item.optString("name","Layer ${i+1}"),bitmap=bitmap,visible=item.optBoolean("visible",true),opacity=item.optDouble("opacity",1.0).toFloat().coerceIn(0f,1f),blendMode=mode,mask=mask,locked=item.optBoolean("locked",false),alphaLocked=item.optBoolean("alphaLocked",false),groupId=item.optString("groupId").takeIf{it.isNotBlank()},groupName=item.optString("groupName").takeIf{it.isNotBlank()},groupOpacity=item.optDouble("groupOpacity",1.0).toFloat().coerceIn(0f,1f),groupBlendMode=item.optString("groupBlendMode").takeIf{it.isNotBlank()}?.let{runCatching{EditorBlendMode.valueOf(it)}.getOrNull()},clipToBelow=item.optBoolean("clipToBelow",false),originalBitmap=original,operations=operations)
@@ -60,5 +67,17 @@ class RecoveryStore(context:Context) {
         if(layers.isEmpty())return@runCatching null
         Recovered(json.optInt("canvasWidth",layers.first().bitmap.width),json.optInt("canvasHeight",layers.first().bitmap.height),layers,json.optString("selectedLayerId").takeIf{it.isNotBlank()})
     }.getOrNull()
+    private fun resolveRecoveryPath(base:File,relative:String):File {
+        require(relative.isNotBlank()) { "Empty recovery asset path" }
+        val canonicalBase=base.canonicalFile
+        val candidate=File(canonicalBase,relative).canonicalFile
+        require(candidate.path.startsWith(canonicalBase.path+File.separator)) { "Unsafe recovery asset path" }
+        return candidate
+    }
+    private fun decodeRecoveryBitmap(base:File,path:String):Bitmap? {
+        val file=resolveRecoveryPath(base,path)
+        if(!file.isFile||file.length()<=0L)return null
+        return BitmapFactory.decodeFile(file.absolutePath)?.takeIf{it.width>0&&it.height>0}
+    }
     fun clear():Boolean=root.deleteRecursively().also{root.mkdirs()}
 }
