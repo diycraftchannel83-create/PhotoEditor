@@ -49,13 +49,22 @@ class OriginalSourceCache(private val cacheDirectory: File) {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(source.file.absolutePath, bounds)
         require(bounds.outWidth == source.width && bounds.outHeight == source.height) { "Cached source metadata mismatch" }
-        var sample = 1
-        while ((bounds.outWidth.toLong() / sample) * (bounds.outHeight.toLong() / sample) > maxPixels) {
-            if (sample >= (1 shl 30)) throw IOException("Unable to find safe decode sample")
-            sample *= 2
-        }
+        val sample=calculateSampleSizeForPixelLimit(bounds.outWidth,bounds.outHeight,maxPixels)
         val options = BitmapFactory.Options().apply { inSampleSize = sample; inPreferredConfig = Bitmap.Config.ARGB_8888 }
         return BitmapFactory.decodeFile(source.file.absolutePath, options) ?: throw IOException("Decode cached original failed")
+    }
+
+    companion object {
+        fun calculateSampleSizeForPixelLimit(width:Int,height:Int,maxPixels:Long):Int {
+            require(width>0&&height>0) { "Invalid image bounds" }
+            require(maxPixels in 1L..24_000_000L) { "Pixel limit outside safety bounds" }
+            var sample=1
+            while ((width.toLong()/sample)*(height.toLong()/sample)>maxPixels) {
+                if(sample>=1 shl 30) throw IllegalArgumentException("Unable to calculate safe sample")
+                sample*=2
+            }
+            return sample
+        }
     }
 
     fun delete(stableId: String): Boolean {
