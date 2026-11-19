@@ -6,6 +6,22 @@ import kotlin.math.sqrt
 
 /** Pixel mask helpers; white means selected, black means outside selection. */
 object SelectionMaskProcessor {
+    /** Contiguous magic-wand flood fill using normalized RGB distance from the tapped seed. */
+    fun magicWand(source:Bitmap,seedX:Int,seedY:Int,tolerance:Float):Bitmap {
+        val w=source.width;val h=source.height;val pixels=IntArray(w*h);source.getPixels(pixels,0,w,0,0,w,h)
+        val seed=(seedY.coerceIn(0,h-1)*w+seedX.coerceIn(0,w-1));val target=pixels[seed]
+        val tr=Color.red(target);val tg=Color.green(target);val tb=Color.blue(target);val threshold=tolerance.coerceIn(0f,1f)*441.67295f
+        val selected=BooleanArray(w*h);val queue=java.util.ArrayDeque<Int>();queue.add(seed);selected[seed]=true
+        while(queue.isNotEmpty()){val i=queue.removeFirst();val p=pixels[i];val dr=Color.red(p)-tr;val dg=Color.green(p)-tg;val db=Color.blue(p)-tb
+            if(kotlin.math.sqrt((dr*dr+dg*dg+db*db).toFloat())>threshold)continue
+            val x=i%w;val y=i/w
+            val neighbors=intArrayOf(if(x>0)i-1 else -1,if(x<w-1)i+1,if(y>0)i-w else -1,if(y<h-1)i+w)
+            for(n in neighbors)if(n>=0&&!selected[n]){selected[n]=true;queue.add(n)}
+        }
+        val out=IntArray(w*h){i->if(selected[i]&&distance(pixels[i],target)<=threshold)Color.WHITE else Color.BLACK}
+        return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(out,0,w,0,0,w,h)}
+    }
+    private fun distance(a:Int,b:Int):Float {val dr=Color.red(a)-Color.red(b);val dg=Color.green(a)-Color.green(b);val db=Color.blue(a)-Color.blue(b);return kotlin.math.sqrt((dr*dr+dg*dg+db*db).toFloat())}
     fun polygon(width:Int,height:Int,points:List<Pair<Float,Float>>):Bitmap {
         require(points.size>=3){"Polygon needs at least three points"}
         val w=width.coerceAtLeast(1);val h=height.coerceAtLeast(1);val pixels=IntArray(w*h)
