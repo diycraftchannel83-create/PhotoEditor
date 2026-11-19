@@ -2,10 +2,6 @@ package com.winsmediatama.winsphotostudio.core.tools
 
 import android.graphics.Bitmap
 import android.graphics.Matrix
-import kotlin.math.abs
-import kotlin.math.ceil
-import kotlin.math.cos
-import kotlin.math.sin
 
 data class TransformSpec(val left:Float=0f,val top:Float=0f,val right:Float=1f,val bottom:Float=1f,val rotationDegrees:Float=0f,val flipHorizontal:Boolean=false,val flipVertical:Boolean=false,val outputWidth:Int=0,val outputHeight:Int=0) {
     fun isValid():Boolean=left in 0f..1f&&top in 0f..1f&&right in 0f..1f&&bottom in 0f..1f&&left<right&&top<bottom&&rotationDegrees.isFinite()
