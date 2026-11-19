@@ -20,6 +20,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 private enum class SelectionShape { RECTANGLE, ELLIPSE, POLYGON, FREEHAND, COLOR_RANGE, MAGIC_WAND }
 enum class SelectionAction { CROP, MASK, COPY_LAYER }
@@ -77,7 +79,7 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->U
             if(loadedMask!=null) Text("Loaded mask is active. It will override the current shape until cleared.",color=Color(0xFF77D7C0))
         }},
         confirmButton={TextButton(onClick={savedItems=savedSelectionStore.list();manageDialogOpen=false}){Text("Done")}},
-        dismissButton={TextButton(onClick={loadedMask?.recycle();loadedMask=null}){Text("Clear loaded mask")}}
+        dismissButton={TextButton(onClick={loadedMask?.recycle();loadedMask=null;manageDialogOpen=false}){Text("Clear loaded mask")}}
     )
     renameTarget?.let { target ->
         AlertDialog(onDismissRequest={renameTarget=null},title={Text("Rename selection")},
@@ -209,7 +211,7 @@ private fun buildMaskOverlay(source:Bitmap,mask:Bitmap):Bitmap {
 private fun renderSavedMask(source:Bitmap,mask:Bitmap,action:SelectionAction):SelectionOutput {
     val w=source.width;val h=source.height
     val scaled=if(mask.width==w&&mask.height==h)mask else Bitmap.createScaledBitmap(mask,w,h,true)
-    val copy=if(scaled===mask) Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{scaled.copyTo(this)} else scaled
+    val copy=if(scaled===mask) Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{scaled.copy(Bitmap.Config.ARGB_8888,true)} else scaled
     if(scaled!==mask)scaled.recycle()
     if(action==SelectionAction.MASK)return SelectionOutput(applyMask(source,copy),action,copy)
     if(action==SelectionAction.COPY_LAYER){val out=applyMask(source,copy);copy.recycle();return SelectionOutput(out,action)}
