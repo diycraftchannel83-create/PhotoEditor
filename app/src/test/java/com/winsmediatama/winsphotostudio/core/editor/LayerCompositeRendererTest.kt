@@ -10,7 +10,7 @@ import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 class LayerCompositeRendererTest {
-    @Test fun differenceBlendProducesChannelDifferenceOnApi28() {
+    @Test @Config(sdk=[28]) fun differenceBlendProducesChannelDifferenceOnApi28() {
         val blue=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.BLUE)}
         val red=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.RED)}
         val result=LayerCompositeRenderer.render(listOf(EditorLayer(name="Base",bitmap=blue),EditorLayer(name="Difference",bitmap=red,blendMode=EditorBlendMode.DIFFERENCE)),1,1)
