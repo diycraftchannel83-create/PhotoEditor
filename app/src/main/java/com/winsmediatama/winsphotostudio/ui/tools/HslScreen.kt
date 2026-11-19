@@ -26,9 +26,7 @@ fun HslScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
     var selected by remember { mutableStateOf(HslColorRange.RED) }
     var ranges by remember { mutableStateOf(HslAdjustments()) }
     val current=ranges.ranges[selected] ?: HslRangeAdjustment()
-    val preview by produceState<Bitmap?>(null,source,ranges) {
-        value=null
-        value=withContext(Dispatchers.IO){HslProcessor.apply(source,ranges)}
+    val preview by produceState<Bitmap?>(null,source,ranges) {\n        value?.takeIf{it!==source}?.recycle();value=null\n        value=withContext(Dispatchers.IO){HslProcessor.apply(source,ranges)}
     }
     fun update(value:HslRangeAdjustment){ranges=HslAdjustments(ranges.ranges.toMutableMap().also{it[selected]=value})}
     androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==source}?.recycle()}}\n    Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
