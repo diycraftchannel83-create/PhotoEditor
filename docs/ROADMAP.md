@@ -3,25 +3,25 @@
 ## Phase 0 — Repository and engineering foundation
 - [x] Repository initialized
 - [x] Project goals and architecture documented
-- [ ] Android project scaffold
-- [ ] Build/CI baseline and lint
+- [x] Android project scaffold
+- [x] Build/CI baseline (debug build workflow; lint still pending)
 - [ ] Dependency/license inventory
 
 ## Phase 1 — Core editor MVP
 - [ ] Home/recent projects
-- [ ] Image import (SAF)
-- [ ] Editor workspace and canvas
-- [ ] Pan/zoom
+- [x] Image import (SAF)
+- [x] Initial editor workspace and image canvas preview (editing canvas engine pending)
+- [x] Pinch zoom and pan preview
 - [ ] Crop, rotate, flip
 - [ ] Resize
-- [ ] Basic adjustments (brightness, contrast, exposure, saturation, temperature)
+- [ ] Basic adjustments UI (CPU reference processor implemented: brightness, contrast, exposure, saturation, temperature, tint)
 - [ ] Undo/redo command history
 - [ ] JPEG/PNG/WebP export
-- [ ] Autosave/recovery
+- [ ] Autosave/recovery (local project manifest/storage foundation added)
 
 ## Phase 2 — Professional tonal tools
 - [ ] Histogram
-- [ ] Levels (RGB and per-channel)
+- [ ] Levels UI (RGB and per-channel reference processor implemented)
 - [ ] Curves (RGB and per-channel)
 - [ ] White balance
 - [ ] Color balance
