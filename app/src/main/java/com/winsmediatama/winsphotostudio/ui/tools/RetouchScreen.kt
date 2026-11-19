@@ -71,25 +71,28 @@ private fun renderRetouch(source:Bitmap,strokes:List<RetouchStroke>,strength:Flo
     if(strokes.isEmpty())return source
     val w=source.width;val h=source.height
     val base=IntArray(w*h);source.getPixels(base,0,w,0,0,w,h)
-    val mask=FloatArray(w*h)
-    strokes.forEach{s->s.points.forEach { point->
-        val cx=(point.x*w).toInt();val cy=(point.y*h).toInt();val radius=(s.size/2f).toInt().coerceAtLeast(1)
-        for(y in (cy-radius).coerceAtLeast(0)..(cy+radius).coerceAtMost(h-1))for(x in (cx-radius).coerceAtLeast(0)..(cx+radius).coerceAtMost(w-1)) {
-            val d=(x-cx)*(x-cx)+(y-cy)*(y-cy);if(d<=radius*radius)mask[y*w+x]=1f
-        }
-    }}
-    val result=base.copyOf()
+    var result=base.copyOf()
     val blur=boxBlur(base,w,h,3)
     val pixel=if(strokes.any{it.mode==RetouchMode.PIXELATE}) pixelate(base,w,h,12) else base
-    for(i in result.indices) {
-        val m=mask[i]*strength; if(m<=0f)continue
-        val mode=strokes.lastOrNull()?.mode ?: RetouchMode.BLUR
-        val target=when(mode) {
-            RetouchMode.BLUR->blur[i]
-            RetouchMode.PIXELATE->pixel[i]
-            RetouchMode.CLONE->{val x=i%w;val y=i/w;val sx=(x-offsetX.toInt()).coerceIn(0,w-1);val sy=(y-offsetY.toInt()).coerceIn(0,h-1);base[sy*w+sx]}
+    for(mode in RetouchMode.entries) {
+        val group=strokes.filter{it.mode==mode}
+        if(group.isEmpty())continue
+        val mask=FloatArray(w*h)
+        group.forEach{s->s.points.forEach { point->
+            val cx=(point.x*w).toInt();val cy=(point.y*h).toInt();val radius=(s.size/2f).toInt().coerceAtLeast(1)
+            for(y in (cy-radius).coerceAtLeast(0)..(cy+radius).coerceAtMost(h-1))for(x in (cx-radius).coerceAtLeast(0)..(cx+radius).coerceAtMost(w-1)) {
+                val d=(x-cx)*(x-cx)+(y-cy)*(y-cy);if(d<=radius*radius)mask[y*w+x]=1f
+            }
+        }}
+        for(i in result.indices) {
+            val m=mask[i]*strength;if(m<=0f)continue
+            val target=when(mode) {
+                RetouchMode.BLUR->blur[i]
+                RetouchMode.PIXELATE->pixel[i]
+                RetouchMode.CLONE->{val x=i%w;val y=i/w;val sx=(x-offsetX.toInt()).coerceIn(0,w-1);val sy=(y-offsetY.toInt()).coerceIn(0,h-1);base[sy*w+sx]}
+            }
+            result[i]=blend(result[i],target,m)
         }
-        result[i]=blend(base[i],target,m)
     }
     return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).also{it.setPixels(result,0,w,0,0,w,h)}
 }
