@@ -203,27 +203,31 @@ private fun WinsPhotoApp() {
     val jpegExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/jpeg")) { uri ->
         val currentBitmap=bitmap
         if(uri!=null && currentBitmap!=null) scope.launch {
+            var nativeReplayUsed=false
             val ok=withContext(Dispatchers.IO) { runCatching { context.contentResolver.openOutputStream(uri)?.use { stream ->
                 val (resized,nativeReplay)=buildExportBitmap(currentBitmap)
+                nativeReplayUsed=nativeReplay
                 val flattened=flattenForJpeg(resized,exportBackground)
                 val compressed=flattened.compress(Bitmap.CompressFormat.JPEG,exportQuality.toInt(),stream)
                 flattened.recycle()
                 if(resized!==currentBitmap)resized.recycle()
                 compressed
             } ?: false }.getOrDefault(false) }
-            exportStatus=if(ok) (if(exportOriginalDimensions) "JPEG exported at source dimensions" else "JPEG exported successfully") else "Export failed"
+            exportStatus=if(ok) (if(exportOriginalDimensions&&nativeReplayUsed) "JPEG exported using native source replay" else if(exportOriginalDimensions) "JPEG exported at source dimensions (preview resampled fallback)" else "JPEG exported successfully") else "Export failed"
         }
     }
     val pngExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/png")) { uri ->
         val currentBitmap=bitmap
         if(uri!=null && currentBitmap!=null) scope.launch {
+            var nativeReplayUsed=false
             val ok=withContext(Dispatchers.IO) { runCatching {
                 val (resized,nativeReplay)=buildExportBitmap(currentBitmap)
+                nativeReplayUsed=nativeReplay
                 val result=context.contentResolver.openOutputStream(uri)?.use { resized.compress(Bitmap.CompressFormat.PNG,100,it) } ?: false
                 if(resized!==currentBitmap)resized.recycle()
                 result
             }.getOrDefault(false) }
-            exportStatus=if(ok) (if(exportOriginalDimensions) "PNG exported at source dimensions" else "PNG exported successfully") else "Export failed"
+            exportStatus=if(ok) (if(exportOriginalDimensions&&nativeReplayUsed) "PNG exported using native source replay" else if(exportOriginalDimensions) "PNG exported at source dimensions (preview resampled fallback)" else "PNG exported successfully") else "Export failed"
         }
     }
     val layerImagePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -462,7 +466,7 @@ private fun WinsPhotoApp() {
                             Checkbox(checked=exportOriginalDimensions,onCheckedChange={exportOriginalDimensions=it})
                             Column {
                                 Text("Export at source dimensions")
-                                Text("${sourceWidth} × ${sourceHeight} px (resampled from preview)",style=MaterialTheme.typography.labelSmall,color=Color.LightGray)
+                                Text("${sourceWidth} × ${sourceHeight} px (native replay when available; fallback resamples preview)",style=MaterialTheme.typography.labelSmall,color=Color.LightGray)
                             }
                         }
                     } else if(sourceWidth>0&&sourceHeight>0) {
