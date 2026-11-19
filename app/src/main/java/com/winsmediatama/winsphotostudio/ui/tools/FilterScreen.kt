@@ -35,7 +35,8 @@ private val filters=listOf(
 @Composable
 fun FilterScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
     var selected by remember { mutableStateOf(filters.first()) }
-    val preview by produceState<Bitmap?>(null,source,selected) { value?.takeIf { it !== source }?.recycle(); value=null; value=withContext(Dispatchers.IO){BasicAdjustmentProcessor.apply(source,selected.values)} }
+    var strength by remember { mutableFloatStateOf(1f) }
+    val preview by produceState<Bitmap?>(null,source,selected) { value?.takeIf { it !== source }?.recycle(); value=null; value=withContext(Dispatchers.IO){BasicAdjustmentProcessor.apply(source,scaledFilterValues(selected.values,strength))} }
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
             Text("Filters",Modifier.weight(1f),color=Color.White)
@@ -47,9 +48,20 @@ fun FilterScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
         }
         LazyRow(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)),contentPadding=PaddingValues(12.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
             items(filters) { filter ->
-                FilterChip(selected=selected==filter,onClick={selected=filter},label={Text(filter.name)})
+                FilterChip(selected=selected==filter,onClick={selected=filter;strength=1f},label={Text(filter.name)})
             }
         }
-        Text("Filter preview is adjustable through the Adjustment tool after Apply.",color=Color.LightGray,modifier=Modifier.padding(12.dp),style=MaterialTheme.typography.bodySmall)
+        Column(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(horizontal=12.dp, vertical=4.dp)) {
+            Text("Strength ${(strength*100).toInt()}%",color=Color.LightGray)
+            Slider(value=strength,onValueChange={strength=it},valueRange=0f..1f)
+        }
+        Text("Filter strength can be changed before applying.",color=Color.LightGray,modifier=Modifier.padding(12.dp),style=MaterialTheme.typography.bodySmall)
     }
 }
+
+private fun scaledFilterValues(v:BasicAdjustmentValues,s:Float)=BasicAdjustmentValues(
+    brightness=v.brightness*s,contrast=v.contrast*s,exposure=v.exposure*s,saturation=v.saturation*s,hue=v.hue*s,
+    temperature=v.temperature*s,tint=v.tint*s,redBalance=v.redBalance*s,greenBalance=v.greenBalance*s,blueBalance=v.blueBalance*s,
+    highlights=v.highlights*s,shadows=v.shadows*s,whites=v.whites*s,blacks=v.blacks*s,vibrance=v.vibrance*s,
+    clarity=v.clarity*s,sharpen=v.sharpen*s
+)
