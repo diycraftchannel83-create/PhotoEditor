@@ -56,6 +56,7 @@ fun RetouchScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
                     drawPath(path,Color(0xFF77D7C0),style=Stroke(s.size*size.width/source.width))
                 }}
         }
+        }
         Column(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp)) {
             Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){RetouchMode.entries.forEach{m->FilterChip(selected=mode==m,onClick={mode=m},label={Text(m.label)})}}
             Text("Brush size ${brushSize.toInt()} px",color=Color.LightGray);Slider(value=brushSize,onValueChange={brushSize=it},valueRange=5f..180f)

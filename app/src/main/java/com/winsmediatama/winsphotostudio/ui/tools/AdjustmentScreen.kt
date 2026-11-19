@@ -26,7 +26,10 @@ import kotlinx.coroutines.withContext
 fun AdjustmentScreen(source: Bitmap, onCancel: () -> Unit, onApply: (Bitmap) -> Unit) {
     var values by remember { mutableStateOf(BasicAdjustmentValues()) }
     var resetKey by remember { mutableIntStateOf(0) }
-    val histogram by produceState<ImageHistogram?>(initialValue=null, source) {\n        value = withContext(Dispatchers.Default) { ImageHistogram.from(source) }\n    }\n    val preview by produceState<Bitmap?>(initialValue=null, source, values, resetKey) {
+    val histogram by produceState<ImageHistogram?>(initialValue=null, source) {
+        value = withContext(Dispatchers.Default) { ImageHistogram.from(source) }
+    }
+    val preview by produceState<Bitmap?>(initialValue=null, source, values, resetKey) {
         val previousPreview=value
         value = null
         previousPreview?.takeIf { it !== source }?.recycle()
@@ -43,7 +46,18 @@ fun AdjustmentScreen(source: Bitmap, onCancel: () -> Unit, onApply: (Bitmap) -> 
             preview?.let { Image(it.asImageBitmap(), null, Modifier.fillMaxSize().padding(8.dp), contentScale=ContentScale.Fit) }
                 ?: CircularProgressIndicator()
         }
-        LazyColumn(Modifier.fillMaxWidth().heightIn(max=340.dp).background(Color(0xFF1B1E24)), contentPadding=PaddingValues(16.dp)) {\n            item {\n                Text("RGB / Luminance Histogram", color=Color.White, fontWeight=FontWeight.SemiBold)\n                HistogramPanel(histogram, Modifier.fillMaxWidth().height(112.dp).padding(vertical=8.dp))\n                Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {\n                    Text("R", color=Color(0xFFFF6B6B), style=MaterialTheme.typography.labelSmall)\n                    Text("G", color=Color(0xFF68D391), style=MaterialTheme.typography.labelSmall)\n                    Text("B", color=Color(0xFF6BA8FF), style=MaterialTheme.typography.labelSmall)\n                    Text("Luma", color=Color.White, style=MaterialTheme.typography.labelSmall)\n                    Text("Pixels: ${histogram?.sampleCount ?: 0}", color=Color.LightGray, style=MaterialTheme.typography.labelSmall)\n                }\n            }
+        LazyColumn(Modifier.fillMaxWidth().heightIn(max=340.dp).background(Color(0xFF1B1E24)), contentPadding=PaddingValues(16.dp)) {
+            item {
+                Text("RGB / Luminance Histogram", color=Color.White, fontWeight=FontWeight.SemiBold)
+                HistogramPanel(histogram, Modifier.fillMaxWidth().height(112.dp).padding(vertical=8.dp))
+                Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+                    Text("R", color=Color(0xFFFF6B6B), style=MaterialTheme.typography.labelSmall)
+                    Text("G", color=Color(0xFF68D391), style=MaterialTheme.typography.labelSmall)
+                    Text("B", color=Color(0xFF6BA8FF), style=MaterialTheme.typography.labelSmall)
+                    Text("Luma", color=Color.White, style=MaterialTheme.typography.labelSmall)
+                    Text("Pixels: ${histogram?.sampleCount ?: 0}", color=Color.LightGray, style=MaterialTheme.typography.labelSmall)
+                }
+            }
             item { AdjustmentSlider("Brightness", values.brightness, -1f..1f) { values=values.copy(brightness=it) } }
             item { AdjustmentSlider("Contrast", values.contrast, -1f..1f) { values=values.copy(contrast=it) } }
             item { AdjustmentSlider("Exposure (EV)", values.exposure, -5f..5f) { values=values.copy(exposure=it) } }

@@ -59,7 +59,7 @@ fun AiBackgroundRemoveScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->U
         }
         Box(Modifier.weight(1f).fillMaxWidth().aspectRatio(source.width.toFloat()/source.height).padding(12.dp).background(Color(0xFF25282D)),contentAlignment=Alignment.Center) {
             preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize().padding(8.dp),contentScale=ContentScale.Fit)}
-                ?: if(segmentation.error!=null) Text(segmentation.error,color=Color(0xFFFF8080)) else CircularProgressIndicator()
+                ?: segmentation.error?.let { Text(it,color=Color(0xFFFF8080)) } else CircularProgressIndicator()
         }
         Column(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp)) {
             Text("Offline person segmentation. Best for photos containing people.",color=Color.LightGray,style=MaterialTheme.typography.bodySmall)
