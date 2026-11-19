@@ -295,7 +295,7 @@ private fun WinsPhotoApp() {
             else if (lutOpen) LutScreen(
                 source=selectedBitmap,
                 onCancel={lutOpen=false},
-                onApply={edited -> commitEdit(edited,current);lutOpen=false}
+                onApply={edited,cubeText -> commitOperation(edited,current,EditOperation.Lut(cubeText=cubeText),flatten=true);lutOpen=false}
             )
             else if (effectsOpen) EffectsScreen(
                 source=selectedBitmap,
