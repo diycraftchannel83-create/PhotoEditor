@@ -107,6 +107,36 @@ class ProjectStore(context: Context) {
         return LoadedStudioProject(name,width,height,layers,manifest.optString("selectedLayerId").takeIf{it.isNotBlank()})
     }
 
+    /** Persist an original source and replayable edit operations separately from rendered layer snapshots. */
+    fun saveOperationProject(source:Bitmap, operations:org.json.JSONArray, projectName:String):File {
+        val id=UUID.randomUUID().toString()
+        val folder=File(root,id).apply{mkdirs()}
+        val assets=File(folder,"assets").apply{mkdirs()}
+        val sourcePath="assets/original.png"
+        File(folder,sourcePath).outputStream().use{source.compress(Bitmap.CompressFormat.PNG,100,it)}
+        File(folder,"operations.json").writeText(operations.toString(2))
+        val manifest=JSONObject().put("schemaVersion",3).put("projectId",id)
+            .put("name",projectName.trim().ifBlank{"Untitled Project"})
+            .put("canvasWidth",source.width).put("canvasHeight",source.height)
+            .put("createdAt",System.currentTimeMillis()).put("updatedAt",System.currentTimeMillis())
+            .put("originalAsset",sourcePath).put("operationsAsset","operations.json")
+        File(folder,"project.json").writeText(manifest.toString(2))
+        return folder
+    }
+
+    data class LoadedOperationProject(val name:String,val original:Bitmap,val editStack:com.winsmediatama.winsphotostudio.core.history.NonDestructiveEditStack)
+
+    fun loadOperationProject(projectFolder:File):LoadedOperationProject? {
+        val manifest=readManifest(projectFolder)
+        val sourcePath=manifest.optString("originalAsset")
+        if(sourcePath.isBlank()) return null
+        val original=android.graphics.BitmapFactory.decodeFile(File(projectFolder,sourcePath).absolutePath) ?: return null
+        val operationsPath=manifest.optString("operationsAsset","operations.json")
+        val operations=runCatching{org.json.JSONArray(File(projectFolder,operationsPath).readText())}.getOrNull() ?: org.json.JSONArray()
+        return LoadedOperationProject(manifest.optString("name",projectFolder.name),original,
+            com.winsmediatama.winsphotostudio.core.history.NonDestructiveEditStack.fromJson(original,operations))
+    }
+
     fun listProjects(): List<File> = root.listFiles()?.filter { it.isDirectory && File(it, "project.json").isFile }?.sortedByDescending { File(it, "project.json").lastModified() } ?: emptyList()
 
     fun readManifest(projectFolder: File): JSONObject = JSONObject(File(projectFolder, "project.json").readText())
