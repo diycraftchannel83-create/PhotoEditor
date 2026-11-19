@@ -33,6 +33,10 @@ import com.winsmediatama.winsphotostudio.ui.tools.CropTransformScreen
 import com.winsmediatama.winsphotostudio.ui.tools.AdjustmentScreen
 import com.winsmediatama.winsphotostudio.ui.tools.LevelsScreen
 import com.winsmediatama.winsphotostudio.ui.tools.CurvesScreen
+import com.winsmediatama.winsphotostudio.ui.tools.LayersScreen
+import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
+import com.winsmediatama.winsphotostudio.core.editor.LayerCompositeRenderer
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -57,6 +61,9 @@ private fun WinsPhotoApp() {
     var adjustmentOpen by remember { mutableStateOf(false) }
     var levelsOpen by remember { mutableStateOf(false) }
     var curvesOpen by remember { mutableStateOf(false) }
+    var layersOpen by remember { mutableStateOf(false) }
+    var layers by remember { mutableStateOf<List<EditorLayer>>(emptyList()) }
+    val scope = rememberCoroutineScope()
     var editHistory by remember { mutableStateOf<List<Bitmap>>(emptyList()) }
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) { imageUri = uri; loading = true; error = null }
@@ -74,21 +81,27 @@ private fun WinsPhotoApp() {
             }.getOrNull()
         }
         loading = false
+        bitmap?.let { loaded -> layers = listOf(EditorLayer(name="Background",bitmap=loaded)) }
         if (bitmap == null) error = "Unable to open image. Try JPG, PNG or WebP."
     }
     MaterialTheme(colorScheme = darkColorScheme(background = StudioBackground, surface = StudioSurface, primary = StudioAccent, onPrimary = Color(0xFF08231D), onBackground = Color.White, onSurface = Color.White)) {
         Surface(Modifier.fillMaxSize(), color = StudioBackground) {
             val current = bitmap
             if (current == null) HomeScreen(loading, error) { imagePicker.launch(arrayOf("image/*")) }
-            else if (curvesOpen) CurvesScreen(\n                source=current,\n                onCancel={curvesOpen=false},\n                onApply={edited -> editHistory=editHistory+current; bitmap=edited; curvesOpen=false}\n            )\n            else if (levelsOpen) LevelsScreen(
+            else if (layersOpen) LayersScreen(
+                layers=layers,
+                onCancel={layersOpen=false},
+                onApply={newLayers -> layersOpen=false; scope.launch { val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(newLayers,current.width,current.height)}; layers=newLayers; bitmap=composite }}
+            )
+            else if (curvesOpen) CurvesScreen(\n                source=current,\n                onCancel={curvesOpen=false},\n                onApply={edited -> editHistory=editHistory+current; bitmap=edited; layers=listOf(EditorLayer(name="Background",bitmap=edited)); curvesOpen=false}\n            )\n            else if (levelsOpen) LevelsScreen(
                 source=current,
                 onCancel={levelsOpen=false},
-                onApply={edited -> editHistory=editHistory+current; bitmap=edited; levelsOpen=false}
+                onApply={edited -> editHistory=editHistory+current; bitmap=edited; layers=listOf(EditorLayer(name="Background",bitmap=edited)); levelsOpen=false}
             )
             else if (adjustmentOpen) AdjustmentScreen(
                 source = current,
                 onCancel = { adjustmentOpen = false },
-                onApply = { edited -> editHistory = editHistory + current; bitmap = edited; adjustmentOpen = false }
+                onApply = { edited -> editHistory = editHistory + current; bitmap = edited; layers=listOf(EditorLayer(name="Background",bitmap=edited)); adjustmentOpen = false }
             )
             else if (cropTransformOpen) CropTransformScreen(
                 source = current,
@@ -96,16 +109,17 @@ private fun WinsPhotoApp() {
                 onApply = { edited ->
                     editHistory = editHistory + current
                     bitmap = edited
+                    layers=listOf(EditorLayer(name="Background",bitmap=edited))
                     cropTransformOpen = false
                 }
             )
             else EditorPreviewScreen(
                 current,
-                onBack = { bitmap = null; imageUri = null; editHistory = emptyList() },
+                onBack = { bitmap = null; imageUri = null; editHistory = emptyList(); layers=emptyList() },
                 onImportAnother = { imagePicker.launch(arrayOf("image/*")) },
                 onCropTransform = { cropTransformOpen = true },
                 onAdjustments = { adjustmentOpen = true },
-                onUndo = { if (editHistory.isNotEmpty()) { bitmap = editHistory.last(); editHistory = editHistory.dropLast(1) } },
+                onUndo = { if (editHistory.isNotEmpty()) { bitmap = editHistory.last(); layers=listOf(EditorLayer(name="Background",bitmap=editHistory.last())); editHistory = editHistory.dropLast(1) } },
                 canUndo = editHistory.isNotEmpty()
             )
         }
@@ -138,7 +152,7 @@ private fun HomeScreen(loading: Boolean, error: String?, onImport: () -> Unit) {
 }
 
 @Composable
-private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onLevels: () -> Unit, onCurves: () -> Unit, onUndo: () -> Unit, canUndo: Boolean) {
+private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onLevels: () -> Unit, onCurves: () -> Unit, onLayers: () -> Unit, onUndo: () -> Unit, canUndo: Boolean) {
     var zoom by remember { mutableFloatStateOf(1f) }
     var panX by remember { mutableFloatStateOf(0f) }
     var panY by remember { mutableFloatStateOf(0f) }
@@ -153,6 +167,7 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
             TextButton(onClick = onUndo, enabled = canUndo) { Text("Undo") }
             TextButton(onClick = onCropTransform) { Text("Crop / Transform") }
             TextButton(onClick = onAdjustments) { Text("Adjust") }\n            TextButton(onClick = onLevels) { Text("Levels") }\n            TextButton(onClick = onCurves) { Text("Curves") }
+            TextButton(onClick = onLayers) { Text("Layers") }
             TextButton(onClick = onImportAnother) { Text("Replace") }
         }
         Box(Modifier.weight(1f).fillMaxWidth().background(Color(0xFF25282D)).padding(12.dp).pointerInput(bitmap) {
