@@ -39,7 +39,7 @@ class NonDestructiveEditStackTest {
         assertTrue(restored.operations[1] is EditOperation.Curves)
         assertEquals(stack.toJson().toString(),restored.toJson().toString())
     }
-    @Test fun cropOperationChangesOutputSizeAndKeepsOriginal() {
+    @Test fun stackSupportsInsertAndReorder() {\n        val src=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)\n        val first=EditOperation.BasicAdjust(values=BasicAdjustmentValues(brightness=.1f))\n        val second=EditOperation.Levels(values=com.winsmediatama.winsphotostudio.core.adjustments.LevelsValues())\n        val stack=NonDestructiveEditStack(src).apply{append(first);insert(0,second)}\n        assertEquals(second.id,stack.operations.first().id)\n        assertTrue(stack.move(first.id,0))\n        assertEquals(first.id,stack.operations.first().id)\n        assertFalse(stack.move("missing",0))\n    }\n    @Test fun cropOperationChangesOutputSizeAndKeepsOriginal() {
         val src=Bitmap.createBitmap(10,8,Bitmap.Config.ARGB_8888);src.eraseColor(Color.BLUE)
         val stack=NonDestructiveEditStack(src).apply { append(EditOperation.Crop(left=.2f,top=.25f,right=.8f,bottom=.75f)) }
         val output=stack.render()
