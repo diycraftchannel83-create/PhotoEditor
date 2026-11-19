@@ -27,7 +27,7 @@ fun ProjectScreen(source:Bitmap,layers:List<EditorLayer>,selectedLayerId:String?
     var name by remember { mutableStateOf("My Photo Project") }
     var projects by remember { mutableStateOf(store.listProjects()) }
     var status by remember { mutableStateOf<String?>(null) }
-    var busy by remember { mutableStateOf(false) }
+    var busy by remember { mutableStateOf(false) }\n    var deleteTarget by remember{mutableStateOf<File?>(null)}
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
             Text("Projects",Modifier.weight(1f),color=Color.White)
@@ -55,10 +55,11 @@ fun ProjectScreen(source:Bitmap,layers:List<EditorLayer>,selectedLayerId:String?
                             busy=false
                             if(loaded!=null) onOpen(loaded) else status="Could not open saved project"
                         }}){Text("Open")}
-                        TextButton(onClick={folder.deleteRecursively();projects=store.listProjects()}){Text("Delete")}
+                        TextButton(enabled=!busy,onClick={deleteTarget=folder}){Text("Delete")}
                     }
                 }
             }
         }
     }
+    deleteTarget?.let{target->AlertDialog(onDismissRequest={deleteTarget=null},title={Text("Delete project?")},text={Text("Permanently delete ${store.projectName(target)} and its assets?")},confirmButton={TextButton(onClick={target.deleteRecursively();projects=store.listProjects();status="Project deleted";deleteTarget=null}){Text("Delete")}},dismissButton={TextButton(onClick={deleteTarget=null}){Text("Cancel")}})}
 }
