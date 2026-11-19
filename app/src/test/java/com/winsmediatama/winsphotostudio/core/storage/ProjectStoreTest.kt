@@ -34,7 +34,7 @@ class ProjectStoreTest {
         assertEquals("g",actual.groupId);assertEquals("Group",actual.groupName);assertEquals(.5f,actual.groupOpacity,.01f)
         assertNotNull(actual.mask);assertEquals(Color.CYAN,actual.bitmap.getPixel(0,0))
         assertNotNull(actual.originalBitmap);assertEquals(Color.RED,actual.originalBitmap!!.getPixel(0,0))
-        assertEquals(1,actual.operations.size);assertTrue(actual.operations.first() is EditOperation.Hsl)
+        assertEquals(2,actual.operations.size);assertTrue(actual.operations.first() is EditOperation.Hsl);assertTrue(actual.operations.last() is EditOperation.Transform)
         assertTrue(store.renameProject(folder,"Renamed"))
         assertEquals("Renamed",store.projectName(folder))
         val copy=store.duplicateProject(folder)
