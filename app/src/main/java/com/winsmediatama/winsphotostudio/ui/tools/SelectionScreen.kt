@@ -24,8 +24,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 private enum class SelectionShape { RECTANGLE, ELLIPSE, POLYGON, FREEHAND, COLOR_RANGE, MAGIC_WAND }
-enum class SelectionAction { CROP, MASK, COPY_LAYER }
-data class SelectionOutput(val bitmap:Bitmap,val action:SelectionAction,val selectionMask:Bitmap?=null)
+enum class SelectionAction { CROP, MASK, COPY_LAYER, CUT, CUT_TO_LAYER }
+data class SelectionOutput(val bitmap:Bitmap,val action:SelectionAction,val selectionMask:Bitmap?=null,val copiedLayerBitmap:Bitmap?=null)
 
 @Composable
 fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->Unit) {
@@ -116,7 +116,7 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->U
             SelectionShape.entries.forEach{s->FilterChip(selected=shape==s,onClick={shape=s},label={Text(s.name.replace("_"," "))})}
         }
         Row(Modifier.fillMaxWidth().padding(horizontal=8.dp),horizontalArrangement=Arrangement.spacedBy(4.dp)){
-            SelectionAction.entries.forEach{a->FilterChip(selected=action==a,onClick={action=a},label={Text(when(a){SelectionAction.CROP->"Crop";SelectionAction.MASK->"Mask";SelectionAction.COPY_LAYER->"Copy layer"})})}
+            SelectionAction.entries.forEach{a->FilterChip(selected=action==a,onClick={action=a},label={Text(when(a){SelectionAction.CROP->"Crop";SelectionAction.MASK->"Mask";SelectionAction.COPY_LAYER->"Copy layer";SelectionAction.CUT->"Cut";SelectionAction.CUT_TO_LAYER->"Cut to layer"})})}
         }
         Canvas(Modifier.weight(1f).fillMaxWidth().aspectRatio(source.width.toFloat()/source.height).padding(12.dp).background(Color(0xFF25282D))
             .pointerInput(shape){
@@ -184,11 +184,18 @@ private fun renderSelection(source:Bitmap,selection:Rect,shape:SelectionShape,ac
     if(featherRadius.toInt()>0){val next=masks.feather(processed,featherRadius.toInt());processed.recycle();processed=next}
     if(action==SelectionAction.MASK)return SelectionOutput(applyMask(source,processed),action,processed)
     if(action==SelectionAction.COPY_LAYER){val output=applyMask(source,processed);processed.recycle();return SelectionOutput(output,action)}
+    if(action==SelectionAction.CUT){val cut=cutMask(source,processed);processed.recycle();return SelectionOutput(cut,action)}
+    if(action==SelectionAction.CUT_TO_LAYER){val selected=applyMask(source,processed);val cut=cutMask(source,processed);processed.recycle();return SelectionOutput(cut,action,copiedLayerBitmap=selected)}
     val pixels=IntArray(source.width*source.height);processed.getPixels(pixels,0,source.width,0,0,source.width,source.height)
     var minX=source.width;var minY=source.height;var maxX=-1;var maxY=-1
     for(y in 0 until source.height)for(x in 0 until source.width)if(android.graphics.Color.red(pixels[y*source.width+x])>0){minX=minOf(minX,x);minY=minOf(minY,y);maxX=maxOf(maxX,x);maxY=maxOf(maxY,y)}
     if(maxX<minX||maxY<minY){processed.recycle();return SelectionOutput(source.copy(Bitmap.Config.ARGB_8888,true),action)}
     val cropped=Bitmap.createBitmap(source,minX,minY,maxX-minX+1,maxY-minY+1);processed.recycle();return SelectionOutput(cropped,action)
+}
+private fun cutMask(source:Bitmap,mask:Bitmap):Bitmap {
+    val w=source.width;val h=source.height;val pixels=IntArray(w*h);source.getPixels(pixels,0,w,0,0,w,h);val mp=IntArray(w*h);mask.getPixels(mp,0,w,0,0,w,h)
+    for(i in pixels.indices){val p=pixels[i];val removed=android.graphics.Color.red(mp[i]);val alpha=(p ushr 24)*(255-removed)/255;pixels[i]=(alpha shl 24) or (p and 0x00FFFFFF)}
+    return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(pixels,0,w,0,0,w,h)}
 }
 private fun applyMask(source:Bitmap,mask:Bitmap):Bitmap {
     val w=source.width;val h=source.height;val pixels=IntArray(w*h);source.getPixels(pixels,0,w,0,0,w,h);val mp=IntArray(w*h);mask.getPixels(mp,0,w,0,0,w,h)
@@ -210,6 +217,8 @@ private fun renderSavedMask(source:Bitmap,mask:Bitmap,action:SelectionAction,inv
     val processed=processSelectionMask(base,invert,expand,feather)
     if(action==SelectionAction.MASK)return SelectionOutput(applyMask(source,processed),action,processed)
     if(action==SelectionAction.COPY_LAYER){val out=applyMask(source,processed);processed.recycle();return SelectionOutput(out,action)}
+    if(action==SelectionAction.CUT){val cut=cutMask(source,processed);processed.recycle();return SelectionOutput(cut,action)}
+    if(action==SelectionAction.CUT_TO_LAYER){val selected=applyMask(source,processed);val cut=cutMask(source,processed);processed.recycle();return SelectionOutput(cut,action,copiedLayerBitmap=selected)}
     val pixels=IntArray(w*h);processed.getPixels(pixels,0,w,0,0,w,h)
     var minX=w;var minY=h;var maxX=-1;var maxY=-1
     for(y in 0 until h)for(x in 0 until w)if(android.graphics.Color.red(pixels[y*w+x])>0){minX=minOf(minX,x);minY=minOf(minY,y);maxX=maxOf(maxX,x);maxY=maxOf(maxY,y)}
