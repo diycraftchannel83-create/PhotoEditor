@@ -152,7 +152,7 @@
 
 ## Phase 11 — Render/export and performance
 - [x] JPEG/PNG export, JPEG quality and background flattening controls
-- [x] Preview proxy limit to reduce memory pressure
+- [x] Preview proxy limit to reduce memory pressure\n- [x] Bounds-first shared image decoder for main import and photo layers; rejects invalid/extreme dimensions and samples to 2048px preview; regression tests authored (verification deferred)
 - [ ] Full-resolution source/render/export path
 - [ ] Tile/region processing, memory-aware caches, background progress and cancellation
 - [ ] Metadata/EXIF policy, color profile consistency and export dimension tests
