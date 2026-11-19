@@ -64,12 +64,17 @@ sealed interface EditOperation {
         override fun toJson()=JSONObject().put("id",id).put("type","hsl").put("enabled",enabled).put("values",hslJson(values))
     }
 
-    data class Transform(override val id:String=java.util.UUID.randomUUID().toString(),override val enabled:Boolean=true,val left:Float=0f,val top:Float=0f,val right:Float=1f,val bottom:Float=1f,val rotationDegrees:Float=0f,val flipHorizontal:Boolean=false,val flipVertical:Boolean=false,val outputWidth:Int=0,val outputHeight:Int=0):EditOperation {
-        override val label=\"Crop / Transform\"
-        fun valid()=TransformSpec(left,top,right,bottom,rotationDegrees,flipHorizontal,flipVertical,outputWidth,outputHeight).isValid()
-        override fun toJson()=JSONObject().put(\"id\",id).put(\"type\",\"transform\").put(\"enabled\",enabled).put(\"left\",left).put(\"top\",top).put(\"right\",right).put(\"bottom\",bottom).put(\"rotationDegrees\",rotationDegrees).put(\"flipHorizontal\",flipHorizontal).put(\"flipVertical\",flipVertical).put(\"outputWidth\",outputWidth).put(\"outputHeight\",outputHeight)
+    data class Transform(
+        override val id:String=java.util.UUID.randomUUID().toString(),
+        override val enabled:Boolean=true,
+        val left:Float=0f,val top:Float=0f,val right:Float=1f,val bottom:Float=1f,
+        val rotationDegrees:Float=0f,val flipHorizontal:Boolean=false,val flipVertical:Boolean=false,
+        val outputWidth:Int=0,val outputHeight:Int=0
+    ):EditOperation {
+        override val label="Crop / Transform"
+        fun valid():Boolean=left.isFinite()&&top.isFinite()&&right.isFinite()&&bottom.isFinite()&&rotationDegrees.isFinite()&&left>=0f&&top>=0f&&right<=1f&&bottom<=1f&&left<right&&top<bottom&&outputWidth>=0&&outputHeight>=0
+        override fun toJson()=JSONObject().put("id",id).put("type","transform").put("enabled",enabled).put("left",left).put("top",top).put("right",right).put("bottom",bottom).put("rotationDegrees",rotationDegrees).put("flipHorizontal",flipHorizontal).put("flipVertical",flipVertical).put("outputWidth",outputWidth).put("outputHeight",outputHeight)
     }
-
     data class Crop(
         override val id: String = java.util.UUID.randomUUID().toString(),
         override val enabled: Boolean = true,
@@ -130,7 +135,7 @@ class NonDestructiveEditStack(
                 is EditOperation.Curves -> CurvesProcessor.apply(current, operation.values)
                 is EditOperation.Crop -> crop(current, operation)
                 is EditOperation.Hsl -> HslProcessor.apply(current,operation.values)
-                is EditOperation.Transform -> TransformProcessor.apply(current,TransformSpec(operation.left,operation.top,operation.right,operation.bottom,operation.rotationDegrees,operation.flipHorizontal,operation.flipVertical,operation.outputWidth,operation.outputHeight))
+                is EditOperation.Transform -> TransformProcessor.apply(current,operation.left,operation.top,operation.right,operation.bottom,operation.rotationDegrees,operation.flipHorizontal,operation.flipVertical,operation.outputWidth,operation.outputHeight))
             }
             if (next !== current && !current.isRecycled) current.recycle()
             current = next
