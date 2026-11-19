@@ -52,9 +52,9 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->U
     var renameTarget by remember{mutableStateOf<com.winsmediatama.winsphotostudio.core.selection.SavedSelection?>(null)}
     var renameValue by remember{mutableStateOf("")}
     DisposableEffect(Unit){onDispose{loadedMask?.recycle()}}
-    val selectionOverlay by produceState<Bitmap?>(null,source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection){
+    val selectionOverlay by produceState<Bitmap?>(null,source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection,loadedMask){
         value?.takeIf{it!==source}?.recycle();value=null
-        value=withContext(Dispatchers.Default){runCatching{buildSelectionOverlay(source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection)}.getOrNull()}
+        value=withContext(Dispatchers.Default){runCatching{buildSelectionOverlay(source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection,loadedMask)}.getOrNull()}
     }
     if(manageDialogOpen) AlertDialog(
         onDismissRequest={manageDialogOpen=false},
@@ -70,7 +70,7 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->U
                     TextButton(onClick={
                         val loaded=runCatching{savedSelectionStore.load(item.id)}.getOrNull()
                         loadedMask?.recycle();loadedMask=loaded
-                        if(loaded!=null){manageDialogOpen=false;savedSelectionMessage="Loaded mask: ${item.name}"}
+                        if(loaded!=null){val resized=if(loaded.width!=source.width||loaded.height!=source.height)Bitmap.createScaledBitmap(loaded,source.width,source.height,true)else loaded;if(resized!==loaded)loaded.recycle();loadedMask?.recycle();loadedMask=resized;manageDialogOpen=false;savedSelectionMessage="Loaded mask: ${item.name}"}
                     }){Text("Use")}
                     TextButton(onClick={renameTarget=item;renameValue=item.name}){Text("Rename")}
                     TextButton(onClick={savedSelectionStore.delete(item.id);savedItems=savedSelectionStore.list();if(loadedMask!=null){loadedMask?.recycle();loadedMask=null}}){Text("Delete")}
@@ -96,7 +96,7 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->U
             savedSelectionMessage?.let{Text(it,color=MaterialTheme.colorScheme.error)}
         }},
         confirmButton={TextButton(onClick={
-            val mask=runCatching{createCurrentSelectionMask(source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection)}.getOrNull()
+            val mask=runCatching{createCurrentSelectionMask(source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection,loadedMask)}.getOrNull()
             if(mask==null)savedSelectionMessage="Unable to generate selection mask."
             else runCatching{savedSelectionStore.save(selectionName,mask)}.onSuccess{savedSelectionMessage="Saved: ${it.name}";saveDialogOpen=false;selectionName=""}.onFailure{savedSelectionMessage=it.message?: "Save failed"}
             mask?.recycle()
@@ -110,7 +110,7 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->U
             TextButton(onClick={savedItems=savedSelectionStore.list();manageDialogOpen=true}){Text("Saved masks (${savedItems.size})")}
             TextButton(onClick={rect=Rect(0f,0f,1f,1f);polygonPoints=emptyList()}){Text("Select all")}
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(enabled=(shape!=SelectionShape.POLYGON&&shape!=SelectionShape.FREEHAND)||(polygonPoints.size>=3),onClick={onApply(loadedMask?.let{renderSavedMask(source,it,action)} ?: renderSelection(source,rect,shape,action,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection))}){Text("Apply")}
+            Button(enabled=(shape!=SelectionShape.POLYGON&&shape!=SelectionShape.FREEHAND)||(polygonPoints.size>=3),onClick={onApply(loadedMask?.let{renderSavedMask(source,it,action)} ?: renderSelection(source,rect,shape,action,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection,loadedMask))}){Text("Apply")}
         }
         Row(Modifier.fillMaxWidth().padding(8.dp),horizontalArrangement=Arrangement.spacedBy(4.dp)){
             SelectionShape.entries.forEach{s->FilterChip(selected=shape==s,onClick={shape=s},label={Text(s.name.replace("_"," "))})}
@@ -154,7 +154,7 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->U
     }
 }
 
-private fun buildSelectionOverlay(source:Bitmap,shape:SelectionShape,rect:Rect,points:List<Pair<Float,Float>>,sampleColor:Int,tolerance:Float,softness:Float,seed:Pair<Float,Float>,featherRadius:Float,expandRadius:Float,invertSelection:Boolean):Bitmap? {
+private fun buildSelectionOverlay(source:Bitmap,shape:SelectionShape,rect:Rect,points:List<Pair<Float,Float>>,sampleColor:Int,tolerance:Float,softness:Float,seed:Pair<Float,Float>,featherRadius:Float,expandRadius:Float,invertSelection:Boolean,loadedMask:Bitmap?):Bitmap? {
     val processor=com.winsmediatama.winsphotostudio.core.tools.SelectionMaskProcessor
     val mask=when(shape){
         SelectionShape.RECTANGLE->processor.rectangle(source.width,source.height,rect.left,rect.top,rect.right,rect.bottom)
@@ -174,7 +174,7 @@ private fun buildSelectionOverlay(source:Bitmap,shape:SelectionShape,rect:Rect,p
 private fun Rect.normalize()=Rect(minOf(left,right),minOf(top,bottom),maxOf(left,right),maxOf(top,bottom))
 private fun Rect.clampUnit()=Rect(left.coerceIn(0f,1f),top.coerceIn(0f,1f),right.coerceIn(0f,1f),bottom.coerceIn(0f,1f))
 
-private fun renderSelection(source:Bitmap,selection:Rect,shape:SelectionShape,action:SelectionAction,polygonPoints:List<Pair<Float,Float>>,sampleColor:Int,tolerance:Float,softness:Float,seedPoint:Pair<Float,Float>,featherRadius:Float,expandRadius:Float,invertSelection:Boolean):SelectionOutput {
+private fun renderSelection(source:Bitmap,selection:Rect,shape:SelectionShape,action:SelectionAction,polygonPoints:List<Pair<Float,Float>>,sampleColor:Int,tolerance:Float,softness:Float,seedPoint:Pair<Float,Float>,featherRadius:Float,expandRadius:Float,invertSelection:Boolean,loadedMask:Bitmap?):SelectionOutput {
     val masks=com.winsmediatama.winsphotostudio.core.tools.SelectionMaskProcessor
     val mask=when(shape){
         SelectionShape.RECTANGLE->masks.rectangle(source.width,source.height,selection.left,selection.top,selection.right,selection.bottom)
@@ -222,7 +222,7 @@ private fun renderSavedMask(source:Bitmap,mask:Bitmap,action:SelectionAction):Se
     if(maxX<minX||maxY<minY)return SelectionOutput(source.copy(Bitmap.Config.ARGB_8888,true),action)
     return SelectionOutput(Bitmap.createBitmap(source,minX,minY,maxX-minX+1,maxY-minY+1),action)
 }
-private fun createCurrentSelectionMask(source:Bitmap,shape:SelectionShape,rect:Rect,points:List<Pair<Float,Float>>,sampleColor:Int,tolerance:Float,softness:Float,seed:Pair<Float,Float>,featherRadius:Float,expandRadius:Float,invertSelection:Boolean):Bitmap {
+private fun createCurrentSelectionMask(source:Bitmap,shape:SelectionShape,rect:Rect,points:List<Pair<Float,Float>>,sampleColor:Int,tolerance:Float,softness:Float,seed:Pair<Float,Float>,featherRadius:Float,expandRadius:Float,invertSelection:Boolean,loadedMask:Bitmap?):Bitmap {
     val processor=com.winsmediatama.winsphotostudio.core.tools.SelectionMaskProcessor
     var mask=when(shape){
         SelectionShape.RECTANGLE->processor.rectangle(source.width,source.height,rect.left,rect.top,rect.right,rect.bottom)
