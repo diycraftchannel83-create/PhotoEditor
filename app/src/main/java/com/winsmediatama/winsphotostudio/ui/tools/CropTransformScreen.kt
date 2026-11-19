@@ -88,8 +88,8 @@ fun CropTransformScreen(source: Bitmap, onCancel: () -> Unit, onApply: (Bitmap) 
             }
         }
         Row(Modifier.fillMaxWidth().padding(horizontal=12.dp), horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-            OutlinedButton(onClick={settings=settings.copy(rotation=(settings.rotation-90+360)%360}, modifier=Modifier.weight(1f)) { Text("↶ 90°") }
-            OutlinedButton(onClick={settings=settings.copy(rotation=(settings.rotation+90)%360}, modifier=Modifier.weight(1f)) { Text("↷ 90°") }
+            OutlinedButton(onClick={ settings=settings.copy(rotation=(settings.rotation-90+360)%360) }, modifier=Modifier.weight(1f)) { Text("↶ 90°") }
+            OutlinedButton(onClick={ settings=settings.copy(rotation=(settings.rotation+90)%360) }, modifier=Modifier.weight(1f)) { Text("↷ 90°") }
             OutlinedButton(onClick={settings=settings.copy(flipH=!settings.flipH)}, modifier=Modifier.weight(1f)) { Text("Flip H") }
             OutlinedButton(onClick={settings=settings.copy(flipV=!settings.flipV)}, modifier=Modifier.weight(1f)) { Text("Flip V") }
         }
