@@ -36,5 +36,6 @@ dependencies {
     implementation("androidx.compose.runtime:runtime")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling")
+    implementation("com.google.mlkit:segmentation-selfie:16.0.0-beta6")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
