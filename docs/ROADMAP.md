@@ -104,7 +104,7 @@
 - [x] Private recovery snapshots and startup recovery/discard prompt
 - [x] Schema version bumps and atomic manifest writes; optional-field backward-compatible loading
 - [ ] Full migrations, corrupt/missing asset handling
-- [ ] Save-as, duplicate, rename/delete, recent projects, unsaved-changes protection
+- [x] Duplicate, rename and delete APIs are implemented; lifecycle tests authored (verification pending)\n- [ ] Save-as UI, recent projects, unsaved-changes protection
 - [ ] Operation stack/live adjustment persistence and full editable-state recovery
 
 ## Phase 11 — Render/export and performance
