@@ -445,7 +445,7 @@ private fun WinsPhotoApp() {
                             }
                         }
                     } else if(sourceWidth>0&&sourceHeight>0) {
-                        Text("Source is larger than the 60 MP export safety limit. Export will use current preview size.",color=Color(0xFFFFC107),style=MaterialTheme.typography.bodySmall)
+                        Text("Source is larger than the 24 MP export safety limit. Export will use current preview size.",color=Color(0xFFFFC107),style=MaterialTheme.typography.bodySmall)
                     }
                 }},
                 confirmButton={TextButton(onClick={
