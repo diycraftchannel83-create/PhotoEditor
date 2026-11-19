@@ -160,7 +160,7 @@ private fun WinsPhotoApp() {
     MaterialTheme(colorScheme = darkColorScheme(background = StudioBackground, surface = StudioSurface, primary = StudioAccent, onPrimary = Color(0xFF08231D), onBackground = Color.White, onSurface = Color.White)) {
         Surface(Modifier.fillMaxSize(), color = StudioBackground) {
             val current = bitmap
-            val selectedBitmap = layers.firstOrNull{it.id==selectedLayerId}?.bitmap ?: current
+            val selectedBitmap = current?.let { canvas -> layers.firstOrNull{it.id==selectedLayerId}?.bitmap ?: canvas } ?: Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
             if (current == null) HomeScreen(loading, error) { imagePicker.launch(arrayOf("image/*")) }
             else if (aiBackgroundRemoveOpen) AiBackgroundRemoveScreen(
                 source=selectedBitmap,
@@ -220,7 +220,7 @@ private fun WinsPhotoApp() {
                 onApply={edited -> commitEdit(edited,current);levelsOpen=false}
             )
             else if (adjustmentOpen) AdjustmentScreen(
-                source = current,
+                source = selectedBitmap,
                 onCancel = { adjustmentOpen = false },
                 onApply = { edited -> commitEdit(edited,current);adjustmentOpen = false }
             )
