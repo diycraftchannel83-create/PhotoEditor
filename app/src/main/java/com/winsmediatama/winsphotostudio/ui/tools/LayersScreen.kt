@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
+import com.winsmediatama.winsphotostudio.core.editor.EditorLayer\nimport com.winsmediatama.winsphotostudio.core.editor.EditorBlendMode
 
 @Composable
 fun LayersScreen(layers:List<EditorLayer>,selectedLayerId:String?,onCancel:()->Unit,onAddImage:()->Unit,onApply:(List<EditorLayer>,String?)->Unit) {
@@ -32,7 +32,7 @@ fun LayersScreen(layers:List<EditorLayer>,selectedLayerId:String?,onCancel:()->U
         LazyColumn(Modifier.weight(1f),contentPadding=PaddingValues(8.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
             itemsIndexed(working.asReversed(),key={_,l->l.id}) { reverseIndex, layer ->
                 val index=working.lastIndex-reverseIndex
-                var rename by remember(layer.id) { mutableStateOf(layer.name) }
+                var rename by remember(layer.id) { mutableStateOf(layer.name) }\n                var blendMenu by remember(layer.id) { mutableStateOf(false) }
                 Card(colors=CardDefaults.cardColors(containerColor=Color(0xFF20242A))) {
                     Column(Modifier.fillMaxWidth().padding(10.dp)) {
                         Row(verticalAlignment=Alignment.CenterVertically) {
@@ -44,6 +44,12 @@ fun LayersScreen(layers:List<EditorLayer>,selectedLayerId:String?,onCancel:()->U
                             TextButton(onClick={working=working.toMutableList().also{it[index]=layer.copy(name=rename)}}){Text("Rename")}
                             TextButton(onClick={selectedId=layer.id}){Text(if(selectedId==layer.id)"Selected" else "Select")}
                             Checkbox(checked=layer.visible,onCheckedChange={v->working=working.toMutableList().also{it[index]=layer.copy(visible=v)}})
+                        }
+                        Row(verticalAlignment=Alignment.CenterVertically) {
+                            TextButton(onClick={blendMenu=true}){Text("Blend: ${layer.blendMode.name}")}
+                            DropdownMenu(expanded=blendMenu,onDismissRequest={blendMenu=false}) {
+                                EditorBlendMode.entries.forEach { mode->DropdownMenuItem(text={Text(mode.name)},onClick={working=working.toMutableList().also{it[index]=layer.copy(blendMode=mode)};blendMenu=false}) }
+                            }
                         }
                         Row(verticalAlignment=Alignment.CenterVertically) {
                             Text("Opacity ${(layer.opacity*100).toInt()}%",color=Color.LightGray,style=MaterialTheme.typography.labelSmall)
