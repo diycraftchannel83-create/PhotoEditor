@@ -1,4 +1,4 @@
-package com.winsmediatama.winsphotudio.core.adjustments
+package com.winsmediatama.winsphotostudio.core.adjustments
 
 import android.graphics.Bitmap
 import android.graphics.Color
