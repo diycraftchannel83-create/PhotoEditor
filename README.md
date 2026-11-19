@@ -35,7 +35,7 @@ The roadmap below is the source of truth for continuing development. Update chec
 - Non-destructive operation stack panel: enable/disable, reorder, remove and reset Basic Adjust, Levels, Curves, HSL, Crop/Transform, Effects, LUT and Retouch operations
 - Private autosave snapshots and startup session recovery prompt
 - Canvas resize independent of image resize (now replayable with dimensions, anchor and background); perspective correction (now replayable as a non-destructive operation with normalized corner parameters) and arbitrary straighten rotation
-- Background replacement with solid, gradient or photo background
+- Background replacement with solid, gradient or photo background (replayable operation; photo source stored as bounded PNG Base64 project data)
 - Memory-conscious image import (preview/editor canvas currently capped to 2048 px maximum dimension)
 
 ## Roadmap — Photoshop Mini
