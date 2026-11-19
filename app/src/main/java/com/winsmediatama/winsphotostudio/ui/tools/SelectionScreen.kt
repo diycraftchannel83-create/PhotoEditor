@@ -110,7 +110,7 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->U
             TextButton(onClick={savedItems=savedSelectionStore.list();manageDialogOpen=true}){Text("Saved masks (${savedItems.size})")}
             TextButton(onClick={rect=Rect(0f,0f,1f,1f);polygonPoints=emptyList()}){Text("Select all")}
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(enabled=(shape!=SelectionShape.POLYGON&&shape!=SelectionShape.FREEHAND)||(polygonPoints.size>=3),onClick={onApply(renderSelection(source,rect,shape,action,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection,loadedMask))}){Text("Apply")}
+            Button(enabled=loadedMask!=null||(shape!=SelectionShape.POLYGON&&shape!=SelectionShape.FREEHAND)||(polygonPoints.size>=3),onClick={onApply(renderSelection(source,rect,shape,action,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection,loadedMask))}){Text("Apply")}
         }
         Row(Modifier.fillMaxWidth().padding(8.dp),horizontalArrangement=Arrangement.spacedBy(4.dp)){
             SelectionShape.entries.forEach{s->FilterChip(selected=shape==s,onClick={shape=s},label={Text(s.name.replace("_"," "))})}
