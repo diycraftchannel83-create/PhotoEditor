@@ -25,12 +25,21 @@ class OriginalSourceCache(private val cacheDirectory: File) {
             ?: throw IOException("Unable to read image source")
         require(bounds.outWidth > 0 && bounds.outHeight > 0) { "Invalid source image dimensions" }
         require(bounds.outWidth <= PreviewImageDecoder.MAX_SOURCE_DIMENSION && bounds.outHeight <= PreviewImageDecoder.MAX_SOURCE_DIMENSION) { "Source image dimensions exceed safety limit" }
+        temp.delete()
         resolver.openInputStream(uri)?.use { input -> temp.outputStream().use { output -> input.copyTo(output) } }
             ?: throw IOException("Unable to copy image source")
-        if (!temp.renameTo(target)) {
+        val backup=File(cacheDirectory,"$stableId.backup")
+        backup.delete()
+        if(target.exists()&&!target.renameTo(backup)) {
             temp.delete()
+            throw IOException("Could not stage previous cached original")
+        }
+        if(!temp.renameTo(target)) {
+            temp.delete()
+            if(backup.exists())backup.renameTo(target)
             throw IOException("Could not finalize cached original")
         }
+        backup.delete()
         return CachedSource(target, bounds.outWidth, bounds.outHeight, target.length())
     }
 
