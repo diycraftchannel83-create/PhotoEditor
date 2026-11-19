@@ -17,12 +17,13 @@ import androidx.compose.ui.unit.dp
 import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
 
 @Composable
-fun LayersScreen(layers:List<EditorLayer>,onCancel:()->Unit,onApply:(List<EditorLayer>)->Unit) {
+fun LayersScreen(layers:List<EditorLayer>,onCancel:()->Unit,onAddImage:()->Unit,onApply:(List<EditorLayer>)->Unit) {
     var working by remember(layers) { mutableStateOf(layers) }
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
             Text("Layers",Modifier.weight(1f),color=Color.White)
             TextButton(onClick={working=working+EditorLayer(name="Layer ${working.size+1}",bitmap=Bitmap.createBitmap(working.firstOrNull()?.bitmap?.width ?: 1,working.firstOrNull()?.bitmap?.height ?: 1,Bitmap.Config.ARGB_8888))}){Text("+ Empty")}
+            TextButton(onClick=onAddImage){Text("+ Photo")}
             TextButton(onClick=onCancel){Text("Cancel")}
             Button(onClick={onApply(working)}){Text("Apply")}
         }
@@ -30,14 +31,15 @@ fun LayersScreen(layers:List<EditorLayer>,onCancel:()->Unit,onApply:(List<Editor
         LazyColumn(Modifier.weight(1f),contentPadding=PaddingValues(8.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
             itemsIndexed(working.asReversed(),key={_,l->l.id}) { reverseIndex, layer ->
                 val index=working.lastIndex-reverseIndex
-                Card(colors=CardDefaults.cardColors(containerColor=Color(0xFF20242A))) {
+                var rename by remember(layer.id) { mutableStateOf(layer.name) }\n                Card(colors=CardDefaults.cardColors(containerColor=Color(0xFF20242A))) {
                     Column(Modifier.fillMaxWidth().padding(10.dp)) {
                         Row(verticalAlignment=Alignment.CenterVertically) {
                             Image(layer.bitmap.asImageBitmap(),null,Modifier.size(56.dp),contentScale=ContentScale.Crop)
                             Column(Modifier.weight(1f).padding(start=8.dp)) {
-                                Text(layer.name,color=Color.White)
+                                OutlinedTextField(value=rename,onValueChange={rename=it},singleLine=true,label={Text("Layer name")})
                                 Text(if(layer.visible)"Visible" else "Hidden",color=Color.LightGray,style=MaterialTheme.typography.labelSmall)
                             }
+                            TextButton(onClick={working=working.toMutableList().also{it[index]=layer.copy(name=rename)}}){Text("Rename")}
                             Checkbox(checked=layer.visible,onCheckedChange={v->working=working.toMutableList().also{it[index]=layer.copy(visible=v)}})
                         }
                         Row(verticalAlignment=Alignment.CenterVertically) {
