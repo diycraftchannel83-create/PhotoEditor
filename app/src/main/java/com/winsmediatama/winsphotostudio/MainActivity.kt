@@ -74,6 +74,8 @@ private val StudioBackground = Color(0xFF101216)
 private val StudioSurface = Color(0xFF1B1E24)
 private val StudioAccent = Color(0xFF77D7C0)
 
+private data class EditorSnapshot(val layers:List<EditorLayer>,val selectedLayerId:String?,val canvas:Bitmap,val label:String)
+
 @Composable
 private fun WinsPhotoApp() {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
@@ -112,13 +114,15 @@ private fun WinsPhotoApp() {
     var exportStatus by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val context = androidx.compose.ui.platform.LocalContext.current
-    var editHistory by remember { mutableStateOf<List<Bitmap>>(emptyList()) }
-    var redoHistory by remember { mutableStateOf<List<Bitmap>>(emptyList()) }
+    var editHistory by remember { mutableStateOf<List<EditorSnapshot>>(emptyList()) }
+    var redoHistory by remember { mutableStateOf<List<EditorSnapshot>>(emptyList()) }
+    fun recordUndo(canvas:Bitmap,label:String){editHistory=(editHistory+EditorSnapshot(layers.toList(),selectedLayerId,canvas,label)).takeLast(30);redoHistory=emptyList()}
+    fun restoreSnapshot(snapshot:EditorSnapshot){layers=snapshot.layers;selectedLayerId=snapshot.selectedLayerId;bitmap=snapshot.canvas}
     var recoveryCandidate by remember { mutableStateOf<RecoveryStore.Recovered?>(null) }
     fun commitEdit(edited:Bitmap,previousComposite:Bitmap,flatten:Boolean=false) {
         val selected=layers.firstOrNull{it.id==selectedLayerId}
         if(!flatten && selected?.locked==true){exportStatus="Selected layer is locked. Unlock it in Layers before editing.";return}
-        editHistory=(editHistory+previousComposite).takeLast(5);redoHistory=emptyList()
+        recordUndo(previousComposite,"Edit")
         if(!flatten && selected!=null) {
             val finalEdited=if(selected.alphaLocked)AlphaLockProcessor.apply(selected.bitmap,edited) else edited
             val updated=layers.map{if(it.id==selected.id)it.copy(bitmap=finalEdited) else it}
@@ -166,7 +170,7 @@ private fun WinsPhotoApp() {
             if(decoded!=null) {
                 val fitted=withContext(Dispatchers.IO){fitBitmapToCanvas(decoded,canvasBitmap.width,canvasBitmap.height)}
                 decoded.recycle()
-                editHistory=(editHistory+canvasBitmap).takeLast(5);redoHistory=emptyList()
+                recordUndo(canvasBitmap,"Add layer")
                 val updated=layers+EditorLayer(name="Photo Layer ${layers.size+1}",bitmap=fitted)
                 val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,canvasBitmap.width,canvasBitmap.height)}
                 layers=updated;bitmap=composite
@@ -224,7 +228,7 @@ private fun WinsPhotoApp() {
                 canvasWidth=current.width,
                 canvasHeight=current.height,
                 onCancel={gradientOpen=false},
-                onApply={gradientBitmap -> editHistory=(editHistory+current).takeLast(5);redoHistory=emptyList();scope.launch {
+                onApply={gradientBitmap -> recordUndo(current,"Gradient layer");scope.launch {
                     val layer=EditorLayer(name="Gradient Layer",bitmap=gradientBitmap)
                     val updated=layers+layer
                     val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,current.width,current.height)}
@@ -297,7 +301,7 @@ private fun WinsPhotoApp() {
                 onCancel={layersOpen=false},
                 onAddImage={layerImagePicker.launch(arrayOf("image/*"))},
                 onEditMask={layerId,maskBitmap->maskPaintLayerId=layerId;maskPaintOpen=true},
-                onApply={newLayers,newSelected -> editHistory=(editHistory+current).takeLast(5);redoHistory=emptyList();layersOpen=false;selectedLayerId=newSelected; scope.launch { val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(newLayers,current.width,current.height)}; layers=newLayers; bitmap=composite }}
+                onApply={newLayers,newSelected -> recordUndo(current,"Layer stack");layersOpen=false;selectedLayerId=newSelected; scope.launch { val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(newLayers,current.width,current.height)}; layers=newLayers; bitmap=composite }}
             )
             else if (curvesOpen) CurvesScreen(
                 source=selectedBitmap,
@@ -347,9 +351,9 @@ private fun WinsPhotoApp() {
                 onBackgroundRemove = { backgroundRemoveOpen = true },
                 onAiBackgroundRemove = { aiBackgroundRemoveOpen = true },
                 onExport = { exportDialogOpen=true },
-                onUndo = { if (editHistory.isNotEmpty() && bitmap!=null) { redoHistory=(redoHistory+bitmap!!).takeLast(5);val previous=editHistory.last();bitmap=previous;val restored=EditorLayer(name="Restored edit",bitmap=previous);layers=listOf(restored);selectedLayerId=restored.id;editHistory=editHistory.dropLast(1) } },
-                onRedo = { if (redoHistory.isNotEmpty() && bitmap!=null) { editHistory=(editHistory+bitmap!!).takeLast(5);val next=redoHistory.last();bitmap=next;val restored=EditorLayer(name="Redone edit",bitmap=next);layers=listOf(restored);selectedLayerId=restored.id;redoHistory=redoHistory.dropLast(1) } },
-                canUndo = editHistory.isNotEmpty(), canRedo = redoHistory.isNotEmpty()
+                onUndo = { if (editHistory.isNotEmpty() && bitmap!=null) { redoHistory=(redoHistory+EditorSnapshot(layers.toList(),selectedLayerId,bitmap!!,"Redo state")).takeLast(30);val previous=editHistory.last();restoreSnapshot(previous);editHistory=editHistory.dropLast(1) } },
+                onRedo = { if (redoHistory.isNotEmpty() && bitmap!=null) { editHistory=(editHistory+EditorSnapshot(layers.toList(),selectedLayerId,bitmap!!,"Undo state")).takeLast(30);val next=redoHistory.last();restoreSnapshot(next);redoHistory=redoHistory.dropLast(1) } },
+                canUndo = editHistory.isNotEmpty(), canRedo = redoHistory.isNotEmpty(), undoLabel=editHistory.lastOrNull()?.label, redoLabel=redoHistory.lastOrNull()?.label
             )
             if(exportDialogOpen) AlertDialog(
                 onDismissRequest={exportDialogOpen=false},
@@ -418,7 +422,7 @@ private fun HomeScreen(loading: Boolean, error: String?, onImport: () -> Unit) {
 }
 
 @Composable
-private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onLevels: () -> Unit, onCurves: () -> Unit, onLayers: () -> Unit, onProjects: () -> Unit, onBrush: () -> Unit, onSelection: () -> Unit, onTextShape: () -> Unit, onFilters: () -> Unit, onEffects: () -> Unit, onLut: () -> Unit, onCanvasSize: () -> Unit, onBackgroundReplace: () -> Unit, onPerspective: () -> Unit, onHsl: () -> Unit, onGradient: () -> Unit, onRetouch: () -> Unit, onBackgroundRemove: () -> Unit, onAiBackgroundRemove: () -> Unit, onExport: () -> Unit, onUndo: () -> Unit, onRedo: () -> Unit, canUndo: Boolean, canRedo: Boolean) {
+private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onLevels: () -> Unit, onCurves: () -> Unit, onLayers: () -> Unit, onProjects: () -> Unit, onBrush: () -> Unit, onSelection: () -> Unit, onTextShape: () -> Unit, onFilters: () -> Unit, onEffects: () -> Unit, onLut: () -> Unit, onCanvasSize: () -> Unit, onBackgroundReplace: () -> Unit, onPerspective: () -> Unit, onHsl: () -> Unit, onGradient: () -> Unit, onRetouch: () -> Unit, onBackgroundRemove: () -> Unit, onAiBackgroundRemove: () -> Unit, onExport: () -> Unit, onUndo: () -> Unit, onRedo: () -> Unit, canUndo: Boolean, canRedo: Boolean, undoLabel:String?, redoLabel:String?) {
     var zoom by remember { mutableFloatStateOf(1f) }
     var panX by remember { mutableFloatStateOf(0f) }
     var panY by remember { mutableFloatStateOf(0f) }
@@ -431,8 +435,8 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
                     Text("${bitmap.width} × ${bitmap.height}px",style=MaterialTheme.typography.labelSmall,color=Color.LightGray)
                 }
                 TextButton(onClick={zoom=1f;panX=0f;panY=0f}){Text("Fit")}
-                TextButton(onClick=onUndo,enabled=canUndo){Text("Undo")}
-                TextButton(onClick=onRedo,enabled=canRedo){Text("Redo")}
+                TextButton(onClick=onUndo,enabled=canUndo){Text(undoLabel?.let{"Undo: $it"}?:"Undo")}
+                TextButton(onClick=onRedo,enabled=canRedo){Text(redoLabel?.let{"Redo: $it"}?:"Redo")}
                 TextButton(onClick=onExport){Text("Export")}
             }
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal=4.dp)) {
