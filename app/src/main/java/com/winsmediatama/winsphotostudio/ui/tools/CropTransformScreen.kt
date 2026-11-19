@@ -29,7 +29,7 @@ private enum class CropPreset(val title:String,val ratio:Float?) {
 }
 private data class TransformSettings(
     val cropLeft:Float=0f,val cropTop:Float=0f,val cropRight:Float=1f,val cropBottom:Float=1f,
-    val rotation:Int=0,val flipH:Boolean=false,val flipV:Boolean=false,
+    val rotation:Int=0,val straighten:Float=0f,val flipH:Boolean=false,val flipV:Boolean=false,
     val outputWidth:Int=0,val outputHeight:Int=0,val customResize:Boolean=false
 )
 
@@ -48,10 +48,10 @@ fun CropTransformScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) 
     fun updateCrop(l:Float,t:Float,r:Float,b:Float,markFree:Boolean=true) {
         val cl=l.coerceIn(0f,1f);val ct=t.coerceIn(0f,1f);val cr=r.coerceIn(cl+.01f,1f);val cb=b.coerceIn(ct+.01f,1f)
         val cw=((cr-cl)*source.width).roundToInt().coerceAtLeast(1);val ch=((cb-ct)*source.height).roundToInt().coerceAtLeast(1)
-        val rotated=settings.rotation%180!=0
+        val rotatedBounds=rotationBounds(cw,ch,settings.rotation+settings.straighten)
         settings=settings.copy(cropLeft=cl,cropTop=ct,cropRight=cr,cropBottom=cb,
-            outputWidth=if(settings.customResize)settings.outputWidth else if(rotated)ch else cw,
-            outputHeight=if(settings.customResize)settings.outputHeight else if(rotated)cw else ch,
+            outputWidth=if(settings.customResize)settings.outputWidth else rotatedBounds.first,
+            outputHeight=if(settings.customResize)settings.outputHeight else rotatedBounds.second,
             customResize=settings.customResize)
         centerX=(cl+cr)/2f;centerY=(ct+cb)/2f;if(markFree)preset=CropPreset.FREE
     }
@@ -69,12 +69,13 @@ fun CropTransformScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) 
     }
     fun rotate(delta:Int) {
         val next=(settings.rotation+delta+360)%360
-        val rotated=next%180!=0
         val wasRotated=settings.rotation%180!=0
+        val rotated=next%180!=0
         val cropW=((settings.cropRight-settings.cropLeft)*source.width).roundToInt().coerceAtLeast(1)
         val cropH=((settings.cropBottom-settings.cropTop)*source.height).roundToInt().coerceAtLeast(1)
-        settings=settings.copy(rotation=next,outputWidth=if(settings.customResize) if(rotated!=wasRotated)settings.outputHeight else settings.outputWidth else if(rotated)cropH else cropW,
-            outputHeight=if(settings.customResize) if(rotated!=wasRotated)settings.outputWidth else settings.outputHeight else if(rotated)cropW else cropH)
+        val bounds=rotationBounds(cropW,cropH,next.toFloat())
+        settings=settings.copy(rotation=next,straighten=0f,outputWidth=if(settings.customResize) if(rotated!=wasRotated)settings.outputHeight else settings.outputWidth else bounds.first,
+            outputHeight=if(settings.customResize) if(rotated!=wasRotated)settings.outputWidth else settings.outputHeight else bounds.second)
     }
 
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
@@ -103,6 +104,8 @@ fun CropTransformScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) 
             Column(Modifier.weight(1f)){Text("Horizontal position",color=Color.LightGray,style=MaterialTheme.typography.labelSmall);Slider(value=centerX,onValueChange={v->val w=settings.cropRight-settings.cropLeft;updateCrop((v-w/2).coerceIn(0f,1f-w),settings.cropTop,(v+w/2).coerceIn(w,1f),settings.cropBottom)},valueRange=0f..1f)}
             Column(Modifier.weight(1f)){Text("Vertical position",color=Color.LightGray,style=MaterialTheme.typography.labelSmall);Slider(value=centerY,onValueChange={v->val h=settings.cropBottom-settings.cropTop;updateCrop(settings.cropLeft,(v-h/2).coerceIn(0f,1f-h),settings.cropRight,(v+h/2).coerceIn(h,1f))},valueRange=0f..1f)}
         }
+        Text("Straighten ${settings.straighten.toInt()}°",color=Color.LightGray,modifier=Modifier.padding(horizontal=16.dp))
+        Slider(value=settings.straighten,onValueChange={angle->val cropW=((settings.cropRight-settings.cropLeft)*source.width).roundToInt().coerceAtLeast(1);val cropH=((settings.cropBottom-settings.cropTop)*source.height).roundToInt().coerceAtLeast(1);val bounds=rotationBounds(cropW,cropH,settings.rotation+angle);settings=settings.copy(straighten=angle,outputWidth=if(settings.customResize)settings.outputWidth else bounds.first,outputHeight=if(settings.customResize)settings.outputHeight else bounds.second)},valueRange=-15f..15f,modifier=Modifier.padding(horizontal=12.dp))
         Row(Modifier.fillMaxWidth().padding(horizontal=12.dp),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
             OutlinedButton(onClick={rotate(-90)},modifier=Modifier.weight(1f)){Text("↶ 90°")}
             OutlinedButton(onClick={rotate(90)},modifier=Modifier.weight(1f)){Text("↷ 90°")}
@@ -131,7 +134,7 @@ private fun renderCropTransform(bitmap:Bitmap,s:TransformSettings):Bitmap {
     var crop=Bitmap.createBitmap(bitmap,l,t,r-l,b-t)
     if(crop===bitmap) crop=bitmap.copy(Bitmap.Config.ARGB_8888,true)
     if(s.rotation!=0||s.flipH||s.flipV) {
-        val matrix=Matrix().apply{postRotate(s.rotation.toFloat());postScale(if(s.flipH)-1f else 1f,if(s.flipV)-1f else 1f)}
+        val matrix=Matrix().apply{postRotate(s.rotation.toFloat()+s.straighten);postScale(if(s.flipH)-1f else 1f,if(s.flipV)-1f else 1f)}
         val transformed=Bitmap.createBitmap(crop,0,0,crop.width,crop.height,matrix,true)
         if(transformed!==crop)crop.recycle();crop=transformed
     }
@@ -139,4 +142,10 @@ private fun renderCropTransform(bitmap:Bitmap,s:TransformSettings):Bitmap {
     if(crop.width==w&&crop.height==h)return crop
     val resized=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888)
     Canvas(resized).drawBitmap(crop,null,android.graphics.Rect(0,0,w,h),Paint(Paint.FILTER_BITMAP_FLAG));crop.recycle();return resized
+}
+
+private fun rotationBounds(width:Int,height:Int,degrees:Float):Pair<Int,Int> {
+    val radians=Math.toRadians(degrees.toDouble())
+    val c=kotlin.math.abs(kotlin.math.cos(radians));val s=kotlin.math.abs(kotlin.math.sin(radians))
+    return kotlin.math.ceil(width*c+height*s).toInt().coerceAtLeast(1) to kotlin.math.ceil(width*s+height*c).toInt().coerceAtLeast(1)
 }
