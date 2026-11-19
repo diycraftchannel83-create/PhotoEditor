@@ -13,5 +13,6 @@ data class EditorLayer(
     val opacity:Float=1f,
     val blendMode:EditorBlendMode=EditorBlendMode.NORMAL,
     /** Optional grayscale layer mask: white reveals and black hides. */
-    val mask:Bitmap?=null
+    val mask:Bitmap?=null,
+    val locked:Boolean=false
 )
