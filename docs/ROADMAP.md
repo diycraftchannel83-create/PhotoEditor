@@ -191,7 +191,7 @@
 ## Recent implementation batch — export sizing
 - [x] Capture original import dimensions during bounds-only decode.
 - [x] Optional source-dimension export sizing for PNG/JPEG, with preview-size default.
-- [x] Resampling renderer and 60 MP pixel-count guard.
+- [x] Resampling renderer and 24 MP pixel-count guard.
 - [x] Regression tests authored for dimension choice, identity path and oversize rejection.
 - [ ] Native-resolution edit replay/rendering; current export resamples the 2048px edited preview, so this improves output dimensions but does not restore source-level detail.
 - [ ] Build/test verification (deferred).
