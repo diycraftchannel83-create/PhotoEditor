@@ -120,7 +120,7 @@ fun CropTransformScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) 
         OutlinedTextField(value=widthText,onValueChange={widthText=it.filter(Char::isDigit)},label={Text("Width (px)")},singleLine=true)
         OutlinedTextField(value=heightText,onValueChange={heightText=it.filter(Char::isDigit)},label={Text("Height (px)")},singleLine=true)
         Text("Resize applies after crop and rotation. Max dimension: 2048 px.",style=MaterialTheme.typography.bodySmall)
-    }},confirmButton={TextButton(onClick={val w=widthText.toIntOrNull()?.coerceIn(1,2048?:source.width;val h=heightText.toIntOrNull()?.coerceIn(1,12000)?:source.height;settings=settings.copy(outputWidth=w,outputHeight=h,customResize=true);showResize=false}){Text("Apply size")}},dismissButton={TextButton(onClick={showResize=false}){Text("Cancel")}})
+    }},confirmButton={TextButton(onClick={val w=widthText.toIntOrNull()?.coerceIn(1,2048)?:source.width;val h=heightText.toIntOrNull()?.coerceIn(1,2048)?:source.height;settings=settings.copy(outputWidth=w,outputHeight=h,customResize=true);showResize=false}){Text("Apply size")}},dismissButton={TextButton(onClick={showResize=false}){Text("Cancel")}})
 }
 
 private fun renderCropTransform(bitmap:Bitmap,s:TransformSettings):Bitmap {
