@@ -61,7 +61,9 @@ object LayerCompositeRenderer {
             }
             if(groupPreviousOwned)groupPrevious?.takeUnless{it.isRecycled}?.recycle()
             val groupOpacity=(group.firstOrNull()?.groupOpacity?:1f).coerceIn(0f,1f)
-            val clippedGroup=if(layer.clipToBelow&&previousAlpha!=null)ClipAlphaProcessor.apply(groupBitmap,previousAlpha!!)else groupBitmap\n            val groupAlphaSource=if(groupOpacity<1f)applyAlphaOpacity(clippedGroup,groupOpacity)else clippedGroup\n            drawPrepared(canvas,groupAlphaSource,dest,1f,layer.groupBlendMode?:EditorBlendMode.NORMAL)
+            val clippedGroup=if(layer.clipToBelow&&previousAlpha!=null)ClipAlphaProcessor.apply(groupBitmap,previousAlpha!!)else groupBitmap
+            val groupAlphaSource=if(groupOpacity<1f)applyAlphaOpacity(clippedGroup,groupOpacity)else clippedGroup
+            drawPrepared(canvas,groupAlphaSource,dest,1f,layer.groupBlendMode?:EditorBlendMode.NORMAL)
             val nextOwned=true
             if(previousOwned&&previousAlpha!==groupAlphaSource)previousAlpha?.takeUnless{it.isRecycled}?.recycle()
             previousAlpha=groupAlphaSource;previousOwned=nextOwned
