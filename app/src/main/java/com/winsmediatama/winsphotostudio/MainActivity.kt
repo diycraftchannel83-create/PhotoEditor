@@ -280,7 +280,7 @@ private fun WinsPhotoApp() {
             else if (selectionOpen) SelectionScreen(
                 source=current,
                 onCancel={selectionOpen=false},
-                onApply={edited -> commitEdit(edited,current,flatten=true);selectionOpen=false}
+                onApply={result -> if(result.action==com.winsmediatama.winsphotostudio.ui.tools.SelectionAction.COPY_LAYER){recordUndo(current,"Copy selection");scope.launch{val layer=EditorLayer(name="Selection Layer ${layers.size+1}",bitmap=result.bitmap);val updated=layers+layer;val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,current.width,current.height)};layers=updated;selectedLayerId=layer.id;bitmap=composite;selectionOpen=false}}else{commitEdit(result.bitmap,current,flatten=true);selectionOpen=false}}
             )
             else if (brushOpen) BrushScreen(
                 source=selectedBitmap,
