@@ -10,7 +10,11 @@ import com.winsmediatama.winsphotostudio.core.adjustments.CurvesProcessor
 import com.winsmediatama.winsphotostudio.core.adjustments.CurvesValues
 import com.winsmediatama.winsphotostudio.core.adjustments.LevelsChannel
 import com.winsmediatama.winsphotostudio.core.adjustments.LevelsProcessor
-import com.winsmediatama.winsphotostudio.core.adjustments.LevelsValues\nimport com.winsmediatama.winsphotostudio.core.adjustments.HslAdjustments\nimport com.winsmediatama.winsphotostudio.core.adjustments.HslColorRange\nimport com.winsmediatama.winsphotostudio.core.adjustments.HslRangeAdjustment\nimport com.winsmediatama.winsphotostudio.core.adjustments.HslProcessor
+import com.winsmediatama.winsphotostudio.core.adjustments.LevelsValues
+import com.winsmediatama.winsphotostudio.core.adjustments.HslAdjustments
+import com.winsmediatama.winsphotostudio.core.adjustments.HslColorRange
+import com.winsmediatama.winsphotostudio.core.adjustments.HslRangeAdjustment
+import com.winsmediatama.winsphotostudio.core.adjustments.HslProcessor
 
 /**
  * Serializable, replayable edit stack. Operations retain parameters rather than requiring
@@ -52,7 +56,12 @@ sealed interface EditOperation {
             .put("values",curvesJson(values))
     }
 
-    data class Hsl(override val id:String=java.util.UUID.randomUUID().toString(),override val enabled:Boolean=true,val values:HslAdjustments):EditOperation {\n        override val label=\"HSL / Color range\"\n        override fun toJson()=JSONObject().put(\"id\",id).put(\"type\",\"hsl\").put(\"enabled\",enabled).put(\"values\",hslJson(values))\n    }\n\n    data class Crop(
+    data class Hsl(override val id:String=java.util.UUID.randomUUID().toString(),override val enabled:Boolean=true,val values:HslAdjustments):EditOperation {
+        override val label=\"HSL / Color range\"
+        override fun toJson()=JSONObject().put(\"id\",id).put(\"type\",\"hsl\").put(\"enabled\",enabled).put(\"values\",hslJson(values))
+    }
+
+    data class Crop(
         override val id: String = java.util.UUID.randomUUID().toString(),
         override val enabled: Boolean = true,
         val left: Float, val top: Float, val right: Float, val bottom: Float
@@ -87,7 +96,8 @@ class NonDestructiveEditStack(
             is EditOperation.BasicAdjust -> old.copy(enabled = enabled)
             is EditOperation.Levels -> old.copy(enabled = enabled)
             is EditOperation.Curves -> old.copy(enabled = enabled)
-            is EditOperation.Crop -> old.copy(enabled = enabled)\n            is EditOperation.Hsl -> old.copy(enabled = enabled)
+            is EditOperation.Crop -> old.copy(enabled = enabled)
+            is EditOperation.Hsl -> old.copy(enabled = enabled)
         }
         return true
     }
@@ -102,7 +112,8 @@ class NonDestructiveEditStack(
                 is EditOperation.BasicAdjust -> BasicAdjustmentProcessor.apply(current, operation.values)
                 is EditOperation.Levels -> LevelsProcessor.apply(current, operation.values)
                 is EditOperation.Curves -> CurvesProcessor.apply(current, operation.values)
-                is EditOperation.Crop -> crop(current, operation)\n                is EditOperation.Hsl -> HslProcessor.apply(current,operation.values)
+                is EditOperation.Crop -> crop(current, operation)
+                is EditOperation.Hsl -> HslProcessor.apply(current,operation.values)
             }
             if (next !== current && !current.isRecycled) current.recycle()
             current = next
@@ -124,7 +135,7 @@ class NonDestructiveEditStack(
                     "basic" -> ops += EditOperation.BasicAdjust(id, enabled, basicValuesFromJson(values))
                     "levels" -> ops += EditOperation.Levels(id, enabled, levelsFromJson(values))
                     "curves" -> ops += EditOperation.Curves(id, enabled, curvesFromJson(values))
-                    "crop" -> ops += EditOperation.Crop(id, enabled,item.optDouble("left").toFloat(),item.optDouble("top").toFloat(),item.optDouble("right").toFloat(),item.optDouble("bottom").toFloat())
+                    "crop" -> ops += EditOperation.Crop(id, enabled,item.optDouble("left").toFloat(),item.optDouble("top").toFloat(),item.optDouble("right").toFloat(),item.optDouble("bottom").toFloat())\n                    "hsl" -> ops += EditOperation.Hsl(id,enabled,hslFromJson(values))
                 }
             }
             return NonDestructiveEditStack(source, ops)
