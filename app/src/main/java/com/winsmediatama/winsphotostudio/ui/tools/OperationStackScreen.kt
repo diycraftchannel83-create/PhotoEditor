@@ -53,7 +53,7 @@ private fun toggle(op:EditOperation,enabled:Boolean):EditOperation=when(op){
     is EditOperation.Curves->op.copy(enabled=enabled)
     is EditOperation.Hsl->op.copy(enabled=enabled)
     is EditOperation.Crop->op.copy(enabled=enabled)
-    is EditOperation.Transform->op.copy(enabled=enabled)
+    is EditOperation.Transform->op.copy(enabled=enabled)\n    is EditOperation.Effect->op.copy(enabled=enabled)\n    is EditOperation.Lut->op.copy(enabled=enabled)
     is EditOperation.Effect->op.copy(enabled=enabled)
     is EditOperation.Lut->op.copy(enabled=enabled)
 }
