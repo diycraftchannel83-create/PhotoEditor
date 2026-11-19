@@ -25,15 +25,13 @@ fun BackgroundRemoveScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Uni
     var tolerance by remember { mutableFloatStateOf(35f) }
     var feather by remember { mutableFloatStateOf(20f) }
     var sampled by remember { mutableStateOf(false) }
-    val preview by produceState<Bitmap?>(null,source,sample,tolerance,feather,sampled) {
-        value=null
-        value=withContext(Dispatchers.IO){if(sampled) removeColorBackground(source,sample,tolerance,feather) else source}
+    val preview by produceState<Bitmap?>(null,source,sample,tolerance,feather,sampled) {\n        value?.takeIf{it!==source}?.recycle();value=null\n        value=withContext(Dispatchers.IO){if(sampled) removeColorBackground(source,sample,tolerance,feather) else source}
     }
-    Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
+    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==source}?.recycle()}}\n    Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(10.dp)) {
             Text("Background Remove",Modifier.weight(1f),color=Color.White)
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(enabled=sampled&&preview!=null,onClick={preview?.let(onApply)}){Text("Apply")}
+            Button(enabled=sampled&&preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true))}}){Text("Apply")}
         }
         Box(Modifier.weight(1f).fillMaxWidth().aspectRatio(source.width.toFloat()/source.height).padding(12.dp).background(Color(0xFF25282D))) {
             preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize(),contentScale=ContentScale.Fit)}
