@@ -36,16 +36,32 @@ object EffectProcessor {
         return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(out,0,w,0,0,w,h)}
     }
     fun vignette(source:Bitmap,strength:Float):Bitmap {
-        val amount=strength.coerceIn(0f,1f);val w=source.width;val h=source.height;val pixels=IntArray(w*h);source.getPixels(pixels,0,w,0,0,w,h)
+        val amount=strength.coerceIn(0f,1f)
+        val w=source.width;val h=source.height
+        val pixels=IntArray(w*h);source.getPixels(pixels,0,w,0,0,w,h)
         val cx=w/2f;val cy=h/2f;val maxD=sqrt(cx*cx+cy*cy).coerceAtLeast(1f)
-        for(y in 0 until h)for(x in 0 until w){val i=y*w+x;val p=pixels[i];val d=(sqrt((x-cx)*(x-cx)+(y-cy)*(y-cy))/maxD).coerceIn(0f,1f);val f=1f-amount*d*d
-            pixels[i]=(p and 0xFF000000) or (((p shr 16 and 255)*f).toInt().coerceIn(0,255) shl 16) or (((p shr 8 and 255)*f).toInt().coerceIn(0,255) shl 8) or (((p and 255)*f).toInt().coerceIn(0,255)
+        for(y in 0 until h)for(x in 0 until w){
+            val i=y*w+x;val p=pixels[i]
+            val d=(sqrt((x-cx)*(x-cx)+(y-cy)*(y-cy))/maxD).coerceIn(0f,1f)
+            val f=1f-amount*d*d
+            val rr=((p shr 16 and 255)*f).toInt().coerceIn(0,255)
+            val gg=((p shr 8 and 255)*f).toInt().coerceIn(0,255)
+            val bb=((p and 255)*f).toInt().coerceIn(0,255)
+            pixels[i]=(p and 0xFF000000) or (rr shl 16) or (gg shl 8) or bb
         }
         return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(pixels,0,w,0,0,w,h)}
     }
     fun grain(source:Bitmap,intensity:Float,seed:Int=0):Bitmap {
-        val amount=intensity.coerceIn(0f,1f)*40f;val random=Random(seed);val w=source.width;val h=source.height;val pixels=IntArray(w*h);source.getPixels(pixels,0,w,0,0,w,h)
-        for(i in pixels.indices){val p=pixels[i];val n=random.nextInt(-amount.toInt(),amount.toInt()+1);pixels[i]=(p and 0xFF000000) or ((p shr 16 and 255)+n).coerceIn(0,255) shl 16) or ((p shr 8 and 255)+n).coerceIn(0,255) shl 8) or ((p and 255)+n).coerceIn(0,255)}
+        val amount=intensity.coerceIn(0f,1f)*40f
+        val random=Random(seed);val w=source.width;val h=source.height
+        val pixels=IntArray(w*h);source.getPixels(pixels,0,w,0,0,w,h)
+        for(i in pixels.indices){
+            val p=pixels[i];val n=random.nextInt(-amount.toInt(),amount.toInt()+1)
+            val rr=((p shr 16 and 255)+n).coerceIn(0,255)
+            val gg=((p shr 8 and 255)+n).coerceIn(0,255)
+            val bb=((p and 255)+n).coerceIn(0,255)
+            pixels[i]=(p and 0xFF000000) or (rr shl 16) or (gg shl 8) or bb
+        }
         return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(pixels,0,w,0,0,w,h)}
     }
 }
