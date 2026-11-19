@@ -75,8 +75,8 @@ The roadmap below is the source of truth for continuing development. Update chec
 - [ ] Store edit operations/parameters instead of baking every adjustment immediately
 - [ ] Non-destructive crop/transform and tonal adjustment pipeline
 - [ ] True adjustment layers with editable parameters
-- [ ] Operation-level history and undo/redo (not only bitmap snapshots)
-- [ ] History panel, named states and redo support
+- [x] Layer-preserving bounded undo/redo snapshots and History panel\n- [ ] Parameter-level operation history
+- [x] History panel restore and redo support\n- [ ] Named states
 - [ ] Define rendering pipeline and cache invalidation strategy
 - [ ] Ensure original imported asset remains untouched throughout editing
 - [ ] Add tests for operation serialization, ordering and replay
@@ -87,23 +87,23 @@ The roadmap below is the source of truth for continuing development. Update chec
 - [x] Visibility and opacity
 - [x] Initial blend modes
 - [x] Layer metadata and bitmap project persistence
-- [ ] Layer groups/folders
-- [ ] Layer masks (create, invert, disable, edit, apply)
-- [ ] Mask painting with brush/eraser, feather and refine controls
+- [x] Contiguous layer groups/folders with group visibility and opacity
+- [x] Layer masks (create, invert, paint, remove)
+- [x] Mask painting with brush/eraser controls
 - [ ] True adjustment layers
 - [ ] Expand blend modes and validate compositing math
-- [ ] Layer lock/alpha lock and clipping masks
+- [x] Layer lock, alpha lock and clip-to-below masks
 - [ ] Layer effects (shadow, glow, stroke, bevel where feasible)
-- [ ] Improved layer panel UX, thumbnails and multi-select
+- [x] Layer panel thumbnails and multi-select/group controls
 
 ### Phase 5 — Selection tools
 - [x] Rectangle and ellipse selection foundation
 - [x] Crop and alpha-mask selection workflows
-- [ ] Freehand lasso selection
-- [ ] Polygon lasso
-- [ ] Magic wand / contiguous color selection
-- [ ] Color-range selection
-- [ ] Feather, expand, contract and refine edge
+- [x] Freehand lasso selection
+- [x] Polygon lasso
+- [x] Magic wand / contiguous color selection
+- [x] Color-range selection
+- [x] Feather, expand and contract controls
 - [ ] Invert, save and load selections
 - [ ] Selection overlay and edge visualization
 - [ ] Copy/cut/paste selection as a new layer
@@ -113,9 +113,9 @@ The roadmap below is the source of truth for continuing development. Update chec
 - [x] Blur and pixelate
 - [x] Clone stamp foundation
 - [ ] Validate clone source selection/offset workflow and brush quality
-- [ ] Healing brush / spot healing
-- [ ] Dodge and burn
-- [ ] Smudge tool
+- [x] Spot healing brush
+- [x] Dodge and burn modes
+- [x] Smudge tool
 - [ ] More brush presets, hardness, spacing and pressure support where hardware permits
 - [ ] Stabilized strokes and high-resolution brush rendering
 - [ ] Retouch tools support masks and non-destructive workflows
@@ -123,9 +123,9 @@ The roadmap below is the source of truth for continuing development. Update chec
 ### Phase 7 — Text, shapes & design
 - [x] Basic text and shape overlays
 - [x] Linear and radial gradient layers
-- [ ] Font picker and font import/management
-- [ ] Text editing controls: size, weight, italic, alignment, tracking, line spacing
-- [ ] Text fill, stroke, shadow and gradient
+- [x] System font family picker\n- [ ] Font import/management
+- [x] Text editing controls: size, weight, italic, alignment\n- [ ] Tracking and line spacing
+- [x] Text outline and shadow\n- [ ] Text gradient fill
 - [ ] Shape controls: fill, outline, stroke width, rounded corners
 - [ ] Custom paths and additional shapes
 - [ ] Sticker/overlay asset browser
@@ -158,9 +158,9 @@ The roadmap below is the source of truth for continuing development. Update chec
 - [x] Local project save/open foundation
 - [x] Editable bitmap layer stack and metadata persistence
 - [ ] Save all live adjustment, mask, group and operation parameters
-- [ ] Project format versioning and migration
-- [ ] Autosave and recovery snapshots
-- [ ] Crash recovery and unsaved-changes protection
+- [x] Project schema versioning and atomic manifest writes\n- [ ] Full project migration system
+- [x] Autosave and recovery snapshots
+- [x] Startup session recovery\n- [ ] Unsaved-changes protection
 - [ ] Recent projects and project management
 - [ ] Duplicate/save-as/rename/delete project flows
 - [ ] Validate missing/corrupt assets and recover gracefully
