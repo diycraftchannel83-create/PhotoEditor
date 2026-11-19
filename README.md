@@ -8,6 +8,7 @@
 - Free crop size and position, rotate, flip, resize, preview and apply
 - Basic adjustments: brightness, contrast, exposure, saturation, hue, temperature, tint, RGB balance, highlights, shadows, whites, blacks, vibrance, clarity and sharpen
 - RGB/composite Levels with input/output and gamma controls
+- Selective HSL color ranges (Red, Orange, Yellow, Green, Cyan, Blue, Purple, Magenta)
 - RGB and per-channel Curves with draggable control points
 - Layer manager: add transparent/photo layers, duplicate, rename, visibility, opacity, reorder, blend modes
 - Brush and eraser
