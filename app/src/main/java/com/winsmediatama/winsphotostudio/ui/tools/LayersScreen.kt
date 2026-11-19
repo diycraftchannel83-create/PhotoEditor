@@ -42,11 +42,12 @@ fun LayersScreen(layers:List<EditorLayer>,selectedLayerId:String?,onCancel:()->U
                             Image(layer.bitmap.asImageBitmap(),null,Modifier.size(56.dp),contentScale=ContentScale.Crop)
                             Column(Modifier.weight(1f).padding(start=8.dp)) {
                                 OutlinedTextField(value=rename,onValueChange={rename=it},singleLine=true,label={Text("Layer name")})
-                                Text((if(layer.visible)"Visible" else "Hidden")+" • "+(if(layer.locked)"Locked" else "Unlocked"),color=Color.LightGray,style=MaterialTheme.typography.labelSmall)
+                                Text((if(layer.visible)"Visible" else "Hidden")+" • "+(if(layer.locked)"Locked" else "Unlocked")+" • "+(if(layer.alphaLocked)"Alpha Locked" else "Alpha Free"),color=Color.LightGray,style=MaterialTheme.typography.labelSmall)
                             }
                             TextButton(onClick={working=working.toMutableList().also{it[index]=layer.copy(name=rename)}}){Text("Rename")}
                             TextButton(onClick={selectedId=layer.id}){Text(if(selectedId==layer.id)"Selected" else "Select")}
                             TextButton(onClick={working=working.toMutableList().also{it[index]=layer.copy(locked=!layer.locked)}}){Text(if(layer.locked)"Unlock" else "Lock")}
+                            TextButton(onClick={working=working.toMutableList().also{it[index]=layer.copy(alphaLocked=!layer.alphaLocked)}}){Text(if(layer.alphaLocked)"Alpha Unlocked" else "Alpha Lock")}
                             Checkbox(checked=layer.visible,onCheckedChange={v->working=working.toMutableList().also{it[index]=layer.copy(visible=v)}})
                         }
                         Row(verticalAlignment=Alignment.CenterVertically) {
