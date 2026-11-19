@@ -32,7 +32,7 @@
 - [ ] Live parameter adjustment layers and preview cache
 
 ## Phase 3 — Non-destructive editing foundation
-- [x] Replayable edit-operation model (Basic Adjust, Levels, Curves, Crop)
+- [x] Replayable edit-operation model (Basic Adjust, Levels, Curves, HSL, Crop and Transform)
 - [x] Enable/disable, replace and remove operations
 - [x] JSON serialization/deserialization and replay tests authored
 - [x] Operation-stack ordering, toggle, replace/remove and clear tests authored (verification pending)
@@ -46,7 +46,7 @@
 - [x] Operation-replay compositor test authored to catch stale rendered bitmap usage (verification pending)
 - [x] Integrate Basic Adjustments, Levels, Curves and HSL parameter callbacks into MainActivity operation stack (verification pending)
 - [ ] Integrate remaining tools, Crop/Transform and full operation history into live editor
-- [ ] Add transform, HSL, selection, retouch, LUT/effect and layer operations to stack
+- [ ] Add selection, retouch, LUT/effect and remaining tool operations to stack
 - [x] Layer-preserving bounded undo/redo snapshots and History panel restore
 - [x] Named operation states save/restore/remove API with regression tests authored (verification pending)
 - [ ] Parameter-level operation history
