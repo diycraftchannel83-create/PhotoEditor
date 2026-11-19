@@ -38,7 +38,8 @@ fun LutScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
         val text=lutText
         if(text!=null)value=withContext(Dispatchers.Default){CubeLut.parse(text).apply(source)}
     }
-    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.recycle()}}\n    Column(Modifier.fillMaxSize().background(Color(0xFF101216))){
+    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.recycle()}}
+    Column(Modifier.fillMaxSize().background(Color(0xFF101216))){
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically){
             Text("LUT Import",Modifier.weight(1f),color=Color.White)
             TextButton(onClick=onCancel){Text("Cancel")}
