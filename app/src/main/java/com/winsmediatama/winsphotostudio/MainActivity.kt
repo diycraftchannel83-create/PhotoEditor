@@ -197,7 +197,7 @@ private fun WinsPhotoApp() {
                 onApply={edited -> commitEdit(edited,current);textShapeOpen=false}
             )
             else if (selectionOpen) SelectionScreen(
-                source=selectedBitmap,
+                source=current,
                 onCancel={selectionOpen=false},
                 onApply={edited -> commitEdit(edited,current,flatten=true);selectionOpen=false}
             )
