@@ -2,8 +2,6 @@ package com.winsmediatama.winsphotostudio.core.storage
 
 import android.graphics.Bitmap
 import android.graphics.Color
-import androidx.test.core.app.ApplicationProvider
-import android.content.Context
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -15,7 +13,7 @@ import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
 @Config(sdk=[28])
 class RecoveryStoreTest {
     @Test fun recoverySnapshotRoundTripsLayerMetadataAndPixels() {
-        val context=ApplicationProvider.getApplicationContext<Context>()
+        val context=org.robolectric.RuntimeEnvironment.getApplication()
         val store=RecoveryStore(context)
         val bitmap=Bitmap.createBitmap(2,2,Bitmap.Config.ARGB_8888);bitmap.eraseColor(Color.GREEN)
         val layer=EditorLayer(name="Recovery test",bitmap=bitmap,opacity=.6f)
