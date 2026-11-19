@@ -24,7 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @Composable
-fun BackgroundReplaceScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
+fun BackgroundReplaceScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,String,Int,Int,String)->Unit) {
     val context=LocalContext.current
     var startColor by remember{mutableStateOf(Color(0xFF77D7C0))}
     var endColor by remember{mutableStateOf(Color(0xFF102A43))}
@@ -47,7 +47,7 @@ fun BackgroundReplaceScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Un
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically){
             Text("Replace Background",Modifier.weight(1f),color=Color.White)
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true))}}){Text("Apply")}
+            Button(enabled=preview!=null,onClick={preview?.let{val photo=imported;val encoded=if(photo!=null&&!gradient)runCatching{val stream=java.io.ByteArrayOutputStream();photo.compress(Bitmap.CompressFormat.PNG,100,stream);android.util.Base64.encodeToString(stream.toByteArray(),android.util.Base64.NO_WRAP)}.getOrDefault("")else "";val mode=if(photo!=null&&!gradient)"photo" else if(gradient)"gradient" else "solid";onApply(it.copy(Bitmap.Config.ARGB_8888,true),mode,startColor.toArgb(),endColor.toArgb(),encoded)}}){Text("Apply")}
         }
         Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D)),contentAlignment=Alignment.Center){
             preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize().padding(8.dp),contentScale=ContentScale.Fit)}?:CircularProgressIndicator()
