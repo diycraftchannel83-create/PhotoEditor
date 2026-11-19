@@ -122,7 +122,7 @@
 - [ ] Unsaved-changes protection
 - [x] Basic Adjustment operation stack is live-integrated and per-layer operation metadata is saved in projects/recovery
 - [x] Levels, Curves and HSL live operation integration and per-layer persistence
-- [ ] Operation stack toggle/reorder UI, parameter editing and full editable-state recovery
+- [x] Operation stack toggle, reorder, remove and reset UI\n- [ ] Parameter editing inside existing operations, full editable-state recovery
 
 ## Phase 11 — Render/export and performance
 - [x] JPEG/PNG export, JPEG quality and background flattening controls
