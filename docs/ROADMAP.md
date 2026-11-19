@@ -18,6 +18,8 @@
 - [x] Perspective correction model and UI
 - [x] Canvas-size processor and independent canvas-size UI with anchors/background
 - [ ] Full crop/transform correctness and undo regression tests (test files authored; verification pending)
+- [x] Source-level repair of Text & Shapes multiline and line-spacing declarations (build deferred)
+- [x] Align non-destructive Transform replay with TransformProcessor API (build deferred)
 - [ ] Integrate full-resolution source/render pipeline (preview currently capped at ~2048px)
 
 ## Phase 2 — Color and tonal editing
@@ -47,7 +49,9 @@
 - [x] Integrate Basic Adjustments, Levels, Curves and HSL parameter callbacks into MainActivity operation stack (verification pending)
 - [x] Crop/Transform screen now returns normalized operation parameters and commits non-destructively as a flattened replayable layer (verification pending)
 - [ ] Integrate remaining tools and full operation history into live editor
+- [x] Filter screen commits selected preset and strength as replayable Basic Adjust operation (source implementation; verification deferred)
 - [ ] Add selection, retouch, LUT/effect and remaining tool operations to stack
+- [x] Filter presets now preserve parameter values in operation stack (source implementation; verification deferred)
 - [x] Layer-preserving bounded undo/redo snapshots and History panel restore
 - [x] Named operation states save/restore/remove API with regression tests authored (verification pending)
 - [ ] Parameter-level operation history
