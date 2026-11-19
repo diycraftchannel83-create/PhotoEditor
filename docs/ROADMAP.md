@@ -42,7 +42,7 @@
 - [x] Add source-preserving operation-session controller with bounded undo/redo, render preview/final and JSON export (controller foundation; UI integration pending)
 - [x] Add LayerOperationRenderer utility to reconstruct replayable layers from preserved source + operation metadata (tests authored; verification pending)
 - [x] Layer compositor now replays operation metadata for individual and grouped layers (regression test authored; verification pending)
-- [ ] Integrate operation stack into the live MainActivity/editor workflow
+- [x] Integrate Basic Adjustments, Levels, Curves and HSL parameter callbacks into MainActivity operation stack (verification pending)\n- [ ] Integrate remaining tools, Crop/Transform and full operation history into live editor
 - [ ] Add transform, HSL, selection, retouch, LUT/effect and layer operations to stack
 - [x] Layer-preserving bounded undo/redo snapshots and History panel restore
 - [ ] Parameter-level operation history and named states
