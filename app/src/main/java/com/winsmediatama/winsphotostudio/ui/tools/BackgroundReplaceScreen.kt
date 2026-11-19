@@ -30,7 +30,8 @@ fun BackgroundReplaceScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Un
     var endColor by remember{mutableStateOf(Color(0xFF102A43))}
     var gradient by remember{mutableStateOf(true)}
     var imported by remember{mutableStateOf<Bitmap?>(null)}
-    var status by remember{mutableStateOf<String?>(null)}\n    val hasTransparency by produceState<Boolean?>(null,source){value=withContext(Dispatchers.IO){detectTransparency(source)}}
+    var status by remember{mutableStateOf<String?>(null)}
+    val hasTransparency by produceState<Boolean?>(null,source){value=withContext(Dispatchers.IO){detectTransparency(source)}}
     val palette=listOf(Color.White,Color.Black,Color(0xFFFF3B30),Color(0xFFFFC107),Color(0xFF00C853),Color(0xFF00B0FF),Color(0xFF7C4DFF),Color(0xFFFF4081),Color(0xFF77D7C0))
     val picker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->
         if(uri!=null)runCatching{context.contentResolver.openInputStream(uri)?.use{stream->val bounds=android.graphics.BitmapFactory.Options().apply{inJustDecodeBounds=true};android.graphics.BitmapFactory.decodeStream(stream,null,bounds);val sample=calculateBackgroundSample(bounds.outWidth,bounds.outHeight,2048);context.contentResolver.openInputStream(uri)?.use{input->android.graphics.BitmapFactory.decodeStream(input,null,android.graphics.BitmapFactory.Options().apply{inSampleSize=sample;inPreferredConfig=Bitmap.Config.ARGB_8888})}}}
@@ -54,7 +55,8 @@ fun BackgroundReplaceScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Un
             Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){FilterChip(selected=gradient,onClick={gradient=true;imported=null},label={Text("Gradient")});FilterChip(selected=!gradient&&imported==null,onClick={gradient=false;imported=null},label={Text("Solid color")});Button(onClick={picker.launch(arrayOf("image/*"))}){Text("Photo")}}
             Text("Start / solid color",color=Color.White);Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){palette.forEach{c->Button(onClick={startColor=c},colors=ButtonDefaults.buttonColors(containerColor=c),modifier=Modifier.size(30.dp),contentPadding=PaddingValues(0.dp)){} }}
             if(gradient){Text("End color",color=Color.White);Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){palette.forEach{c->Button(onClick={endColor=c},colors=ButtonDefaults.buttonColors(containerColor=c),modifier=Modifier.size(30.dp),contentPadding=PaddingValues(0.dp)){} }}}
-            if(hasTransparency==false)Text("Source background is opaque. Remove the background first for a clean replacement.",color=Color(0xFFFFC078),style=MaterialTheme.typography.bodySmall)\n            status?.let{Text(it,color=Color.LightGray)}
+            if(hasTransparency==false)Text("Source background is opaque. Remove the background first for a clean replacement.",color=Color(0xFFFFC078),style=MaterialTheme.typography.bodySmall)
+            status?.let{Text(it,color=Color.LightGray)}
         }
     }
 }
@@ -67,7 +69,13 @@ private fun composeBackground(source:Bitmap,background:Bitmap?,start:Int,end:Int
     return out
 }
 
-private fun detectTransparency(bitmap:Bitmap):Boolean {\n    val stride=(maxOf(bitmap.width,bitmap.height)/128).coerceAtLeast(1)\n    for(y in 0 until bitmap.height step stride)for(x in 0 until bitmap.width step stride)if(android.graphics.Color.alpha(bitmap.getPixel(x,y))<250)return true\n    return false\n}\n\nprivate fun calculateBackgroundSample(width:Int,height:Int,maxDimension:Int):Int {
+private fun detectTransparency(bitmap:Bitmap):Boolean {
+    val stride=(maxOf(bitmap.width,bitmap.height)/128).coerceAtLeast(1)
+    for(y in 0 until bitmap.height step stride)for(x in 0 until bitmap.width step stride)if(android.graphics.Color.alpha(bitmap.getPixel(x,y))<250)return true
+    return false
+}
+
+private fun calculateBackgroundSample(width:Int,height:Int,maxDimension:Int):Int {
     if(width<=0||height<=0)return 1
     var sample=1
     while(width/sample>maxDimension||height/sample>maxDimension)sample*=2
