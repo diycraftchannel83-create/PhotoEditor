@@ -2,6 +2,7 @@ package com.winsmediatama.winsphotostudio
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.BitmapFactory.Options
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -55,7 +56,13 @@ private fun WinsPhotoApp() {
     LaunchedEffect(imageUri) {
         val selected = imageUri ?: return@LaunchedEffect
         bitmap = withContext(Dispatchers.IO) {
-            runCatching { context.contentResolver.openInputStream(selected)?.use { BitmapFactory.decodeStream(it) } }.getOrNull()
+            runCatching {
+                val bounds = Options().apply { inJustDecodeBounds = true }
+                context.contentResolver.openInputStream(selected)?.use { BitmapFactory.decodeStream(it, null, bounds) }
+                val sample = calculateSampleSize(bounds.outWidth, bounds.outHeight, 4096)
+                val decodeOptions = Options().apply { inSampleSize = sample; inPreferredConfig = Bitmap.Config.ARGB_8888 }
+                context.contentResolver.openInputStream(selected)?.use { BitmapFactory.decodeStream(it, null, decodeOptions) }
+            }.getOrNull()
         }
         loading = false
         if (bitmap == null) error = "Unable to open image. Try JPG, PNG or WebP."
@@ -122,4 +129,11 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
             Text("Import and image preview are implemented. Editing tools will be added as functional modules.", color = Color.LightGray, style = MaterialTheme.typography.bodySmall)
         }
     }
+}
+
+private fun calculateSampleSize(width: Int, height: Int, maxDimension: Int): Int {
+    if (width <= 0 || height <= 0) return 1
+    var sample = 1
+    while (width / sample > maxDimension || height / sample > maxDimension) sample *= 2
+    return sample
 }
