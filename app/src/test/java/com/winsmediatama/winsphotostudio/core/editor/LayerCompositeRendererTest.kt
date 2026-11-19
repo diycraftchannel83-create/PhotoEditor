@@ -24,7 +24,13 @@ class LayerCompositeRendererTest {
         assertEquals(Color.RED,result.getPixel(0,0))
         assertEquals(0,Color.alpha(result.getPixel(1,0)))
     }
-    @Test fun clippingUsesBelowLayerOpacity() {\n        val base=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.BLUE)}\n        val top=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.RED)}\n        val result=LayerCompositeRenderer.render(listOf(EditorLayer(name="Base",bitmap=base,opacity=.5f),EditorLayer(name="Clip",bitmap=top,clipToBelow=true)),1,1)\n        assertEquals(191,Color.alpha(result.getPixel(0,0)))\n    }\n    @Test fun groupOpacityIsAppliedToCombinedLayers() {
+    @Test fun clippingUsesBelowLayerOpacity() {
+        val base=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.BLUE)}
+        val top=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.RED)}
+        val result=LayerCompositeRenderer.render(listOf(EditorLayer(name="Base",bitmap=base,opacity=.5f),EditorLayer(name="Clip",bitmap=top,clipToBelow=true)),1,1)
+        assertEquals(191,Color.alpha(result.getPixel(0,0)))
+    }
+    @Test fun groupOpacityIsAppliedToCombinedLayers() {
         val red=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.RED)}
         val blue=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.BLUE)}
         val group="g"
