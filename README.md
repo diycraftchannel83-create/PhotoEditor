@@ -75,8 +75,10 @@ The roadmap below is the source of truth for continuing development. Update chec
 - [ ] Store edit operations/parameters instead of baking every adjustment immediately
 - [ ] Non-destructive crop/transform and tonal adjustment pipeline
 - [ ] True adjustment layers with editable parameters
-- [x] Layer-preserving bounded undo/redo snapshots and History panel\n- [ ] Parameter-level operation history
-- [x] History panel restore and redo support\n- [ ] Named states
+- [x] Layer-preserving bounded undo/redo snapshots and History panel
+- [ ] Parameter-level operation history
+- [x] History panel restore and redo support
+- [ ] Named states
 - [ ] Define rendering pipeline and cache invalidation strategy
 - [ ] Ensure original imported asset remains untouched throughout editing
 - [ ] Add tests for operation serialization, ordering and replay
@@ -123,9 +125,12 @@ The roadmap below is the source of truth for continuing development. Update chec
 ### Phase 7 — Text, shapes & design
 - [x] Basic text and shape overlays
 - [x] Linear and radial gradient layers
-- [x] System font family picker\n- [ ] Font import/management
-- [x] Text editing controls: size, weight, italic, alignment\n- [ ] Tracking and line spacing
-- [x] Text outline and shadow\n- [ ] Text gradient fill
+- [x] System font family picker
+- [ ] Font import/management
+- [x] Text editing controls: size, weight, italic, alignment
+- [ ] Tracking and line spacing
+- [x] Text outline and shadow
+- [ ] Text gradient fill
 - [ ] Shape controls: fill, outline, stroke width, rounded corners
 - [ ] Custom paths and additional shapes
 - [ ] Sticker/overlay asset browser
@@ -158,9 +163,11 @@ The roadmap below is the source of truth for continuing development. Update chec
 - [x] Local project save/open foundation
 - [x] Editable bitmap layer stack and metadata persistence
 - [ ] Save all live adjustment, mask, group and operation parameters
-- [x] Project schema versioning and atomic manifest writes\n- [ ] Full project migration system
+- [x] Project schema versioning and atomic manifest writes
+- [ ] Full project migration system
 - [x] Autosave and recovery snapshots
-- [x] Startup session recovery\n- [ ] Unsaved-changes protection
+- [x] Startup session recovery
+- [ ] Unsaved-changes protection
 - [ ] Recent projects and project management
 - [ ] Duplicate/save-as/rename/delete project flows
 - [ ] Validate missing/corrupt assets and recover gracefully
