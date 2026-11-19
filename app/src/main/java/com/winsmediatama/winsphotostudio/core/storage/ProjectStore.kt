@@ -74,13 +74,13 @@ class ProjectStore(context: Context) {
         val layerArray=JSONArray()
         layers.forEachIndexed { index,layer ->
             val assetPath="assets/layer_${index}.png"
-            File(folder,assetPath).outputStream().use { layer.bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
-            layerArray.put(JSONObject().put("id",layer.id).put("name",layer.name).put("visible",layer.visible).put("opacity",layer.opacity).put("blendMode",layer.blendMode.name).put("locked",layer.locked).put("alphaLocked",layer.alphaLocked).put("groupId",layer.groupId).put("groupName",layer.groupName).put("groupOpacity",layer.groupOpacity).put("clipToBelow",layer.clipToBelow).put("asset",assetPath).apply { layer.mask?.let { maskBitmap -> val maskPath="assets/mask_${index}.png"; File(folder,maskPath).outputStream().use { maskBitmap.compress(Bitmap.CompressFormat.PNG,100,it) }; put("maskAsset",maskPath) } })
+            File(folder,assetPath).outputStream().use { if(!layer.bitmap.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write layer asset $index") }
+            layerArray.put(JSONObject().put("id",layer.id).put("name",layer.name).put("visible",layer.visible).put("opacity",layer.opacity).put("blendMode",layer.blendMode.name).put("locked",layer.locked).put("alphaLocked",layer.alphaLocked).put("groupId",layer.groupId).put("groupName",layer.groupName).put("groupOpacity",layer.groupOpacity).put("clipToBelow",layer.clipToBelow).put("asset",assetPath).apply { layer.mask?.let { maskBitmap -> val maskPath="assets/mask_${index}.png"; File(folder,maskPath).outputStream().use { if(!maskBitmap.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write mask asset $index") }; put("maskAsset",maskPath) } })
         }
         val manifest=JSONObject().put("schemaVersion",3).put("projectId",id).put("name",projectName.trim().ifBlank{"Untitled Project"})
             .put("canvasWidth",canvasWidth).put("canvasHeight",canvasHeight).put("createdAt",System.currentTimeMillis()).put("updatedAt",System.currentTimeMillis())
             .put("selectedLayerId",selectedLayerId).put("layers",layerArray)
-        File(folder,"project.json").writeText(manifest.toString(2))
+        writeManifestAtomically(folder,manifest)
         return folder
     }
 
@@ -114,7 +114,7 @@ class ProjectStore(context: Context) {
         val assets=File(folder,"assets").apply{mkdirs()}
         val sourcePath="assets/original.png"
         File(folder,sourcePath).outputStream().use{source.compress(Bitmap.CompressFormat.PNG,100,it)}
-        File(folder,"operations.json").writeText(operations.toString(2))
+        writeTextAtomically(File(folder,"operations.json"),operations.toString(2))
         val manifest=JSONObject().put("schemaVersion",3).put("projectId",id)
             .put("name",projectName.trim().ifBlank{"Untitled Project"})
             .put("canvasWidth",source.width).put("canvasHeight",source.height)
@@ -137,6 +137,16 @@ class ProjectStore(context: Context) {
             com.winsmediatama.winsphotostudio.core.history.NonDestructiveEditStack.fromJson(original,operations))
     }
 
+    private fun writeManifestAtomically(folder:File,manifest:JSONObject) = writeTextAtomically(File(folder,"project.json"),manifest.toString(2))
+    private fun writeTextAtomically(target:File,text:String) {
+        val temp=File(target.parentFile,target.name+".tmp")
+        val backup=File(target.parentFile,target.name+".bak")
+        temp.writeText(text)
+        backup.delete()
+        if(target.exists()&&!target.renameTo(backup))throw IllegalStateException("Could not backup ${target.name}")
+        if(!temp.renameTo(target)){if(backup.exists())backup.renameTo(target);throw IllegalStateException("Atomic write failed for ${target.name}")}
+        backup.delete()
+    }
     fun listProjects(): List<File> = root.listFiles()?.filter { it.isDirectory && File(it, "project.json").isFile }?.sortedByDescending { File(it, "project.json").lastModified() } ?: emptyList()
 
     fun readManifest(projectFolder: File): JSONObject = JSONObject(File(projectFolder, "project.json").readText())
