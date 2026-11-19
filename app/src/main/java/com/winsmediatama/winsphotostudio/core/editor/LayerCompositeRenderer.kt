@@ -54,12 +54,12 @@ object LayerCompositeRenderer {
             val groupPaint=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply{alpha=(groupOpacity*255).toInt()}
             val clippedGroup=if(layer.clipToBelow&&previousAlpha!=null)ClipAlphaProcessor.apply(groupBitmap,previousAlpha!!)else groupBitmap
             canvas.drawBitmap(clippedGroup,null,dest,groupPaint)
-            val groupAlphaSource=if(groupOpacity<1f)applyAlphaOpacity(groupBitmap,groupOpacity)else groupBitmap
+            val groupAlphaSource=if(groupOpacity<1f)applyAlphaOpacity(clippedGroup,groupOpacity)else clippedGroup
             val nextOwned=true
             if(previousOwned&&previousAlpha!==groupAlphaSource)previousAlpha?.takeUnless{it.isRecycled}?.recycle()
             previousAlpha=groupAlphaSource;previousOwned=nextOwned
-            if(clippedGroup!==groupBitmap&&!clippedGroup.isRecycled)clippedGroup.recycle()
-            if(groupAlphaSource!==groupBitmap&&!groupBitmap.isRecycled)groupBitmap.recycle()
+            if(groupAlphaSource!==clippedGroup&&!groupAlphaSource.isRecycled)clippedGroup.recycle()
+            if(clippedGroup!==groupBitmap&&!groupBitmap.isRecycled)groupBitmap.recycle()
         }
         if(previousOwned)previousAlpha?.takeUnless{it.isRecycled}?.recycle()
         return output
