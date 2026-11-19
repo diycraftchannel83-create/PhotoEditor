@@ -83,7 +83,7 @@ fun CropTransformScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,EditOper
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
             Text("Crop & Transform",Modifier.weight(1f),fontWeight=FontWeight.Bold,color=Color.White)
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true))}}){Text("Apply")}
+            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true),EditOperation.Transform(left=settings.cropLeft,top=settings.cropTop,right=settings.cropRight,bottom=settings.cropBottom,rotationDegrees=settings.rotation.toFloat()+settings.straighten,flipHorizontal=settings.flipH,flipVertical=settings.flipV,outputWidth=settings.outputWidth,outputHeight=settings.outputHeight))}}){Text("Apply")}
         }
         Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D),RoundedCornerShape(12.dp)),contentAlignment=Alignment.Center) {
             preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize().padding(8.dp),contentScale=ContentScale.Fit)}?:CircularProgressIndicator()
