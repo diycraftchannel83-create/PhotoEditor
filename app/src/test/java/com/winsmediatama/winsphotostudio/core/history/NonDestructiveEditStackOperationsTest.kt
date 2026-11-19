@@ -88,4 +88,23 @@ class NonDestructiveEditStackOperationsTest {
         assertEquals(original.id, stack.operations.single().id)
         assertEquals(0.4f, (stack.operations.single() as EditOperation.BasicAdjust).values.brightness, 0.0001f)
     }
+    @Test
+    fun transformOperationSerializesAndReplaysQuarterTurn() {
+        val src=Bitmap.createBitmap(4,2,Bitmap.Config.ARGB_8888).apply{eraseColor(android.graphics.Color.RED)}
+        val operation=EditOperation.Transform(left=0f,top=0f,right=1f,bottom=1f,rotation=90f)
+        val stack=NonDestructiveEditStack(src).apply{append(operation)}
+        val restored=NonDestructiveEditStack.fromJson(src,stack.toJson())
+        assertEquals(operation.id,restored.operations.single().id)
+        assertEquals(2,restored.render().width)
+        assertEquals(4,restored.render().height)
+        src.recycle()
+    }
+
+    @Test
+    fun invalidTransformJsonIsRejected() {
+        val src=source()
+        val json=org.json.JSONArray().put(org.json.JSONObject().put("id","bad-transform").put("type","transform").put("left",.8).put("top",.2).put("right",.3).put("bottom",.9).put("rotation",0))
+        assertTrue(NonDestructiveEditStack.fromJson(src,json).operations.isEmpty())
+        src.recycle()
+    }
 }
