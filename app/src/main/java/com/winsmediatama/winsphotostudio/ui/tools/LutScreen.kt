@@ -29,7 +29,7 @@ fun LutScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
         if(uri!=null){
             error=null
             runCatching{context.contentResolver.openInputStream(uri)?.bufferedReader()?.use{it.readText()} ?: error("Unable to read LUT")}
-                .onSuccess{content->lutText=content;title=uri.lastPathSegment?: "Imported LUT"}
+                .onSuccess{content->runCatching{CubeLut.parse(content)}.onSuccess{lutText=content;title=uri.lastPathSegment?: "Imported LUT"}.onFailure{error=it.message?:"LUT parse failed"}}
                 .onFailure{error=it.message?: "Invalid LUT file"}
         }
     }
@@ -49,7 +49,7 @@ fun LutScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
         }
         Column(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(16.dp)){
             Text(title,color=Color.LightGray)
-            Button(onClick={picker.launch(arrayOf("*/*"))},modifier=Modifier.fillMaxWidth()){Text("Import .cube LUT")}
+            Button(onClick={picker.launch(arrayOf("text/plain","application/octet-stream","*/*"))},modifier=Modifier.fillMaxWidth()){Text("Import .cube LUT")}
             Text("Supports common 1D and 3D .cube files. Processing is offline.",color=Color.LightGray,style=MaterialTheme.typography.bodySmall)
             error?.let{Text(it,color=MaterialTheme.colorScheme.error)}
         }
