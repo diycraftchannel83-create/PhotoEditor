@@ -140,7 +140,8 @@ private fun WinsPhotoApp() {
                 }.getOrNull()
             }
             if(decoded!=null) {
-                val fitted=withContext(Dispatchers.IO){fitBitmapToCanvas(decoded,canvasBitmap.width,canvasBitmap.height)}\n                decoded.recycle()
+                val fitted=withContext(Dispatchers.IO){fitBitmapToCanvas(decoded,canvasBitmap.width,canvasBitmap.height)}
+                decoded.recycle()
                 editHistory=(editHistory+canvasBitmap).takeLast(5)
                 val updated=layers+EditorLayer(name="Photo Layer ${layers.size+1}",bitmap=fitted)
                 val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,canvasBitmap.width,canvasBitmap.height)}
