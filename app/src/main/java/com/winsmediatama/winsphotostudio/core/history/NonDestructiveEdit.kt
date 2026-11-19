@@ -71,7 +71,7 @@ class NonDestructiveEditStack(
     private val mutableOperations = operations.toMutableList()
     val operations: List<EditOperation> get() = mutableOperations.toList()
 
-    fun append(operation: EditOperation) { mutableOperations.add(operation) }
+    fun append(operation: EditOperation) { mutableOperations.add(operation) }\n    fun insert(index:Int,operation:EditOperation){mutableOperations.add(index.coerceIn(0,mutableOperations.size),operation)}\n    fun move(id:String,toIndex:Int):Boolean{val from=mutableOperations.indexOfFirst{it.id==id};if(from<0)return false;val operation=mutableOperations.removeAt(from);mutableOperations.add(toIndex.coerceIn(0,mutableOperations.size),operation);return true}
     fun replace(id: String, operation: EditOperation): Boolean {
         val index = mutableOperations.indexOfFirst { it.id == id }
         if (index < 0) return false
