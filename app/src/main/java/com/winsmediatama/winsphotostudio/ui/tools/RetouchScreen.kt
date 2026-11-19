@@ -50,7 +50,7 @@ fun RetouchScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
                     active=active?.copy(points=active!!.points+Offset(change.position.x/size.width,change.position.y/size.height));change.consume()
                 }
             }) {
-                (strokes+listOfNotNull(active)).forEach { s->if(s.points.size>1) {
+                (strokes+listOfNotNull(active)).forEach { s->if(s.points.size==1) drawCircle(Color(0xFF77D7C0),radius=s.size*size.width/source.width/2f,center=Offset(s.points.first().x*size.width,s.points.first().y*size.height)) else if(s.points.size>1) {
                     val path=Path().apply{moveTo(s.points.first().x*size.width,s.points.first().y*size.height);s.points.drop(1).forEach{lineTo(it.x*size.width,it.y*size.height)}}
                     drawPath(path,Color(0xFF77D7C0),style=Stroke(s.size*size.width/source.width))
                 }}
