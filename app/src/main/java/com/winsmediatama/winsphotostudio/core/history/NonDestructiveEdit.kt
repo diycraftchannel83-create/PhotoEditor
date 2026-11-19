@@ -135,7 +135,15 @@ class NonDestructiveEditStack(
                     "basic" -> ops += EditOperation.BasicAdjust(id, enabled, basicValuesFromJson(values))
                     "levels" -> ops += EditOperation.Levels(id, enabled, levelsFromJson(values))
                     "curves" -> ops += EditOperation.Curves(id, enabled, curvesFromJson(values))
-                    "crop" -> ops += EditOperation.Crop(id, enabled,item.optDouble("left").toFloat(),item.optDouble("top").toFloat(),item.optDouble("right").toFloat(),item.optDouble("bottom").toFloat())
+                    "crop" -> {
+                        val crop = EditOperation.Crop(id, enabled,
+                            item.optDouble("left", Double.NaN).toFloat(),
+                            item.optDouble("top", Double.NaN).toFloat(),
+                            item.optDouble("right", Double.NaN).toFloat(),
+                            item.optDouble("bottom", Double.NaN).toFloat()
+                        )
+                        if (crop.valid()) ops += crop
+                    }
                     "hsl" -> ops += EditOperation.Hsl(id,enabled,hslFromJson(values))
                 }
             }
