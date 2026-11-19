@@ -35,7 +35,7 @@
 - [x] Replayable edit-operation model (Basic Adjust, Levels, Curves, Crop)
 - [x] Enable/disable, replace and remove operations
 - [x] JSON serialization/deserialization and replay tests authored
-- [x] Operation-stack ordering, toggle, replace/remove and clear tests authored (verification pending)
+- [x] Operation-stack ordering, toggle, replace/remove and clear tests authored (verification pending)\n- [x] Invalid crop JSON is rejected safely; operation replacement preserves stable IDs (tests authored, verification pending)
 - [x] Persist original bitmap separately from operation JSON in a project-store foundation
 - [x] Operation-project round-trip tests authored (original preservation, IDs/parameters, disabled ops, crop replay; verification pending)
 - [ ] Integrate operation stack into the live MainActivity/editor workflow
