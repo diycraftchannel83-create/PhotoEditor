@@ -1,84 +1,135 @@
-# WinsPhoto Studio Roadmap
+# WinsPhoto Studio — Roadmap
 
-## Phase 0 — Repository and engineering foundation
-- [x] Repository initialized and architecture documented
-- [x] Android Kotlin/Compose scaffold
-- [x] CI workflow configured (verification intentionally deferred until feature pass completes)
-- [ ] Dependency/license inventory and final audit
+## Current continuation status
 
-## Phase 1 — Editor canvas and transform
-- [x] SAF photo import
-- [x] Preview canvas and pinch zoom/pan
-- [x] Crop presets (Original, Free, 1:1, 4:3, 3:2, 16:9, 9:16)
-- [x] Free crop size and position
-- [x] Rotate 90° increments and flip H/V
-- [x] Resize and transform preview/apply
-- [x] Crop model validation and aspect-ratio unit tests (CI pending)
-- [x] JPEG/PNG export, JPEG quality and transparent-canvas background options
+**Feature implementation pass is ongoing. Build, CI, lint and device verification are intentionally deferred until the user asks to finish the feature pass.** Checkboxes in this document represent implementation presence only unless explicitly labeled verified.
 
-## Phase 2 — Tonal and color tools
-- [x] Adjustment UI and CPU preview renderer
-- [x] Brightness, contrast, exposure, saturation, hue
-- [x] Temperature, tint and RGB balance
-- [x] Highlights, shadows, whites, blacks, vibrance, clarity and sharpen
-- [x] Composite/RGB Levels with input, gamma and output controls
-- [x] Composite and RGB Curves with draggable control points
-- [x] RGB and luminance histogram UI/processor (CI verification pending)
+## Phase 0 — Engineering foundation
+- [x] Android Kotlin/Compose scaffold, SAF import/export, offline-first foundation
+- [x] CI workflow configured
+- [ ] Dependency/license inventory
+- [ ] Build, lint and CI verification (deferred)
+- [ ] Device regression and baseline performance audit (deferred)
 
-## Phase 3 — Layer engine
-- [x] Bitmap layer stack
-- [x] Import photo layer, add transparent layer
-- [x] Duplicate, delete, rename, select and reorder
-- [x] Visibility and opacity
-- [x] Blend modes (Normal, Multiply, Screen, Overlay, Darken, Lighten, Add, Difference)
-- [ ] Groups, layer masks and true adjustment layers
-- [x] Layer PNG assets and metadata project save/open (tool adjustments are baked into layer bitmaps)
+## Phase 1 — Canvas and transform
+- [x] Preview canvas, zoom and pan
+- [x] Crop presets/free crop, rotate 90°, flips, resize preview/apply
+- [x] Arbitrary straighten rotation control
+- [x] Perspective correction model and UI
+- [x] Canvas-size processor and independent canvas-size UI with anchors/background
+- [ ] Full crop/transform correctness and undo regression tests (test files authored; verification pending)
+- [ ] Integrate full-resolution source/render pipeline (preview currently capped at ~2048px)
 
-## Phase 4 — Selections and retouching
+## Phase 2 — Color and tonal editing
+- [x] Basic adjustment processor and UI (brightness, contrast, exposure, saturation, hue, temperature, tint, RGB balance, highlights/shadows, whites/blacks, vibrance, clarity, sharpen)
+- [x] Levels composite/RGB processor and UI
+- [x] Curves composite/RGB processor and UI
+- [x] Selective HSL
+- [x] RGB/luminance histogram processor and UI
+- [x] Unit tests authored for basic adjustment, levels, curves, HSL and histogram (CI verification pending)
+- [ ] Preset parameter editing/reset and color-management consistency
+- [ ] Live parameter adjustment layers and preview cache
+
+## Phase 3 — Non-destructive editing foundation
+- [x] Replayable edit-operation model (Basic Adjust, Levels, Curves, Crop)
+- [x] Enable/disable, replace and remove operations
+- [x] JSON serialization/deserialization and replay tests authored
+- [x] Persist original bitmap separately from operation JSON in a project-store foundation
+- [ ] Integrate operation stack into the live MainActivity/editor workflow
+- [ ] Add transform, HSL, selection, retouch, LUT/effect and layer operations to stack
+- [ ] Operation-level undo/redo, history panel, named states
+- [ ] True live adjustment layers and render-cache invalidation
+
+## Phase 4 — Layers, masks and compositing
+- [x] Bitmap/photo/transparent layers
+- [x] Add, duplicate, delete, rename, select and reorder
+- [x] Visibility, opacity and blend modes
+- [x] Layer lock and alpha-lock state with editor guard/pixel-alpha processor
+- [x] Grayscale layer masks, mask inversion, mask persistence and mask painting UI
+- [x] Group metadata, contiguous grouping UI, group visibility/opacity, group-aware compositor
+- [x] Project and recovery metadata persistence for masks, locks and groups
+- [ ] Nested groups, clipping masks, group blend-mode controls and full layer-stack undo/redo
+- [ ] True adjustment layers, layer effects and group/mask integration with non-destructive history
+
+## Phase 5 — Selection
 - [x] Rectangle and ellipse selection
-- [x] Crop selection and alpha mask selection
-- [x] Brush and eraser with size/color controls
-- [x] Blur and pixelate retouch
-- [x] Clone stamp with source offset
-- [ ] Healing, dodge/burn, advanced mask refinement
+- [x] Polygon selection
+- [x] Color-range selection
+- [x] Contiguous magic-wand selection
+- [x] Crop or alpha-mask output
+- [x] Invert, expand/contract and feather controls
+- [ ] Refine edge, saved selections, copy/cut/paste selection as layers, regression verification
 
-## Phase 5 — AI and background tools
-- [x] Bundled on-device ML Kit person segmentation/background removal
-- [x] Threshold/edge softness controls
-- [x] Color-key background removal with sampling/tolerance/feather
-- [ ] General-object segmentation, subject selection and background replacement
-- [ ] AI object removal/upscale model evaluation
+## Phase 6 — Retouch and paint
+- [x] Brush and eraser UI
+- [x] Blur, pixelate and clone-stamp foundations
+- [x] Spot-heal, dodge/burn and smudge processors (UI integration/verification pending)
+- [ ] Healing/retouch on masks, pressure/hardware support, stabilized strokes, brush presets/hardness/spacing
+- [ ] Validate clone source workflow and high-resolution brush performance
 
-## Phase 6 — Creative tools
-- [x] Text overlay
+## Phase 7 — Typography and design
+- [x] Text and basic shape overlay UI
+- [x] Text bold, italic, alignment, fill/outline and stroke-width controls
 - [x] Rectangle, ellipse and line overlays
-- [x] Filter presets (Vivid, Warm, Cool, Vintage, Cinematic, Soft, Mono, Fade)
-- [x] Linear/radial gradient layers
-- [ ] Fonts, stroke/fill controls, LUT support, layer effects
+- [x] Linear/radial gradients
+- [ ] Font picker/import, tracking, line spacing, text shadows/gradient fill
+- [ ] Custom paths, stickers/assets, transform handles and reusable layer styles
 
-## Phase 7 — Project and production hardening
-- [x] Local project save/open with editable bitmap layers and layer metadata
-- [x] Bounded undo history for applied edits
-- [ ] Live adjustment-layer parameter persistence, masks, groups and operation-level history
-- [ ] Autosave/recovery and crash recovery
-- [ ] Large-image, memory and device compatibility testing
-- [ ] Accessibility and localization
-- [ ] Metadata/export quality audit
-- [ ] **Final build, CI verification, compile fixes and release audit (deferred by request)**
-## Release candidate work — November 2026
+## Phase 8 — Filters and effects
+- [x] Filter presets and strength slider
+- [x] Gaussian blur, motion blur, vignette and grain processors
+- [x] Effects UI integrated into editor
+- [x] Common 1D/3D .cube LUT parser and preview/apply UI
+- [ ] LUT/effects as non-destructive effect layers; additional effect types and processor performance verification
 
-- [x] Investigate latest GitHub Actions compile failure
-- [x] Fix HSL processor missing import
-- [x] Fix ML Kit segmentation result API usage
-- [x] Fix crop/transform slider syntax
-- [x] Fix retouch stroke loop syntax
-- [x] Fix text/shape Compose syntax
-- [x] Add launcher icon vector asset
-- [x] Disable automatic app backup pending privacy/data audit
-- [x] Expand CI to run unit-test task, lint, debug APK and unsigned release APK builds
-- [ ] Verify CI passes and resolve any remaining compile/lint issues
-- [x] Add initial Robolectric tests for HSL identity, alpha preservation and saturation adjustment
-- [ ] Expand automated tests to other image processors and project persistence
-- [ ] Device-level functional regression test
-- [ ] Release signing and Android App Bundle (AAB)
-- [ ] Privacy policy and Play Store declarations
+## Phase 9 — AI and background
+- [x] Color-key background removal
+- [x] Bundled on-device person segmentation/background removal
+- [x] Background replacement UI: solid, gradient and photo
+- [ ] Edge/hair refinement and subject-selection integration
+- [ ] General-object segmentation, object removal and upscaling feasibility/size evaluation
+- [ ] AI job progress, cancel, capability and error UX audit
+
+## Phase 10 — Project, autosave and recovery
+- [x] Project save/open for editable bitmap layer stacks
+- [x] Persist visibility, opacity, blend mode, selected layer, masks, locks and group metadata
+- [x] Original-source plus replayable operation project persistence foundation
+- [x] Private recovery snapshots and startup recovery/discard prompt
+- [ ] Project format versioning/migrations, robust atomic recovery swap, corrupt/missing asset handling
+- [ ] Save-as, duplicate, rename/delete, recent projects, unsaved-changes protection
+- [ ] Operation stack/live adjustment persistence and full editable-state recovery
+
+## Phase 11 — Render/export and performance
+- [x] JPEG/PNG export, JPEG quality and background flattening controls
+- [x] Preview proxy limit to reduce memory pressure
+- [ ] Full-resolution source/render/export path
+- [ ] Tile/region processing, memory-aware caches, background progress and cancellation
+- [ ] Metadata/EXIF policy, color profile consistency and export dimension tests
+- [ ] Benchmark low-RAM devices and large images
+
+## Phase 12 — UX, accessibility and localization
+- [ ] Categorized tool navigation, responsive panels and touch target audit
+- [ ] Before/after, tool reset, consistent apply/cancel, progress/error states
+- [ ] Accessibility labels, focus order, contrast and scalable text
+- [ ] Indonesian and English localization; audit all UI strings
+- [ ] Tablet/landscape layout and external keyboard support
+
+## Phase 13 — Production/release readiness (deferred)
+- [ ] Permissions, SAF and privacy policy audit
+- [ ] Dependency/license/vulnerability inventory
+- [ ] Offline/network behavior audit
+- [ ] Unit/instrumentation/UI regression suite and verification
+- [ ] Android API 26 through current device matrix
+- [ ] Rotation/background/foreground/low-memory/crash tests
+- [ ] CI green: unit tests, lint, debug/release builds
+- [ ] Secure release signing and production AAB
+- [ ] Play Store assets, privacy/data declarations, closed testing and staged rollout
+
+## November 2026 feature-pass notes
+- [x] Fix earlier source-level Compose/Kotlin issues reported by CI (verification not rerun in this pass)
+- [x] Crop model tests added
+- [x] Histogram tests present
+- [x] Non-destructive stack, mask/group/lock models and processors added
+- [x] Selection, retouch, effect, LUT, perspective, canvas-size, background replacement and recovery feature batches added
+- [ ] **No build, CI, lint or test execution during this feature pass by request.**
+- [ ] Source-level audit and final feature integration pass still required before build/CI verification.
