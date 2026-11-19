@@ -210,8 +210,13 @@ private fun WinsPhotoApp() {
             )
             else if (projectsOpen) ProjectScreen(
                 source=current,
+                layers=layers,
+                selectedLayerId=selectedLayerId,
                 onCancel={projectsOpen=false},
-                onOpen={loaded,projectName -> bitmap=loaded;val layer=EditorLayer(name=projectName,bitmap=loaded);layers=listOf(layer);selectedLayerId=layer.id;editHistory=emptyList();projectsOpen=false}
+                onOpen={loadedProject -> projectsOpen=false;scope.launch {
+                    val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(loadedProject.layers,loadedProject.canvasWidth,loadedProject.canvasHeight)}
+                    bitmap=composite;layers=loadedProject.layers;selectedLayerId=loadedProject.selectedLayerId ?: loadedProject.layers.lastOrNull()?.id;editHistory=emptyList()
+                }}
             )
             else if (layersOpen) LayersScreen(
                 layers=layers,
