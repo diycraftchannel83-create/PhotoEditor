@@ -48,7 +48,7 @@
 - [ ] Integrate remaining tools, Crop/Transform and full operation history into live editor
 - [ ] Add transform, HSL, selection, retouch, LUT/effect and layer operations to stack
 - [x] Layer-preserving bounded undo/redo snapshots and History panel restore
-- [ ] Parameter-level operation history and named states
+- [x] Named operation states save/restore/remove API with regression tests authored (verification pending)\n- [ ] Parameter-level operation history
 - [ ] True live adjustment layers and render-cache invalidation
 
 ## Phase 4 — Layers, masks and compositing
