@@ -22,7 +22,7 @@ The roadmap below is the source of truth for continuing development. Update chec
 - Layer manager: add transparent/photo layers, duplicate, rename, visibility, opacity, reorder, blend modes, lock/alpha-lock, contiguous groups/group opacity, clipping-to-below, mask creation/inversion/painting
 - Brush and eraser with size, opacity, hardness and straight-line controls
 - Rectangle, ellipse, polygon, color-range and contiguous magic-wand selections; crop/mask/copy-to-layer/apply-as-layer-mask, invert, expand/contract and feather controls
-- Text and shape overlays with font families, bold/italic/alignment/outline/shadow/rotation, fill/outline shape mode and size controls
+- Text and shape overlays with font families, bold/italic/alignment/outline/shadow/rotation/tracking/line spacing, fill/outline shape mode and size controls
 - Linear/radial gradient layers with angle, color stops and opacity
 - Filter presets with adjustable strength; separate blur, motion blur, vignette and grain effects panel; offline .cube LUT import (1D/3D)
 - Retouch: blur, pixelate, clone stamp, spot-heal, dodge/burn and smudge brush modes (source-level implementation; verification pending)
@@ -129,7 +129,7 @@ The roadmap below is the source of truth for continuing development. Update chec
 - [x] System font family picker
 - [ ] Font import/management
 - [x] Text editing controls: size, weight, italic, alignment
-- [ ] Tracking and line spacing
+- [x] Tracking and line spacing
 - [x] Text outline and shadow
 - [ ] Text gradient fill
 - [ ] Shape controls: fill, outline, stroke width, rounded corners
