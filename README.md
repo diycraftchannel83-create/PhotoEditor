@@ -3,6 +3,12 @@
 Professional, offline-first Android photo editor — Photoshop Mini.
 
 ## Current implementation
+- Project metadata and layer model foundation
+- Command-based undo/redo history foundation
+- Crop/transform/aspect-ratio models
+- Basic adjustment values and CPU reference processor
+- RGB/per-channel Levels data and CPU reference processor
+- Local project asset-copy and JSON manifest storage foundation
 - Android Native scaffold (Kotlin + Jetpack Compose)
 - Home screen
 - Photo import through Android document picker
