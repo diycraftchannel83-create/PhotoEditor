@@ -46,6 +46,26 @@ class NonDestructiveEditStackTest {
         assertTrue(restored.operations[2] is EditOperation.Effect)
         assertEquals(stack.toJson().toString(),restored.toJson().toString())
     }
+    @Test fun lutOperationParsesReplaysAndRoundTrips() {
+        val cube="""TITLE "Identity"
+LUT_3D_SIZE 2
+DOMAIN_MIN 0 0 0
+DOMAIN_MAX 1 1 1
+0 0 0
+0 0 1
+0 1 0
+0 1 1
+1 0 0
+1 0 1
+1 1 0
+1 1 1"""
+        val source=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{setPixel(0,0,Color.RED)}
+        val stack=NonDestructiveEditStack(source).apply{append(EditOperation.Lut(cubeText=cube))}
+        assertEquals(Color.RED,stack.render().getPixel(0,0))
+        val restored=NonDestructiveEditStack.fromJson(source,stack.toJson())
+        assertTrue(restored.operations.first() is EditOperation.Lut)
+        assertEquals(stack.toJson().toString(),restored.toJson().toString())
+    }
     @Test fun transformOperationReplaysAndSerializes() {
         val source=Bitmap.createBitmap(3,2,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.GREEN)}
         val stack=NonDestructiveEditStack(source).apply{append(EditOperation.Transform(rotationDegrees=90f))}
