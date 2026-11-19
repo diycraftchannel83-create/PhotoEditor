@@ -12,7 +12,7 @@ class NonDestructiveEditorSession(source: Bitmap, initialOperations: JSONArray =
     private val original: Bitmap = source.copy(Bitmap.Config.ARGB_8888, false)
     private var stack = NonDestructiveEditStack(original, NonDestructiveEditStack.fromJson(original, initialOperations).operations)
     private val undoStates = ArrayDeque<JSONArray>()
-    private val redoStates = ArrayDeque<JSONArray>()
+    private val redoStates = ArrayDeque<JSONArray>()\n    private val namedStates = linkedMapOf<String, JSONArray>()
 
     init { require(historyLimit >= 1) { "historyLimit must be at least 1" } }
 
@@ -45,7 +45,7 @@ class NonDestructiveEditorSession(source: Bitmap, initialOperations: JSONArray =
         return true
     }
 
-    fun exportOperations(): JSONArray = stack.toJson()
+    fun exportOperations(): JSONArray = stack.toJson()\n\n    /** Save a named operation state. Names are trimmed and must not be blank. */\n    fun saveNamedState(name: String): Boolean {\n        val key = name.trim()\n        if (key.isBlank()) return false\n        namedStates[key] = JSONArray(stack.toJson().toString())\n        return true\n    }\n\n    fun namedStateNames(): List<String> = namedStates.keys.toList()\n\n    /** Restores a saved state as a new history mutation, preserving undo/redo semantics. */\n    fun restoreNamedState(name: String): Boolean {\n        val saved = namedStates[name] ?: return false\n        checkpoint()\n        stack = restore(saved)\n        return true\n    }\n\n    fun removeNamedState(name: String): Boolean = namedStates.remove(name) != null
     fun renderFinal(): Bitmap = renderPreview()
 
     private fun checkpoint() {
