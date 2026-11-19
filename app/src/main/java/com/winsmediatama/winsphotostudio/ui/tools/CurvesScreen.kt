@@ -71,7 +71,7 @@ fun CurvesScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
                     val pos=Offset(pad+p.x*w,pad+(1f-p.y)*h)
                     if(i==0) path.moveTo(pos.x,pos.y) else path.lineTo(pos.x,pos.y)
                 }
-                drawPath(path,Color(0xFF77D7C0),3f)
+                drawPath(path,Color(0xFF77D7C0),style=Stroke(width=3f))
                 current.forEachIndexed { i,p ->
                     val pos=Offset(pad+p.x*w,pad+(1f-p.y)*h)
                     drawCircle(if(i==selected) Color.White else Color(0xFF77D7C0),if(i==selected) 9f else 6f,pos)
