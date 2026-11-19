@@ -4,7 +4,8 @@ import android.graphics.Bitmap
 import android.graphics.Canvas as AndroidCanvas
 import android.graphics.Paint as AndroidPaint
 import android.graphics.PorterDuff
-import android.graphics.PorterDuffXfermode\nimport android.graphics.BlurMaskFilter
+import android.graphics.PorterDuffXfermode
+import android.graphics.BlurMaskFilter
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -30,14 +31,17 @@ fun BrushScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
     var active by remember { mutableStateOf<BrushStroke?>(null) }
     var color by remember { mutableStateOf(Color(0xFFFF3B30)) }
     var erase by remember { mutableStateOf(false) }
-    var brushSize by remember { mutableFloatStateOf(24f) }\n    var opacity by remember{mutableFloatStateOf(1f)}\n    var hardness by remember{mutableFloatStateOf(1f)}\n    var straightLine by remember{mutableStateOf(false)}
+    var brushSize by remember { mutableFloatStateOf(24f) }
+    var opacity by remember{mutableFloatStateOf(1f)}
+    var hardness by remember{mutableFloatStateOf(1f)}
+    var straightLine by remember{mutableStateOf(false)}
     val colors=listOf(Color.White,Color.Black,Color(0xFFFF3B30),Color(0xFFFFC107),Color(0xFF00C853),Color(0xFF00B0FF),Color(0xFF7C4DFF),Color(0xFFFF4081))
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(10.dp)) {
             Text("Brush / Eraser",Modifier.weight(1f),color=Color.White)
             TextButton(onClick={if(strokes.isNotEmpty())strokes=strokes.dropLast(1)}){Text("Undo stroke")}
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(onClick={onApply(renderBrush(source,strokes+listOfNotNull(active)))}){Text("Apply")}
+            Button(onClick={onApply(renderBrush(source,strokes+listOfNotNull(active),straightLine))}){Text("Apply")}
         }
         Canvas(Modifier.weight(1f).fillMaxWidth().aspectRatio(source.width.toFloat()/source.height).padding(12.dp).background(Color(0xFF25282D),RoundedCornerShape(8.dp))
             .pointerInput(source,brushSize,color,erase) {
@@ -63,27 +67,29 @@ fun BrushScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
                 FilterChip(selected=erase,onClick={erase=true},label={Text("Eraser")})
                 Text("Size ${brushSize.toInt()} px",color=Color.LightGray)
             }
-            Slider(value=brushSize,onValueChange={brushSize=it},valueRange=2f..160f)\n            Text("Opacity ${(opacity*100).toInt()}%",color=Color.LightGray);Slider(value=opacity,onValueChange={opacity=it},valueRange=0f..1f)\n            Text("Hardness ${(hardness*100).toInt()}%",color=Color.LightGray);Slider(value=hardness,onValueChange={hardness=it},valueRange=0f..1f)\n            Row(verticalAlignment=androidx.compose.ui.Alignment.CenterVertically){Checkbox(checked=straightLine,onCheckedChange={straightLine=it});Text("Straight line",color=Color.White)}
+            Slider(value=brushSize,onValueChange={brushSize=it},valueRange=2f..160f)
+            Text("Opacity ${(opacity*100).toInt()}%",color=Color.LightGray);Slider(value=opacity,onValueChange={opacity=it},valueRange=0f..1f)
+            Text("Hardness ${(hardness*100).toInt()}%",color=Color.LightGray);Slider(value=hardness,onValueChange={hardness=it},valueRange=0f..1f)
+            Row(verticalAlignment=androidx.compose.ui.Alignment.CenterVertically){Checkbox(checked=straightLine,onCheckedChange={straightLine=it});Text("Straight line",color=Color.White)}
             Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) { colors.forEach { c-> Button(onClick={color=c;erase=false},colors=ButtonDefaults.buttonColors(containerColor=c),modifier=Modifier.size(30.dp),contentPadding=PaddingValues(0.dp)){ } } }
         }
     }
 }
 
-private fun renderBrush(source:Bitmap,strokes:List<BrushStroke>):Bitmap {
-    val out=source.copy(Bitmap.Config.ARGB_8888,true)
-    val canvas=AndroidCanvas(out)
-    strokes.forEach { stroke ->\n        val points=if(stroke.points.size>1&&false)listOf(stroke.points.first(),stroke.points.last())else stroke.points
-        if(stroke.points.isEmpty()) return@forEach
-        val paint=AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
+private fun renderBrush(source:Bitmap,strokes:List<BrushStroke>,straightLine:Boolean):Bitmap {
+    val output=source.copy(Bitmap.Config.ARGB_8888,true)
+    val canvas=AndroidCanvas(output)
+    strokes.forEach{stroke->
+        if(stroke.points.isEmpty())return@forEach
+        val points=if(straightLine&&stroke.points.size>1)listOf(stroke.points.first(),stroke.points.last())else stroke.points
+        val paint=AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply{
             strokeCap=AndroidPaint.Cap.ROUND;strokeJoin=AndroidPaint.Join.ROUND;style=AndroidPaint.Style.STROKE
-            strokeWidth=stroke.size
-            color=stroke.color.toArgb()
-            if(stroke.erase) xfermode=PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+            strokeWidth=stroke.size;color=stroke.color.copy(alpha=stroke.opacity).toArgb()
+            if(stroke.hardness<1f)maskFilter=BlurMaskFilter((1f-stroke.hardness)*stroke.size*.5f,BlurMaskFilter.Blur.NORMAL)
+            if(stroke.erase)xfermode=PorterDuffXfermode(PorterDuff.Mode.CLEAR)
         }
-        val path=android.graphics.Path()
-        path.moveTo(stroke.points.first().x*source.width,stroke.points.first().y*source.height)
-        stroke.points.drop(1).forEach { path.lineTo(it.x*source.width,it.y*source.height) }
-        if(points.size==1) canvas.drawCircle(points.first().x*source.width,points.first().y*source.height,stroke.size/2f,paint)\n        else canvas.drawPath(path,paint)
+        if(points.size==1)canvas.drawCircle(points.first().x*source.width,points.first().y*source.height,stroke.size/2f,paint)
+        else {val path=android.graphics.Path().apply{moveTo(points.first().x*source.width,points.first().y*source.height);points.drop(1).forEach{lineTo(it.x*source.width,it.y*source.height)}};canvas.drawPath(path,paint)}
     }
-    return out
+    return output
 }
