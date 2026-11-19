@@ -39,7 +39,7 @@ object LayerTreeRenderer {
         nodes.forEach { node ->
             if(!node.visible || node.opacity<=0f) return@forEach
             val rendered=when(node){
-                is LayerNode.BitmapNode -> LayerCompositeRenderer.render(listOf(node.layer.copy(visible=true,opacity=node.opacity)),w,h)
+                is LayerNode.BitmapNode -> LayerCompositeRenderer.render(listOf(node.layer.copy(visible=true,opacity=1f)),w,h)
                 is LayerNode.GroupNode -> render(node.children,w,h)
             }
             paint.alpha=(node.opacity.coerceIn(0f,1f)*255f).toInt()
