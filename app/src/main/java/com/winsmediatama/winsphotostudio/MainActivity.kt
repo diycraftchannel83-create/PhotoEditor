@@ -54,6 +54,7 @@ import com.winsmediatama.winsphotostudio.ui.tools.BackgroundRemoveScreen
 import com.winsmediatama.winsphotostudio.ui.tools.AiBackgroundRemoveScreen
 import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
 import com.winsmediatama.winsphotostudio.core.editor.LayerCompositeRenderer
+import com.winsmediatama.winsphotostudio.core.storage.RecoveryStore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -105,6 +106,7 @@ private fun WinsPhotoApp() {
     val context = androidx.compose.ui.platform.LocalContext.current
     var editHistory by remember { mutableStateOf<List<Bitmap>>(emptyList()) }
     var redoHistory by remember { mutableStateOf<List<Bitmap>>(emptyList()) }
+    var recoveryCandidate by remember { mutableStateOf<RecoveryStore.Recovered?>(null) }
     fun commitEdit(edited:Bitmap,previousComposite:Bitmap,flatten:Boolean=false) {
         editHistory=(editHistory+previousComposite).takeLast(5);redoHistory=emptyList()
         val selected=layers.firstOrNull{it.id==selectedLayerId}
@@ -163,6 +165,15 @@ private fun WinsPhotoApp() {
     }
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) { imageUri = uri; loading = true; error = null; editHistory=emptyList();redoHistory=emptyList() }
+    }
+    LaunchedEffect(Unit) {
+        recoveryCandidate=withContext(Dispatchers.IO){RecoveryStore(context).recover()}
+    }
+    LaunchedEffect(bitmap,layers,selectedLayerId) {
+        val snapshot=bitmap
+        if(snapshot!=null && layers.isNotEmpty()) {
+            withContext(Dispatchers.IO){runCatching{RecoveryStore(context).save(layers,selectedLayerId,snapshot.width,snapshot.height)}}
+        }
     }
     LaunchedEffect(imageUri) {
         val selected = imageUri ?: return@LaunchedEffect
@@ -337,6 +348,22 @@ private fun WinsPhotoApp() {
                 }){Text("Export")}},
                 dismissButton={TextButton(onClick={exportDialogOpen=false}){Text("Cancel")}}
             )
+            recoveryCandidate?.let { recovered ->
+                if(current==null) AlertDialog(
+                    onDismissRequest={recoveryCandidate=null},
+                    title={Text("Recover previous session?")},
+                    text={Text("A previous editing session was autosaved. Restore ${recovered.layers.size} layer(s)?")},
+                    confirmButton={TextButton(onClick={
+                        recoveryCandidate=null
+                        scope.launch {
+                            val restored=recovered.layers
+                            val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(restored,recovered.canvasWidth,recovered.canvasHeight)}
+                            bitmap=composite;layers=restored;selectedLayerId=recovered.selectedLayerId ?: restored.lastOrNull()?.id;editHistory=emptyList();redoHistory=emptyList()
+                        }
+                    }){Text("Restore")}},
+                    dismissButton={TextButton(onClick={recoveryCandidate=null;scope.launch(Dispatchers.IO){RecoveryStore(context).clear()}}){Text("Discard")}}
+                )
+            }
             exportStatus?.let { status-> AlertDialog(onDismissRequest={exportStatus=null},title={Text("Export")},text={Text(status)},confirmButton={TextButton(onClick={exportStatus=null}){Text("OK")}}) }
         }
     }
