@@ -101,7 +101,7 @@ fun CropTransformScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) 
         }
         Row(Modifier.fillMaxWidth().padding(horizontal=12.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
             Column(Modifier.weight(1f)){Text("Horizontal position",color=Color.LightGray,style=MaterialTheme.typography.labelSmall);Slider(value=centerX,onValueChange={v->val w=settings.cropRight-settings.cropLeft;updateCrop((v-w/2).coerceIn(0f,1f-w),settings.cropTop,(v+w/2).coerceIn(w,1f),settings.cropBottom)},valueRange=0f..1f)}
-            Column(Modifier.weight(1f)){Text("Vertical position",color=Color.LightGray,style=MaterialTheme.typography.labelSmall);Slider(value=centerY,onValueChange={v->val h=settings.cropBottom-settings.cropTop;updateCrop(settings.cropLeft,(v-h/2).coerceIn(0f,1f-h),settings.cropRight,(v+h/2).coerceIn(h,1f),settings.cropBottom)},valueRange=0f..1f)}
+            Column(Modifier.weight(1f)){Text("Vertical position",color=Color.LightGray,style=MaterialTheme.typography.labelSmall);Slider(value=centerY,onValueChange={v->val h=settings.cropBottom-settings.cropTop;updateCrop(settings.cropLeft,(v-h/2).coerceIn(0f,1f-h),settings.cropRight,(v+h/2).coerceIn(h,1f))},valueRange=0f..1f)}
         }
         Row(Modifier.fillMaxWidth().padding(horizontal=12.dp),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
             OutlinedButton(onClick={rotate(-90)},modifier=Modifier.weight(1f)){Text("↶ 90°")}
