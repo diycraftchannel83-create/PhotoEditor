@@ -53,7 +53,7 @@ fun BrushScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
             (strokes+listOfNotNull(active)).forEach { s->
                 if(s.points.isNotEmpty()) {
                     val path=Path().apply { moveTo(s.points.first().x*size.width,s.points.first().y*size.height);s.points.drop(1).forEach{lineTo(it.x*size.width,it.y*size.height)} }
-                    drawPath(path,if(s.erase) Color.Transparent else s.color,style=Stroke(width=s.size*size.width/source.width,cap=androidx.compose.ui.graphics.StrokeCap.Round,join=androidx.compose.ui.graphics.StrokeJoin.Round),blendMode=if(s.erase) androidx.compose.ui.graphics.BlendMode.Clear else androidx.compose.ui.graphics.BlendMode.SrcOver)
+                    if(s.points.size==1) drawCircle(if(s.erase) Color.Transparent else s.color,radius=s.size*size.width/source.width/2f,center=Offset(s.points.first().x*size.width,s.points.first().y*size.height),blendMode=if(s.erase) androidx.compose.ui.graphics.BlendMode.Clear else androidx.compose.ui.graphics.BlendMode.SrcOver) else drawPath(path,if(s.erase) Color.Transparent else s.color,style=Stroke(width=s.size*size.width/source.width,cap=androidx.compose.ui.graphics.StrokeCap.Round,join=androidx.compose.ui.graphics.StrokeJoin.Round),blendMode=if(s.erase) androidx.compose.ui.graphics.BlendMode.Clear else androidx.compose.ui.graphics.BlendMode.SrcOver)
                 }
             }
         }
