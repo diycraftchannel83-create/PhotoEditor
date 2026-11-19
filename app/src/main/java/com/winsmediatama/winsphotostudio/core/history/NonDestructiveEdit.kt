@@ -18,6 +18,7 @@ import com.winsmediatama.winsphotostudio.core.adjustments.HslProcessor
 import com.winsmediatama.winsphotostudio.core.adjustments.TransformProcessor
 import com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectSettings
 import com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectKind
+import com.winsmediatama.winsphotostudio.core.adjustments.CubeLut
 
 /**
  * Serializable, replayable edit stack. Operations retain parameters rather than requiring
@@ -83,6 +84,15 @@ sealed interface EditOperation {
         override val label="Effect: ${settings.kind.name.lowercase()}"
         override fun toJson()=JSONObject().put("id",id).put("type","effect").put("enabled",enabled).put("kind",settings.kind.name).put("strength",settings.strength).put("angleDegrees",settings.angleDegrees)
     }
+    data class Lut(
+        override val id:String=java.util.UUID.randomUUID().toString(),
+        override val enabled:Boolean=true,
+        val cubeText:String
+    ):EditOperation {
+        override val label="LUT"
+        fun valid():Boolean=cubeText.isNotBlank() && cubeText.length<=2_000_000 && runCatching{CubeLut.parse(cubeText)}.isSuccess
+        override fun toJson()=JSONObject().put("id",id).put("type","lut").put("enabled",enabled).put("cubeText",cubeText)
+    }
     data class Crop(
         override val id: String = java.util.UUID.randomUUID().toString(),
         override val enabled: Boolean = true,
@@ -116,6 +126,7 @@ class NonDestructiveEditStack(
             is EditOperation.Hsl -> operation.copy(id = id)
             is EditOperation.Transform -> operation.copy(id=id)
             is EditOperation.Effect -> operation.copy(id=id)
+            is EditOperation.Lut -> operation.copy(id=id)
         }
         return true
     }
@@ -130,6 +141,7 @@ class NonDestructiveEditStack(
             is EditOperation.Hsl -> old.copy(enabled = enabled)
             is EditOperation.Transform -> old.copy(enabled=enabled)
             is EditOperation.Effect -> old.copy(enabled=enabled)
+            is EditOperation.Lut -> old.copy(enabled=enabled)
         }
         return true
     }
@@ -148,6 +160,7 @@ class NonDestructiveEditStack(
                 is EditOperation.Hsl -> HslProcessor.apply(current,operation.values)
                 is EditOperation.Transform -> TransformProcessor.apply(current,operation.left,operation.top,operation.right,operation.bottom,operation.rotationDegrees,operation.flipHorizontal,operation.flipVertical,operation.outputWidth,operation.outputHeight)
                 is EditOperation.Effect -> operation.settings.apply(current)
+                is EditOperation.Lut -> CubeLut.parse(operation.cubeText).apply(current)
             }
             if (next !== current && !current.isRecycled) current.recycle()
             current = next
@@ -179,6 +192,7 @@ class NonDestructiveEditStack(
                         if (crop.valid()) ops += crop
                     }
                     "hsl" -> ops += EditOperation.Hsl(id,enabled,hslFromJson(values))
+                    "lut" -> { val op=EditOperation.Lut(id,enabled,item.optString("cubeText",""));if(op.valid())ops+=op }
                     "effect" -> { val kind=runCatching{com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectKind.valueOf(item.optString("kind"))}.getOrNull(); if(kind!=null){val settings=PhotoEffectSettings(kind,item.optDouble("strength",.5).toFloat(),item.optDouble("angleDegrees",45.0).toFloat());if(settings.valid())ops+=EditOperation.Effect(id,enabled,settings)} }
                     "transform" -> { val op=EditOperation.Transform(id,enabled,item.optDouble("left",0.0).toFloat(),item.optDouble("top",0.0).toFloat(),item.optDouble("right",1.0).toFloat(),item.optDouble("bottom",1.0).toFloat(),item.optDouble("rotationDegrees",0.0).toFloat(),item.optBoolean("flipHorizontal",false),item.optBoolean("flipVertical",false),item.optInt("outputWidth",0),item.optInt("outputHeight",0));if(op.valid())ops+=op }
                 }
