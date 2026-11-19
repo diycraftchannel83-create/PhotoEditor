@@ -44,7 +44,7 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
             Spacer(Modifier.width(8.dp))
             SelectionAction.entries.forEach { a->FilterChip(selected=action==a,onClick={action=a},label={Text(if(a==SelectionAction.CROP)"Crop" else "Mask")}) }
         }
-        Canvas(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D))
+        Canvas(Modifier.weight(1f).fillMaxWidth().aspectRatio(source.width.toFloat()/source.height).padding(12.dp).background(Color(0xFF25282D))
             .pointerInput(shape) {
                 detectDragGestures(onDragStart={start->dragStart=Offset(start.x/size.width,start.y/size.height);rect=Rect(dragStart!!,dragStart!!)},onDragEnd={dragStart=null}) { change,_->
                     val start=dragStart ?: return@detectDragGestures
