@@ -2,7 +2,8 @@ package com.winsmediatama.winsphotostudio.core.tools
 
 import android.graphics.Bitmap
 
-fun RetouchRenderer.render(source:Bitmap,strokes:List<RetouchStroke>,strength:Float,offsetX:Float,offsetY:Float):Bitmap {
+object RetouchRenderer {
+    fun render(source:Bitmap,strokes:List<RetouchStroke>,strength:Float,offsetX:Float,offsetY:Float):Bitmap {
     if(strokes.isEmpty())return source
     val w=source.width;val h=source.height
     val base=IntArray(w*h);source.getPixels(base,0,w,0,0,w,h)
@@ -79,4 +80,6 @@ private fun pixelate(p:IntArray,w:Int,h:Int,block:Int):IntArray {
         for(y in by until (by+block).coerceAtMost(h))for(x in bx until (bx+block).coerceAtMost(w))out[y*w+x]=(p[y*w+x] and -0x1000000) or avg
     }
     return out
+    }
+
 }
