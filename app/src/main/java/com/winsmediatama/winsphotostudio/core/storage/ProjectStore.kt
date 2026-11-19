@@ -6,10 +6,14 @@ import android.net.Uri
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
-import java.util.UUID\nimport com.winsmediatama.winsphotostudio.core.editor.EditorLayer\nimport com.winsmediatama.winsphotostudio.core.editor.EditorBlendMode
+import java.util.UUID
+import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
+import com.winsmediatama.winsphotostudio.core.editor.EditorBlendMode
 
 /** Local project persistence. Assets are copied into the app-owned project folder; originals are untouched. */
-data class LoadedStudioProject(val name:String,val canvasWidth:Int,val canvasHeight:Int,val layers:List<EditorLayer>,val selectedLayerId:String?)\n\nclass ProjectStore(context: Context) {
+data class LoadedStudioProject(val name:String,val canvasWidth:Int,val canvasHeight:Int,val layers:List<EditorLayer>,val selectedLayerId:String?)
+
+class ProjectStore(context: Context) {
     private val root = File(context.filesDir, "studio-projects").apply { mkdirs() }
 
     fun createProjectFromUri(context: Context, uri: Uri, projectName: String, width: Int, height: Int): File {
@@ -89,7 +93,7 @@ data class LoadedStudioProject(val name:String,val canvasWidth:Int,val canvasHei
         val layers=mutableListOf<EditorLayer>()
         if(array!=null) for(i in 0 until array.length()) {
             val item=array.optJSONObject(i) ?: continue
-            val asset=item.optString("asset",manifest.optString("snapshotAsset",""))
+            val asset=item.optString("asset",manifest.optString("snapshotAsset",manifest.optString("sourceAsset","")))
             if(asset.isBlank()) continue
             val bitmap=android.graphics.BitmapFactory.decodeFile(File(projectFolder,asset).absolutePath) ?: continue
             val mode=runCatching{EditorBlendMode.valueOf(item.optString("blendMode","NORMAL"))}.getOrDefault(EditorBlendMode.NORMAL)
