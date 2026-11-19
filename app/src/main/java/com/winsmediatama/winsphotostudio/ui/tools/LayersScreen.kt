@@ -49,7 +49,8 @@ fun LayersScreen(
             itemsIndexed(working.asReversed(),key={_,l->l.id}) { reverseIndex, layer ->
                 val index=working.lastIndex-reverseIndex
                 var rename by remember(layer.id){mutableStateOf(layer.name)}
-                var blendMenu by remember(layer.id){mutableStateOf(false)}\n                var groupBlendMenu by remember(layer.id){mutableStateOf(false)}
+                var blendMenu by remember(layer.id){mutableStateOf(false)}
+                var groupBlendMenu by remember(layer.id){mutableStateOf(false)}
                 Card(colors=CardDefaults.cardColors(containerColor=if(selectedId==layer.id)Color(0xFF263B38) else Color(0xFF20242A))) {
                     Column(Modifier.fillMaxWidth().padding(10.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) {
                         Row(verticalAlignment=Alignment.CenterVertically) {
