@@ -74,28 +74,35 @@ object SelectionMaskProcessor {
         for(i in pixels.indices){val v=Color.red(pixels[i]);pixels[i]=Color.argb(Color.alpha(pixels[i]),255-v,255-v,255-v)}
         return Bitmap.createBitmap(mask.width,mask.height,Bitmap.Config.ARGB_8888).apply{setPixels(pixels,0,mask.width,0,0,mask.width,mask.height)}
     }
-    /** Radius-based square morphology: positive expands selection, negative contracts it. */
+    /** Radius-based square morphology using separable passes for predictable O(radius * pixels) cost. */
     fun expandContract(mask:Bitmap,radius:Int):Bitmap {
         if(radius==0)return mask.copy(Bitmap.Config.ARGB_8888,true)
         val w=mask.width;val h=mask.height;val src=IntArray(w*h);mask.getPixels(src,0,w,0,0,w,h)
-        val out=IntArray(w*h);val r=radius.coerceIn(-64,64);val dilate=r>0;val size=kotlin.math.abs(r)
-        for(y in 0 until h)for(x in 0 until w){var selected=if(dilate)false else true
-            loop@for(dy in -size..size)for(dx in -size..size){val nx=x+dx;val ny=y+dy
-                val value=if(nx in 0 until w && ny in 0 until h)Color.red(src[ny*w+nx])>=128 else false
-                if(dilate&&value){selected=true;break@loop}
-                if(!dilate&&!value){selected=false;break@loop}
-            }
-            out[y*w+x]=if(selected)Color.WHITE else Color.BLACK
+        val r=radius.coerceIn(-64,64);val dilate=r>0;val size=kotlin.math.abs(r)
+        val horizontal=IntArray(w*h);val out=IntArray(w*h)
+        for(y in 0 until h)for(x in 0 until w){
+            var value=if(dilate)0 else 255
+            for(dx in -size..size){val nx=x+dx;val selected=nx in 0 until w && Color.red(src[y*w+nx])>=128
+                if(dilate&&selected){value=255;break};if(!dilate&&!selected){value=0;break}}
+            horizontal[y*w+x]=value
+        }
+        for(y in 0 until h)for(x in 0 until w){
+            var value=if(dilate)0 else 255
+            for(dy in -size..size){val ny=y+dy;val selected=ny in 0 until h && horizontal[ny*w+x]>=128
+                if(dilate&&selected){value=255;break};if(!dilate&&!selected){value=0;break}}
+            out[y*w+x]=Color.rgb(value,value,value)
         }
         return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(out,0,w,0,0,w,h)}
     }
-    /** Fast box blur feathering with edge clamping; radius is capped for predictable preview cost. */
+    /** Sliding-window box blur with clamped borders, linear-time feathering. */
     fun feather(mask:Bitmap,radius:Int):Bitmap {
         val r=radius.coerceIn(0,32);if(r==0)return mask.copy(Bitmap.Config.ARGB_8888,true)
         val w=mask.width;val h=mask.height;val src=IntArray(w*h);mask.getPixels(src,0,w,0,0,w,h)
-        val temp=IntArray(w*h);val out=IntArray(w*h)
-        for(y in 0 until h)for(x in 0 until w){var sum=0;var count=0;for(dx in -r..r){sum+=Color.red(src[y*w+(x+dx).coerceIn(0,w-1)]);count++};temp[y*w+x]=sum/count}
-        for(y in 0 until h)for(x in 0 until w){var sum=0;var count=0;for(dy in -r..r){sum+=temp[(y+dy).coerceIn(0,h-1)*w+x];count++};val v=sum/count;out[y*w+x]=Color.rgb(v,v,v)}
+        val temp=IntArray(w*h);val out=IntArray(w*h);val window=2*r+1
+        for(y in 0 until h){var sum=0;for(dx in -r..r)sum+=Color.red(src[y*w+dx.coerceIn(0,w-1)])
+            for(x in 0 until w){temp[y*w+x]=sum/window;sum-=Color.red(src[y*w+(x-r).coerceIn(0,w-1)]);sum+=Color.red(src[y*w+(x+r+1).coerceIn(0,w-1)]}}
+        for(x in 0 until w){var sum=0;for(dy in -r..r)sum+=temp[dy.coerceIn(0,h-1)*w+x]
+            for(y in 0 until h){val v=sum/window;out[y*w+x]=Color.rgb(v,v,v);sum-=temp[(y-r).coerceIn(0,h-1)*w+x];sum+=temp[(y+r+1).coerceIn(0,h-1)*w+x]}}
         return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(out,0,w,0,0,w,h)}
     }
 }
