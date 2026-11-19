@@ -5,6 +5,9 @@ import android.graphics.Canvas as AndroidCanvas
 import android.graphics.Paint as AndroidPaint
 import android.graphics.RectF
 import android.graphics.Typeface
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -27,6 +30,13 @@ private enum class OverlayKind(val title:String) { TEXT("Text"), RECTANGLE("Rect
 fun TextShapeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
     var kind by remember{mutableStateOf(OverlayKind.TEXT)}
     var text by remember{mutableStateOf("WinsPhoto Studio")}
+    val context=LocalContext.current
+    var textImportMessage by remember{mutableStateOf<String?>(null)}
+    val textFilePicker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->
+        if(uri!=null)runCatching{context.contentResolver.openInputStream(uri)?.bufferedReader()?.use{it.readText()}}
+            .onSuccess{loaded->if(loaded!=null){text=loaded;textImportMessage="Text imported"}else textImportMessage="Could not read text file"}
+            .onFailure{textImportMessage=it.message}
+    }
     var overlayColor by remember{mutableStateOf(Color.White)}
     var outlineColor by remember{mutableStateOf(Color.Black)}
     var fontSize by remember{mutableFloatStateOf(72f)}
@@ -84,6 +94,7 @@ fun TextShapeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
             Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(4.dp)){OverlayKind.entries.forEach{k->FilterChip(selected=kind==k,onClick={kind=k},label={Text(k.title)})}}
             if(kind==OverlayKind.TEXT){
                 OutlinedTextField(value=text,onValueChange={text=it},label={Text("Text")},modifier=Modifier.fillMaxWidth())
+                Row(verticalAlignment=androidx.compose.ui.Alignment.CenterVertically){TextButton(onClick={textFilePicker.launch(arrayOf("text/plain","text/*"))}){Text("Import text file")};textImportMessage?.let{Text(it,color=Color.LightGray,style=MaterialTheme.typography.labelSmall)}}
                 Row(verticalAlignment=androidx.compose.ui.Alignment.CenterVertically){Text("Font: $fontFamily",Modifier.weight(1f),color=Color.LightGray);TextButton(onClick={fontMenu=true}){Text("Choose")};DropdownMenu(expanded=fontMenu,onDismissRequest={fontMenu=false}){listOf("sans-serif","serif","monospace","sans-serif-condensed","sans-serif-light","sans-serif-medium","cursive","casual").forEach{family->DropdownMenuItem(text={Text(family)},onClick={fontFamily=family;fontMenu=false})}}}
                 Row(verticalAlignment=androidx.compose.ui.Alignment.CenterVertically){Checkbox(checked=bold,onCheckedChange={bold=it});Text("Bold",color=Color.White);Checkbox(checked=italic,onCheckedChange={italic=it});Text("Italic",color=Color.White);Checkbox(checked=outline,onCheckedChange={outline=it});Text("Outline",color=Color.White)}
                 Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(4.dp)){TextAlignment.entries.forEach{a->FilterChip(selected=alignment==a,onClick={alignment=a},label={Text(a.name)})}}
