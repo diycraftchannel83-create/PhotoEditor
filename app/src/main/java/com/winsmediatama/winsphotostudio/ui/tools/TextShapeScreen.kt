@@ -50,7 +50,6 @@ fun TextShapeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
                 }
             }
         }
-        }
         Column(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp)) {
             Row(horizontalArrangement=Arrangement.spacedBy(4.dp)) { OverlayKind.entries.forEach{k->FilterChip(selected=kind==k,onClick={kind=k},label={Text(k.title)})} }
             if(kind==OverlayKind.TEXT) OutlinedTextField(value=text,onValueChange={text=it},label={Text("Text")},modifier=Modifier.fillMaxWidth())
