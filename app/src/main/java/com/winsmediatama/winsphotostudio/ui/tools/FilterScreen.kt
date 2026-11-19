@@ -35,7 +35,7 @@ private val filters=listOf(
 @Composable
 fun FilterScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
     var selected by remember { mutableStateOf(filters.first()) }
-    val preview by produceState<Bitmap?>(null,source,selected) { value=withContext(Dispatchers.IO){BasicAdjustmentProcessor.apply(source,selected.values)} }
+    val preview by produceState<Bitmap?>(null,source,selected) { value=null; value=withContext(Dispatchers.IO){BasicAdjustmentProcessor.apply(source,selected.values)} }
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
             Text("Filters",Modifier.weight(1f),color=Color.White)
