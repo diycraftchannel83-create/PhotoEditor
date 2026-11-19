@@ -27,7 +27,7 @@ import com.winsmediatama.winsphotostudio.core.tools.RetouchStroke
 import com.winsmediatama.winsphotostudio.core.tools.RetouchRenderer
 
 @Composable
-fun RetouchScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
+fun RetouchScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,List<RetouchStroke>,Float,Float,Float)->Unit) {
     var mode by remember { mutableStateOf(RetouchMode.BLUR) }
     var strokes by remember { mutableStateOf<List<RetouchStroke>>(emptyList()) }
     var active by remember { mutableStateOf<RetouchStroke?>(null) }
@@ -46,7 +46,7 @@ fun RetouchScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
             TextButton(onClick={if(strokes.isNotEmpty())strokes=strokes.dropLast(1)}){Text("Undo stroke")}
             TextButton(onClick={strokes=emptyList();active=null},enabled=strokes.isNotEmpty()||active!=null){Text("Clear")}
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true))}}){Text("Apply")}
+            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true),strokes+listOfNotNull(active),strength,offsetX,offsetY)}}){Text("Apply")}
         }
         Box(Modifier.weight(1f).fillMaxWidth().aspectRatio(source.width.toFloat()/source.height).padding(12.dp).background(Color(0xFF25282D))) {
             preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize())}
