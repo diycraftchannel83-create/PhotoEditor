@@ -32,12 +32,15 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
     var seedPoint by remember{mutableStateOf(0f to 0f)}
     var tolerance by remember{mutableFloatStateOf(.15f)}
     var softness by remember{mutableFloatStateOf(.1f)}
+    var featherRadius by remember{mutableFloatStateOf(0f)}
+    var expandRadius by remember{mutableFloatStateOf(0f)}
+    var invertSelection by remember{mutableStateOf(false)}
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))){
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(10.dp)){
             Text("Selection",Modifier.weight(1f),color=Color.White)
             TextButton(onClick={rect=Rect(0f,0f,1f,1f);polygonPoints=emptyList()}){Text("Select all")}
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(enabled=shape!=SelectionShape.POLYGON||polygonPoints.size>=3,onClick={onApply(renderSelection(source,rect,shape,action,polygonPoints,sampleColor,tolerance,softness,seedPoint))}){Text("Apply")}
+            Button(enabled=shape!=SelectionShape.POLYGON||polygonPoints.size>=3,onClick={onApply(renderSelection(source,rect,shape,action,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection))}){Text("Apply")}
         }
         Row(Modifier.fillMaxWidth().padding(8.dp),horizontalArrangement=Arrangement.spacedBy(4.dp)){
             SelectionShape.entries.forEach{s->FilterChip(selected=shape==s,onClick={shape=s},label={Text(s.name.replace("_"," "))})}
@@ -72,6 +75,9 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
         }
         if(shape==SelectionShape.POLYGON){Text("Points: ${polygonPoints.size}",color=Color.LightGray);Button(onClick={polygonPoints=emptyList()}){Text("Clear polygon")}}
         if(shape==SelectionShape.COLOR_RANGE||shape==SelectionShape.MAGIC_WAND){Text(if(shape==SelectionShape.MAGIC_WAND)"Tap seed pixel for contiguous selection" else "Tap image to sample color",color=Color.LightGray);Text("Tolerance ${(tolerance*100).toInt()}%",color=Color.LightGray);Slider(value=tolerance,onValueChange={tolerance=it},valueRange=0f..1f);if(shape==SelectionShape.COLOR_RANGE){Text("Feather ${(softness*100).toInt()}%",color=Color.LightGray);Slider(value=softness,onValueChange={softness=it},valueRange=0f..1f)}}
+        Row(verticalAlignment=androidx.compose.ui.Alignment.CenterVertically){Checkbox(checked=invertSelection,onCheckedChange={invertSelection=it});Text("Invert selection",color=Color.White)}
+        Text("Expand / contract ${expandRadius.toInt()} px",color=Color.LightGray);Slider(value=expandRadius,onValueChange={expandRadius=it},valueRange=-32f..32f)
+        Text("Feather ${featherRadius.toInt()} px",color=Color.LightGray);Slider(value=featherRadius,onValueChange={featherRadius=it},valueRange=0f..32f)
         Text("Rectangle/ellipse: drag. Polygon: tap points. Color range/magic wand: tap a sample. Crop or mask.",color=Color.LightGray,modifier=Modifier.padding(12.dp),style=MaterialTheme.typography.bodySmall)
     }
 }
@@ -79,7 +85,7 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
 private fun Rect.normalize()=Rect(minOf(left,right),minOf(top,bottom),maxOf(left,right),maxOf(top,bottom))
 private fun Rect.clampUnit()=Rect(left.coerceIn(0f,1f),top.coerceIn(0f,1f),right.coerceIn(0f,1f),bottom.coerceIn(0f,1f))
 
-private fun renderSelection(source:Bitmap,selection:Rect,shape:SelectionShape,action:SelectionAction,polygonPoints:List<Pair<Float,Float>>,sampleColor:Int,tolerance:Float,softness:Float,seedPoint:Pair<Float,Float>):Bitmap {
+private fun renderSelection(source:Bitmap,selection:Rect,shape:SelectionShape,action:SelectionAction,polygonPoints:List<Pair<Float,Float>>,sampleColor:Int,tolerance:Float,softness:Float,seedPoint:Pair<Float,Float>,featherRadius:Float,expandRadius:Float,invertSelection:Boolean):Bitmap {
     val masks=com.winsmediatama.winsphotostudio.core.tools.SelectionMaskProcessor
     val mask=when(shape){
         SelectionShape.RECTANGLE->masks.rectangle(source.width,source.height,selection.left,selection.top,selection.right,selection.bottom)
@@ -88,8 +94,12 @@ private fun renderSelection(source:Bitmap,selection:Rect,shape:SelectionShape,ac
         SelectionShape.COLOR_RANGE->masks.colorRange(source,sampleColor,tolerance,softness)
         SelectionShape.MAGIC_WAND->masks.magicWand(source,(seedPoint.first*source.width).toInt(),(seedPoint.second*source.height).toInt(),tolerance)
     }
-    if(action==SelectionAction.MASK)return applyMask(source,mask)
-    val pixels=IntArray(source.width*source.height);mask.getPixels(pixels,0,source.width,0,0,source.width,source.height)
+    var processed=mask
+    if(invertSelection)processed=masks.invert(processed)
+    if(expandRadius.toInt()!=0)processed=masks.expandContract(processed,expandRadius.toInt())
+    if(featherRadius.toInt()>0)processed=masks.feather(processed,featherRadius.toInt())
+    if(action==SelectionAction.MASK)return applyMask(source,processed)
+    val pixels=IntArray(source.width*source.height);processed.getPixels(pixels,0,source.width,0,0,source.width,source.height)
     var minX=source.width;var minY=source.height;var maxX=-1;var maxY=-1
     for(y in 0 until source.height)for(x in 0 until source.width)if(android.graphics.Color.red(pixels[y*source.width+x])>0){minX=minOf(minX,x);minY=minOf(minY,y);maxX=maxOf(maxX,x);maxY=maxOf(maxY,y)}
     if(maxX<minX||maxY<minY)return source.copy(Bitmap.Config.ARGB_8888,true)
