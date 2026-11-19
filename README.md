@@ -32,7 +32,7 @@ The roadmap below is the source of truth for continuing development. Update chec
 - Local project save/open/rename/duplicate/delete with editable layer stack, visibility, opacity, blend mode, lock, masks, group metadata, selected layer, original sources and per-layer operation metadata
 - JPEG and PNG export; JPEG quality and white/black flattening background
 - Bounded undo/redo state history (8 states, memory-conscious) preserving layer stack, selected layer and canvas; History panel can restore prior states
-- Non-destructive operation stack panel: enable/disable, reorder, remove and reset Basic Adjust, Levels, Curves, HSL, Crop/Transform, Effects and LUT operations
+- Non-destructive operation stack panel: enable/disable, reorder, remove and reset Basic Adjust, Levels, Curves, HSL, Crop/Transform, Effects, LUT and Retouch operations
 - Private autosave snapshots and startup session recovery prompt
 - Canvas resize independent of image resize; perspective correction and arbitrary straighten rotation
 - Background replacement with solid, gradient or photo background
