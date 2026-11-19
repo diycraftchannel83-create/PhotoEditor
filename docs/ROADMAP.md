@@ -52,7 +52,8 @@
 - [x] Text overlay
 - [x] Rectangle, ellipse and line overlays
 - [x] Filter presets (Vivid, Warm, Cool, Vintage, Cinematic, Soft, Mono, Fade)
-- [ ] Fonts, stroke/fill controls, gradients, LUT support, layer effects
+- [x] Linear/radial gradient layers
+- [ ] Fonts, stroke/fill controls, LUT support, layer effects
 
 ## Phase 7 — Project and production hardening
 - [x] Local project save/open with editable bitmap layers and layer metadata
