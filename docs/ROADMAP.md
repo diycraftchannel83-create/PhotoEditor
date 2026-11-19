@@ -76,7 +76,8 @@
 - [x] Disable automatic app backup pending privacy/data audit
 - [x] Expand CI to run unit-test task, lint, debug APK and unsigned release APK builds
 - [ ] Verify CI passes and resolve any remaining compile/lint issues
-- [ ] Add meaningful automated tests for image processors and project persistence
+- [x] Add initial Robolectric tests for HSL identity, alpha preservation and saturation adjustment
+- [ ] Expand automated tests to other image processors and project persistence
 - [ ] Device-level functional regression test
 - [ ] Release signing and Android App Bundle (AAB)
 - [ ] Privacy policy and Play Store declarations
