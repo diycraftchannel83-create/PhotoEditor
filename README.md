@@ -280,3 +280,10 @@ Build verification and release readiness must be tracked honestly. Check the lat
 - Added a bounds-first preview decoder shared by main-image and photo-layer import.
 - Decode retains source dimensions separately, samples down to a maximum preview dimension of 2048, rejects invalid/extreme source bounds, and uses ARGB_8888 for alpha fidelity.
 - Sample-size and invalid-bounds regression tests authored; build/test verification remains deferred.
+
+
+### Original-source cache continuation
+- Original imports are now copied into an app-private disk cache before preview decode; cache replacement uses temp/backup rollback to avoid losing the prior cached source on failure.
+- Export dialog reports whether the original is retained and its cached file size. Import remains usable when cache copy fails.
+- Added a bounded source-cache decode foundation with a 24 MP pixel budget and tests for sampling calculations (authored, not run).
+- Full-resolution replay is not yet wired into export: normalized operation parameters still require per-operation dimension audit and source-resolution replay integration.
