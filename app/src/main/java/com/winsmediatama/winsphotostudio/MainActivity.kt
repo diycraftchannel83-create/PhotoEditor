@@ -45,6 +45,7 @@ import com.winsmediatama.winsphotostudio.ui.tools.SelectionScreen
 import com.winsmediatama.winsphotostudio.ui.tools.TextShapeScreen
 import com.winsmediatama.winsphotostudio.ui.tools.FilterScreen
 import com.winsmediatama.winsphotostudio.ui.tools.HslScreen
+import com.winsmediatama.winsphotostudio.ui.tools.GradientScreen
 import com.winsmediatama.winsphotostudio.ui.tools.RetouchScreen
 import com.winsmediatama.winsphotostudio.ui.tools.BackgroundRemoveScreen
 import com.winsmediatama.winsphotostudio.ui.tools.AiBackgroundRemoveScreen
@@ -82,6 +83,7 @@ private fun WinsPhotoApp() {
     var textShapeOpen by remember { mutableStateOf(false) }
     var filtersOpen by remember { mutableStateOf(false) }
     var hslOpen by remember { mutableStateOf(false) }
+    var gradientOpen by remember { mutableStateOf(false) }
     var retouchOpen by remember { mutableStateOf(false) }
     var backgroundRemoveOpen by remember { mutableStateOf(false) }
     var aiBackgroundRemoveOpen by remember { mutableStateOf(false) }
@@ -190,6 +192,17 @@ private fun WinsPhotoApp() {
                 onCancel={retouchOpen=false},
                 onApply={edited -> commitEdit(edited,current);retouchOpen=false}
             )
+            else if (gradientOpen) GradientScreen(
+                canvasWidth=current.width,
+                canvasHeight=current.height,
+                onCancel={gradientOpen=false},
+                onApply={gradientBitmap -> editHistory=(editHistory+current).takeLast(5);scope.launch {
+                    val layer=EditorLayer(name="Gradient Layer",bitmap=gradientBitmap)
+                    val updated=layers+layer
+                    val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,current.width,current.height)}
+                    layers=updated;selectedLayerId=layer.id;bitmap=composite;gradientOpen=false
+                }}
+            )
             else if (hslOpen) HslScreen(
                 source=selectedBitmap,
                 onCancel={hslOpen=false},
@@ -270,6 +283,7 @@ private fun WinsPhotoApp() {
                 onTextShape = { textShapeOpen = true },
                 onFilters = { filtersOpen = true },
                 onHsl = { hslOpen = true },
+                onGradient = { gradientOpen = true },
                 onRetouch = { retouchOpen = true },
                 onBackgroundRemove = { backgroundRemoveOpen = true },
                 onAiBackgroundRemove = { aiBackgroundRemoveOpen = true },
@@ -328,7 +342,7 @@ private fun HomeScreen(loading: Boolean, error: String?, onImport: () -> Unit) {
 }
 
 @Composable
-private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onLevels: () -> Unit, onCurves: () -> Unit, onLayers: () -> Unit, onProjects: () -> Unit, onBrush: () -> Unit, onSelection: () -> Unit, onTextShape: () -> Unit, onFilters: () -> Unit, onHsl: () -> Unit, onRetouch: () -> Unit, onBackgroundRemove: () -> Unit, onAiBackgroundRemove: () -> Unit, onExport: () -> Unit, onUndo: () -> Unit, canUndo: Boolean) {
+private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onLevels: () -> Unit, onCurves: () -> Unit, onLayers: () -> Unit, onProjects: () -> Unit, onBrush: () -> Unit, onSelection: () -> Unit, onTextShape: () -> Unit, onFilters: () -> Unit, onHsl: () -> Unit, onGradient: () -> Unit, onRetouch: () -> Unit, onBackgroundRemove: () -> Unit, onAiBackgroundRemove: () -> Unit, onExport: () -> Unit, onUndo: () -> Unit, canUndo: Boolean) {
     var zoom by remember { mutableFloatStateOf(1f) }
     var panX by remember { mutableFloatStateOf(0f) }
     var panY by remember { mutableFloatStateOf(0f) }
@@ -356,6 +370,7 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
                 TextButton(onClick=onTextShape){Text("Text/Shape")}
                 TextButton(onClick=onFilters){Text("Filters")}
                 TextButton(onClick=onHsl){Text("HSL")}
+                TextButton(onClick=onGradient){Text("Gradient")}
                 TextButton(onClick=onRetouch){Text("Retouch")}
                 TextButton(onClick=onBackgroundRemove){Text("Color Key")}
                 TextButton(onClick=onAiBackgroundRemove){Text("AI Remove")}
