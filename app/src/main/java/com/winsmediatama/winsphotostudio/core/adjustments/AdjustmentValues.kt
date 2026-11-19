@@ -9,6 +9,9 @@ data class BasicAdjustmentValues(
     val hue: Float = 0f, // -1..1, mapped to -180..180 degrees
     val temperature: Float = 0f, // -1..1
     val tint: Float = 0f, // -1..1
+    val redBalance: Float = 0f, // -1..1
+    val greenBalance: Float = 0f, // -1..1
+    val blueBalance: Float = 0f, // -1..1
     val highlights: Float = 0f, // -1..1
     val shadows: Float = 0f, // -1..1
     val whites: Float = 0f, // -1..1
