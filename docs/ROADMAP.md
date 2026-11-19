@@ -26,7 +26,7 @@
 - [x] Curves composite/RGB processor and UI
 - [x] Selective HSL
 - [x] RGB/luminance histogram processor and UI
-- [x] Unit tests authored for basic adjustment, levels, curves, HSL and histogram (CI verification pending)
+- [x] Unit tests authored for basic adjustment, levels, curves, HSL and histogram (CI verification pending)\n- [x] Histogram large-image sampling bounded to 1,000,000 samples; regression test authored (verification pending)
 - [ ] Preset parameter editing/reset and color-management consistency
 - [ ] Live parameter adjustment layers and preview cache
 
@@ -134,7 +134,7 @@
 ## November 2026 feature-pass notes
 - [x] Fix earlier source-level Compose/Kotlin issues reported by CI (verification not rerun in this pass)
 - [x] Crop model tests added
-- [x] Histogram tests present
+- [x] Histogram tests present, including large-image bounded-sampling case (verification pending)
 - [x] Non-destructive operation model and project persistence foundation
 - [x] Layer-preserving undo/redo history and History panel
 - [x] Mask/group/lock/clipping models, processors and persistence
