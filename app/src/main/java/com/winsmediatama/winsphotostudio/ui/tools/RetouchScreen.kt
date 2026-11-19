@@ -88,7 +88,7 @@ private fun renderRetouch(source:Bitmap,strokes:List<RetouchStroke>,strength:Flo
         }}
         when(mode){
             RetouchMode.SPOT_HEAL->{group.forEach{stroke->stroke.points.forEach{point->
-                val healed=com.winsmediatama.winsphotostudio.core.tools.RetouchProcessors.spotHeal(Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(result,0,w,0,0,w,h)},(point.x*w).toInt(),(point.y*h).toInt(),(stroke.size/2).toInt().coerceAtLeast(1))
+                val working=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(result,0,w,0,0,w,h)}\n                val healed=com.winsmediatama.winsphotostudio.core.tools.RetouchProcessors.spotHeal(working,(point.x*w).toInt(),(point.y*h).toInt(),(stroke.size/2).toInt().coerceAtLeast(1))\n                if(healed!==working&&!working.isRecycled)working.recycle()
                 val hp=IntArray(w*h);healed.getPixels(hp,0,w,0,0,w,h);healed.recycle()
                 val cx=(point.x*w).toInt();val cy=(point.y*h).toInt();val radius=(stroke.size/2).toInt().coerceAtLeast(1)
                 for(y in (cy-radius).coerceAtLeast(0)..(cy+radius).coerceAtMost(h-1))for(x in (cx-radius).coerceAtLeast(0)..(cx+radius).coerceAtMost(w-1)){val i=y*w+x;val d=(x-cx)*(x-cx)+(y-cy)*(y-cy);if(d<=radius*radius){val t=mask[i]*strength*(1f-kotlin.math.sqrt(d.toFloat())/radius).coerceIn(0f,1f);result[i]=blend(result[i],hp[i],t)}}
