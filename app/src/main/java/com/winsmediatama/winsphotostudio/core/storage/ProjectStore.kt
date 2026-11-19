@@ -7,7 +7,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.util.UUID
-import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
+import com.winsmediatama.winsphotostudio.core.editor.EditorLayer\nimport com.winsmediatama.winsphotostudio.core.history.NonDestructiveEditStack
 import com.winsmediatama.winsphotostudio.core.editor.EditorBlendMode
 
 /** Local project persistence. Assets are copied into the app-owned project folder; originals are untouched. */
@@ -75,7 +75,7 @@ class ProjectStore(context: Context) {
         layers.forEachIndexed { index,layer ->
             val assetPath="assets/layer_${index}.png"
             File(folder,assetPath).outputStream().use { if(!layer.bitmap.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write layer asset $index") }
-            layerArray.put(JSONObject().put("id",layer.id).put("name",layer.name).put("visible",layer.visible).put("opacity",layer.opacity).put("blendMode",layer.blendMode.name).put("locked",layer.locked).put("alphaLocked",layer.alphaLocked).put("groupId",layer.groupId).put("groupName",layer.groupName).put("groupOpacity",layer.groupOpacity).put("clipToBelow",layer.clipToBelow).put("asset",assetPath).apply { layer.mask?.let { maskBitmap -> val maskPath="assets/mask_${index}.png"; File(folder,maskPath).outputStream().use { if(!maskBitmap.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write mask asset $index") }; put("maskAsset",maskPath) } })
+            layerArray.put(JSONObject().put("id",layer.id).put("name",layer.name).put("visible",layer.visible).put("opacity",layer.opacity).put("blendMode",layer.blendMode.name).put("locked",layer.locked).put("alphaLocked",layer.alphaLocked).put("groupId",layer.groupId).put("groupName",layer.groupName).put("groupOpacity",layer.groupOpacity).put("clipToBelow",layer.clipToBelow).put("asset",assetPath).put("originalAsset",originalPath).put("operations",operationJson).apply { layer.mask?.let { maskBitmap -> val maskPath="assets/mask_${index}.png"; File(folder,maskPath).outputStream().use { if(!maskBitmap.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write mask asset $index") }; put("maskAsset",maskPath) } })
         }
         val manifest=JSONObject().put("schemaVersion",3).put("projectId",id).put("name",projectName.trim().ifBlank{"Untitled Project"})
             .put("canvasWidth",canvasWidth).put("canvasHeight",canvasHeight).put("createdAt",System.currentTimeMillis()).put("updatedAt",System.currentTimeMillis())
