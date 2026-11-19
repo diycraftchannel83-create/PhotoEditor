@@ -135,7 +135,7 @@ private fun renderCropTransform(bitmap:Bitmap,s:TransformSettings):Bitmap {
     val b=(s.cropBottom*bitmap.height).roundToInt().coerceIn(t+1,bitmap.height)
     var crop=Bitmap.createBitmap(bitmap,l,t,r-l,b-t)
     if(crop===bitmap) crop=bitmap.copy(Bitmap.Config.ARGB_8888,true)
-    if(s.rotation!=0||s.flipH||s.flipV) {
+    if(s.rotation!=0||s.straighten!=0f||s.flipH||s.flipV) {
         val matrix=Matrix().apply{postRotate(s.rotation.toFloat()+s.straighten);postScale(if(s.flipH)-1f else 1f,if(s.flipV)-1f else 1f)}
         val transformed=Bitmap.createBitmap(crop,0,0,crop.width,crop.height,matrix,true)
         if(transformed!==crop)crop.recycle();crop=transformed
