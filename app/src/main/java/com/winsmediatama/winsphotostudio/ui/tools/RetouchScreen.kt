@@ -42,7 +42,8 @@ fun RetouchScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(10.dp)) {
             Text("Retouch",Modifier.weight(1f),color=Color.White)
-            TextButton(onClick={if(strokes.isNotEmpty())strokes=strokes.dropLast(1)}){Text("Undo")}
+            TextButton(onClick={if(strokes.isNotEmpty())strokes=strokes.dropLast(1)}){Text("Undo stroke")}
+            TextButton(onClick={strokes=emptyList();active=null},enabled=strokes.isNotEmpty()||active!=null){Text("Clear")}
             TextButton(onClick=onCancel){Text("Cancel")}
             Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true))}}){Text("Apply")}
         }
@@ -73,7 +74,7 @@ fun RetouchScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
         }
         Column(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp)) {
             Row(Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)){RetouchMode.entries.forEach{m->FilterChip(selected=mode==m,onClick={mode=m},label={Text(m.label)})}}
-            Text("Brush size ${brushSize.toInt()} px",color=Color.LightGray);Slider(value=brushSize,onValueChange={brushSize=it},valueRange=5f..180f)
+            Text("Strokes: ${strokes.size + if(active!=null) 1 else 0}",color=Color.LightGray);Text("Brush size ${brushSize.toInt()} px",color=Color.LightGray);Slider(value=brushSize,onValueChange={brushSize=it},valueRange=5f..180f)
             Text("Strength ${(strength*100).toInt()}%",color=Color.LightGray);Slider(value=strength,onValueChange={strength=it},valueRange=.1f..1f)
             if(mode==RetouchMode.CLONE||mode==RetouchMode.SMUDGE) {
                 Text("Source offset X: ${offsetX.toInt()}px",color=Color.LightGray);Slider(value=offsetX,onValueChange={offsetX=it},valueRange=-source.width.toFloat()..source.width.toFloat())
