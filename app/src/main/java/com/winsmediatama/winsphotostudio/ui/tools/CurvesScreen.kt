@@ -40,12 +40,12 @@ fun CurvesScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
     val curveValues=CurvesValues(composite=rgb,red=red,green=green,blue=blue)
     fun setCurve(list:List<CurvePoint>) { when(target){CurveChannel.RGB->rgb=list;CurveChannel.RED->red=list;CurveChannel.GREEN->green=list;CurveChannel.BLUE->blue=list} }
     val preview by produceState<Bitmap?>(null,source,curveValues) { value?.takeIf { it !== source }?.recycle(); value=null; value=withContext(Dispatchers.IO){CurvesProcessor.apply(source,curveValues)} }
-    Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
+    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==source}?.recycle()}}\n    Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
             Text("Curves",Modifier.weight(1f),color=Color.White)
             TextButton(onClick={setCurve(identityCurve())}){Text("Reset")}
             TextButton(onClick=onCancel){Text("Cancel")}
-            Button(enabled=preview!=null,onClick={preview?.let(onApply)}){Text("Apply")}
+            Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true))}}){Text("Apply")}
         }
         Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D)),contentAlignment=Alignment.Center) {
             preview?.let { Image(it.asImageBitmap(),null,Modifier.fillMaxSize().padding(8.dp),contentScale=ContentScale.Fit) } ?: CircularProgressIndicator()
