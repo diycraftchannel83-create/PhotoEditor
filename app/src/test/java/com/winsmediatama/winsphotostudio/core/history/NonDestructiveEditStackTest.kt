@@ -119,6 +119,20 @@ DOMAIN_MAX 1 1 1
         assertEquals(Color.BLUE,restored.render().getPixel(0,0))
         rendered.recycle();source.recycle()
     }
+    @Test fun canvasSizeOperationReplaysAndRoundTrips() {
+        val source=Bitmap.createBitmap(2,2,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.RED)}
+        val stack=NonDestructiveEditStack(source).apply{
+            append(EditOperation.CanvasSize(width=4,height=4,anchor=com.winsmediatama.winsphotostudio.core.tools.CanvasAnchor.TOP_LEFT,backgroundColor=Color.TRANSPARENT))
+        }
+        val output=stack.render()
+        assertEquals(4,output.width);assertEquals(4,output.height);assertEquals(Color.RED,output.getPixel(0,0));assertEquals(Color.TRANSPARENT,output.getPixel(3,3))
+        val restored=NonDestructiveEditStack.fromJson(source,stack.toJson())
+        assertTrue(restored.operations.first() is EditOperation.CanvasSize)
+        assertEquals(stack.toJson().toString(),restored.toJson().toString())
+        assertTrue(restored.toggle(restored.operations.first().id,false))
+        assertEquals(2,restored.render().width)
+        output.recycle();source.recycle()
+    }
     @Test fun stackSupportsInsertAndReorder() {
         val src=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
         val first=EditOperation.BasicAdjust(values=BasicAdjustmentValues(brightness=.1f))
