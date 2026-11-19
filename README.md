@@ -20,7 +20,7 @@ The roadmap below is the source of truth for continuing development. Update chec
 - Selective HSL color ranges (Red, Orange, Yellow, Green, Cyan, Blue, Purple, Magenta)
 - RGB and per-channel Curves with draggable control points
 - Layer manager: add transparent/photo layers, duplicate, rename, visibility, opacity, reorder, blend modes, lock/alpha-lock, contiguous groups/group opacity, clipping-to-below, mask creation/inversion/painting
-- Brush and eraser
+- Brush and eraser with size, opacity, hardness and straight-line controls
 - Rectangle, ellipse, polygon, color-range and contiguous magic-wand selections; crop/mask/copy-to-layer/apply-as-layer-mask, invert, expand/contract and feather controls
 - Text and shape overlays with font families, bold/italic/alignment/outline/shadow/rotation, fill/outline shape mode and size controls
 - Linear/radial gradient layers with angle, color stops and opacity
@@ -111,7 +111,7 @@ The roadmap below is the source of truth for continuing development. Update chec
 - [ ] Copy/cut/paste selection as a new layer
 
 ### Phase 6 — Retouching & paint
-- [x] Brush and eraser
+- [x] Brush and eraser with size, opacity, hardness and straight-line controls
 - [x] Blur and pixelate
 - [x] Clone stamp foundation
 - [ ] Validate clone source selection/offset workflow and brush quality
