@@ -64,6 +64,8 @@ import com.winsmediatama.winsphotostudio.core.editor.AlphaLockProcessor
 import com.winsmediatama.winsphotostudio.core.storage.RecoveryStore
 import com.winsmediatama.winsphotostudio.core.export.FullResolutionExport
 import com.winsmediatama.winsphotostudio.core.importer.PreviewImageDecoder
+import com.winsmediatama.winsphotostudio.core.importer.OriginalSourceCache
+import java.io.File
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -122,6 +124,8 @@ private fun WinsPhotoApp() {
     var exportOriginalDimensions by remember { mutableStateOf(false) }
     var sourceWidth by remember { mutableIntStateOf(0) }
     var sourceHeight by remember { mutableIntStateOf(0) }
+    var originalSourceCached by remember { mutableStateOf(false) }
+    var originalSourceBytes by remember { mutableLongStateOf(0L) }
     var exportStatus by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -235,12 +239,21 @@ private fun WinsPhotoApp() {
     }
     LaunchedEffect(imageUri) {
         val selected = imageUri ?: return@LaunchedEffect
-        val decodedInfo = withContext(Dispatchers.IO) {
-            runCatching { PreviewImageDecoder.decode(context.contentResolver, selected) }.getOrNull()
+        val importResult = withContext(Dispatchers.IO) {
+            runCatching {
+                val cache=OriginalSourceCache(File(context.filesDir,"original-source-cache"))
+                val cached=cache.cache(context.contentResolver,selected,"active-source")
+                val preview=PreviewImageDecoder.decode(context.contentResolver,selected)
+                Pair(cached,preview)
+            }.getOrNull()
         }
+        val cachedSource=importResult?.first
+        val decodedInfo=importResult?.second
+        originalSourceCached=cachedSource!=null
+        originalSourceBytes=cachedSource?.byteCount?:0L
         bitmap=decodedInfo?.bitmap
-        sourceWidth=decodedInfo?.sourceWidth?:0
-        sourceHeight=decodedInfo?.sourceHeight?:0
+        sourceWidth=cachedSource?.width?:decodedInfo?.sourceWidth?:0
+        sourceHeight=cachedSource?.height?:decodedInfo?.sourceHeight?:0
         exportOriginalDimensions=false
         loading = false
         bitmap?.let { loaded -> val bg=EditorLayer(name="Background",bitmap=loaded);layers=listOf(bg);selectedLayerId=bg.id }
