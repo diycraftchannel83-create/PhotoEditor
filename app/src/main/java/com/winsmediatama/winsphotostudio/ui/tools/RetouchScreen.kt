@@ -50,7 +50,19 @@ fun RetouchScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
             preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize())}
             Canvas(Modifier.fillMaxSize().pointerInput(mode,brushSize) {
                 detectDragGestures(onDragStart={start->active=RetouchStroke(listOf(Offset(start.x/size.width,start.y/size.height)),brushSize,mode)},onDragEnd={active?.let{strokes=strokes+it};active=null},onDragCancel={active=null}) { change,_ ->
-                    active=active?.copy(points=active!!.points+Offset(change.position.x/size.width,change.position.y/size.height));change.consume()
+                    val next=Offset(change.position.x/size.width,change.position.y/size.height)
+                    val current=active
+                    if(current!=null){
+                        val previous=current.points.lastOrNull()?:next
+                        val dx=(next.x-previous.x)*source.width
+                        val dy=(next.y-previous.y)*source.height
+                        val distance=kotlin.math.sqrt(dx*dx+dy*dy)
+                        val spacing=(current.size*.22f).coerceAtLeast(1f)
+                        val steps=(distance/spacing).toInt().coerceAtLeast(1)
+                        val interpolated=(1..steps).map{i->Offset(previous.x+(next.x-previous.x)*i/steps,previous.y+(next.y-previous.y)*i/steps)}
+                        active=current.copy(points=current.points+interpolated)
+                    }
+                    change.consume()
                 }
             }) {
                 (strokes+listOfNotNull(active)).forEach { s->if(s.points.size==1) drawCircle(Color(0xFF77D7C0),radius=s.size*size.width/source.width/2f,center=Offset(s.points.first().x*size.width,s.points.first().y*size.height)) else if(s.points.size>1) {
