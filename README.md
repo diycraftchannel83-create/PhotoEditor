@@ -8,7 +8,9 @@ Build a mobile image editor with a unified workflow: canvas editing, non-destruc
 
 The roadmap below is the source of truth for continuing development. Update checkboxes only after implementation is committed and verified. Do not mark build, tests, device testing, or release tasks complete without evidence.
 
-## Current implemented tools (not all production-verified)\n\n- RGB/luminance histogram displayed in the Adjustment panel (new implementation; verification pending)
+## Current implemented tools (not all production-verified)
+
+- RGB/luminance histogram displayed in the Adjustment panel (new implementation; verification pending)
 
 - Photo import and responsive editor preview
 - Crop presets: Original, Free, 1:1, 4:3, 3:2, 16:9, 9:16
