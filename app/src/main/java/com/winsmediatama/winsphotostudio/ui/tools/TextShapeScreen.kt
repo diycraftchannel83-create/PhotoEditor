@@ -87,7 +87,7 @@ fun TextShapeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
                     OverlayKind.ELLIPSE->{p.style=if(shapeFill)AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE;nc.drawOval(RectF(cx-size.width*shapeWidth/2,cy-size.height*shapeHeight/2,cx+size.width*shapeWidth/2,cy+size.height*shapeHeight/2),p)}
                     OverlayKind.LINE->{p.style=AndroidPaint.Style.STROKE;nc.drawLine(cx-size.width*shapeWidth/2,cy,cx+size.width*shapeWidth/2,cy,p)}
                     OverlayKind.ARROW->{p.style=AndroidPaint.Style.STROKE;val start=cx-size.width*shapeWidth/2;val end=cx+size.width*shapeWidth/2;nc.drawLine(start,cy,end,cy,p);val head=p.strokeWidth*4f;nc.drawLine(end,cy,end-head,cy-head,p);nc.drawLine(end,cy,end-head,cy+head,p)}
-                    OverlayKind.POLYGON->{val path=android.graphics.Path().apply{moveTo(cx,cy-size.height*shapeHeight/2);lineTo(cx+size.width*shapeWidth/2,cy);lineTo(cx,cy+size.height*shapeHeight/2);lineTo(cx-size.width*shapeWidth/2,cy);close()};p.style=if(shapeFill)AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE;nc.drawPath(path,p}
+                    OverlayKind.POLYGON->{val path=android.graphics.Path().apply{moveTo(cx,cy-size.height*shapeHeight/2);lineTo(cx+size.width*shapeWidth/2,cy);lineTo(cx,cy+size.height*shapeHeight/2);lineTo(cx-size.width*shapeWidth/2,cy);close()};p.style=if(shapeFill)AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE;nc.drawPath(path,p)}
                 }
                 nc.restore()
             }
@@ -128,7 +128,7 @@ private fun renderOverlay(source:Bitmap,kind:OverlayKind,text:String,color:Color
         OverlayKind.ELLIPSE->{p.style=if(shapeFill)AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE;canvas.drawOval(RectF(cx-source.width*shapeWidth/2,cy-source.height*shapeHeight/2,cx+source.width*shapeWidth/2,cy+source.height*shapeHeight/2),p)}
         OverlayKind.LINE->{p.style=AndroidPaint.Style.STROKE;canvas.drawLine(cx-source.width*shapeWidth/2,cy,cx+source.width*shapeWidth/2,cy,p)}
         OverlayKind.ARROW->{p.style=AndroidPaint.Style.STROKE;val start=cx-source.width*shapeWidth/2;val end=cx+source.width*shapeWidth/2;canvas.drawLine(start,cy,end,cy,p);val head=p.strokeWidth*4f;canvas.drawLine(end,cy,end-head,cy-head,p);canvas.drawLine(end,cy,end-head,cy+head,p)}
-        OverlayKind.POLYGON->{val path=android.graphics.Path().apply{moveTo(cx,cy-source.height*shapeHeight/2);lineTo(cx+source.width*shapeWidth/2,cy);lineTo(cx,cy+source.height*shapeHeight/2);lineTo(cx-source.width*shapeWidth/2,cy);close()};p.style=if(shapeFill)AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE;canvas.drawPath(path,p}
+        OverlayKind.POLYGON->{val path=android.graphics.Path().apply{moveTo(cx,cy-source.height*shapeHeight/2);lineTo(cx+source.width*shapeWidth/2,cy);lineTo(cx,cy+source.height*shapeHeight/2);lineTo(cx-source.width*shapeWidth/2,cy);close()};p.style=if(shapeFill)AndroidPaint.Style.FILL else AndroidPaint.Style.STROKE;canvas.drawPath(path,p)}
     }
     canvas.restore()
     return output
