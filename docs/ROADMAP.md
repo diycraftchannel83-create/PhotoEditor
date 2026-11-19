@@ -114,7 +114,7 @@
 - [x] Save-as UI (save current with a new project name)
 - [x] Recent/saved project list with open, rename, duplicate, delete (existing ProjectScreen; refresh-on-action)
 - [ ] Unsaved-changes protection
-- [ ] Operation stack/live adjustment persistence and full editable-state recovery
+- [x] Basic Adjustment operation stack is live-integrated and per-layer operation metadata is saved in projects/recovery\n- [ ] Levels, Curves and HSL live operation integration; operation stack toggle/reorder UI and full editable-state recovery
 
 ## Phase 11 — Render/export and performance
 - [x] JPEG/PNG export, JPEG quality and background flattening controls
