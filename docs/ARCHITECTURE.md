@@ -1,44 +1,40 @@
 # WinsPhoto Studio — Architecture
 
 ## Principles
-1. Offline-first, no mandatory backend.
-2. Non-destructive edits; preserve original assets.
-3. Modular design and testable processing commands.
-4. Responsive preview; full-resolution export.
-5. Memory-aware processing for large images.
-6. Feature completeness: no fake/inert tool buttons.
+1. Offline-first; implemented tools require no backend.
+2. Imported originals are not overwritten.
+3. Preview before Apply; edit actions are undoable at canvas level.
+4. Modular processing and composable tool screens.
+5. Memory-aware preview canvas (current import proxy max dimension 2048).
+6. Build/CI verification is deferred until the feature pass is complete.
 
-## Proposed modules
-- app: navigation, Compose UI, app lifecycle
-- core-model: project, layer, adjustment, mask and tool models
-- core-storage: project serialization, assets, autosave and recovery
-- editor-canvas: gestures, viewport, canvas composition
-- render-engine: image pipeline, GPU preview, export renderer
-- editing-tools: crop, transform, resize, selections, brushes, retouch
-- adjustments: basic tonal/color controls, Levels, Curves, channel controls
-- layers: stack, groups, opacity, blend modes, masks, effects
-- ai-tools: local segmentation, background removal, subject selection, model management
-- export: JPEG, PNG, WebP and metadata/quality controls
-- feature-home: recent projects, import, templates and AI shortcuts
+## Current implementation structure
+- app: Android lifecycle, Compose navigation/workspace, SAF import/export
+- core-model: project/layer/adjustment models
+- core-editor: bitmap layer stack and composite renderer
+- core-storage: local project snapshot manifest/assets
+- core-history: command history foundation plus bounded canvas bitmap undo
+- core-adjustments: CPU Basic Adjustments, Levels and Curves reference processors
+- ui/tools: Crop/Transform, Adjustments, Levels, Curves, Layers, Brush/Eraser, Selection, Text/Shapes, Filters, Retouch, Background Removal, AI Background Removal, Project Manager
 
-## Rendering pipeline
-Source image -> layers/transforms -> masks -> adjustments -> effects -> composite -> preview/export.
+## Current render pipeline
+Imported bitmap/proxy -> editor layers -> selected-layer tool processing or composite-canvas tool -> composite preview -> JPEG/PNG export.
 
-Preview may use proxy resolution and cached GPU textures. Export uses the full-resolution pipeline. Rendering must not mutate the original source.
+Layer operations include visibility, opacity, ordering, duplication, rename, image/empty layer insertion, and blend modes. The current editor uses a flattened canvas snapshot after canvas-wide crop/selection operations and keeps a hidden previous-composite layer for recovery. Many adjustment/retouch tools currently apply directly to the selected bitmap layer rather than creating fully parameterized adjustment layers.
 
 ## Project persistence
-Use a project manifest plus asset directory/package. Persist canvas dimensions, source assets, layer order, transforms, blend modes, visibility, masks, adjustments, text/shape data and versioned metadata. Autosave and recovery are planned.
+Project Manager saves and reopens flattened PNG canvas snapshots with JSON metadata. Full editable project serialization (all source assets, layers, masks, blend/adjustment parameters and history) remains unfinished.
 
 ## History
-Use command-based undo/redo. Commands include crop, transform, layer operations, adjustment changes, mask edits, filter changes and brush strokes. Avoid full-bitmap snapshots for every action.
+Canvas Undo is bounded to five composite snapshots to limit memory. The command-history model remains a foundation for future operation-level history.
 
 ## AI
-AI models should run on-device when feasible. Background removal should produce a mask with editable refinement controls. Model assets and licenses must be documented before inclusion.
+Bundled ML Kit Selfie Segmentation runs on-device for person/background separation. It is not a general object segmenter. Manual color-key removal is available for solid/high-contrast backgrounds.
 
-## Performance and safety
-- Decode images according to viewport and available memory.
-- Use tile/proxy rendering for large images.
-- Cancel obsolete processing jobs.
-- Never silently overwrite originals.
-- Export to a user-selected destination using Android storage APIs.
-- Handle process death and low-memory recovery.
+## Performance and limitations
+- Import proxy max dimension is 2048 to reduce processing memory.
+- CPU processors run on background dispatchers for previews.
+- Bitmap processing can still be memory intensive; full performance audit and testing remain deferred.
+- Preview caches and render-job cancellation need further refinement.
+- Export currently writes PNG/JPEG to Android's CreateDocument destinations.
+- No original files are overwritten.
