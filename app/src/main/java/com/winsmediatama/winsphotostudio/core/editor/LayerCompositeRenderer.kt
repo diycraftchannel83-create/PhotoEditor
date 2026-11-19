@@ -35,11 +35,31 @@ object LayerCompositeRenderer {
         }
         return output
     }
+    private fun drawDifference(canvas:Canvas,source:Bitmap,dest:Rect,opacity:Int) {
+        val target=canvas.bitmap ?: return
+        val w=target.width;val h=target.height
+        val base=IntArray(w*h);target.getPixels(base,0,w,0,0,w,h)
+        val src=Bitmap.createScaledBitmap(source,w,h,true)
+        val pixels=IntArray(w*h);src.getPixels(pixels,0,w,0,0,w,h);src.recycle()
+        for(i in base.indices){
+            val d=base[i];val s=pixels[i]
+            val da=d ushr 24;val sa=((s ushr 24)*opacity/255)
+            val outA=sa+da*(255-sa)/255
+            if(outA<=0){base[i]=0;continue}
+            val dr=(d shr 16)and 255;val dg=(d shr 8)and 255;val db=d and 255
+            val sr=(s shr 16)and 255;val sg=(s shr 8)and 255;val sb=s and 255
+            val r=(dr*(255-sa)+kotlin.math.abs(dr-sr)*sa)/255
+            val g=(dg*(255-sa)+kotlin.math.abs(dg-sg)*sa)/255
+            val b=(db*(255-sa)+kotlin.math.abs(db-sb)*sa)/255
+            base[i]=(outA shl 24)or(r shl 16)or(g shl 8)or b
+        }
+        target.setPixels(base,0,w,0,0,w,h)
+    }
     private fun drawLayer(canvas:Canvas,layer:EditorLayer,dest:Rect) {
         val masked=layer.mask?.takeUnless{it.isRecycled}?.let{LayerMaskProcessor.apply(layer.bitmap,it)}
         val source=masked?:layer.bitmap
         val paint=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply{alpha=(layer.opacity.coerceIn(0f,1f)*255f).toInt()}
-        if(layer.blendMode==EditorBlendMode.DIFFERENCE&&Build.VERSION.SDK_INT>=29){
+        if(layer.blendMode==EditorBlendMode.DIFFERENCE&&Build.VERSION.SDK_INT<29){\n            drawDifference(canvas,source,dest,paint.alpha)\n            if(masked!=null&&!masked.isRecycled)masked.recycle()\n            return\n        }\n        if(layer.blendMode==EditorBlendMode.DIFFERENCE&&Build.VERSION.SDK_INT>=29){
             paint.xfermode=null;paint.blendMode=BlendMode.DIFFERENCE
         }else{
             paint.blendMode=null
