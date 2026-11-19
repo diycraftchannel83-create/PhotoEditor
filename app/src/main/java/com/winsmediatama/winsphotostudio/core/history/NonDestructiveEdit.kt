@@ -10,7 +10,7 @@ import com.winsmediatama.winsphotostudio.core.adjustments.CurvesProcessor
 import com.winsmediatama.winsphotostudio.core.adjustments.CurvesValues
 import com.winsmediatama.winsphotostudio.core.adjustments.LevelsChannel
 import com.winsmediatama.winsphotostudio.core.adjustments.LevelsProcessor
-import com.winsmediatama.winsphotostudio.core.adjustments.LevelsValues
+import com.winsmediatama.winsphotostudio.core.adjustments.LevelsValues\nimport com.winsmediatama.winsphotostudio.core.adjustments.HslAdjustments\nimport com.winsmediatama.winsphotostudio.core.adjustments.HslColorRange\nimport com.winsmediatama.winsphotostudio.core.adjustments.HslRangeAdjustment\nimport com.winsmediatama.winsphotostudio.core.adjustments.HslProcessor
 
 /**
  * Serializable, replayable edit stack. Operations retain parameters rather than requiring
@@ -52,7 +52,7 @@ sealed interface EditOperation {
             .put("values",curvesJson(values))
     }
 
-    data class Crop(
+    data class Hsl(override val id:String=java.util.UUID.randomUUID().toString(),override val enabled:Boolean=true,val values:HslAdjustments):EditOperation {\n        override val label=\"HSL / Color range\"\n        override fun toJson()=JSONObject().put(\"id\",id).put(\"type\",\"hsl\").put(\"enabled\",enabled).put(\"values\",hslJson(values))\n    }\n\n    data class Crop(
         override val id: String = java.util.UUID.randomUUID().toString(),
         override val enabled: Boolean = true,
         val left: Float, val top: Float, val right: Float, val bottom: Float
@@ -87,7 +87,7 @@ class NonDestructiveEditStack(
             is EditOperation.BasicAdjust -> old.copy(enabled = enabled)
             is EditOperation.Levels -> old.copy(enabled = enabled)
             is EditOperation.Curves -> old.copy(enabled = enabled)
-            is EditOperation.Crop -> old.copy(enabled = enabled)
+            is EditOperation.Crop -> old.copy(enabled = enabled)\n            is EditOperation.Hsl -> old.copy(enabled = enabled)
         }
         return true
     }
@@ -102,7 +102,7 @@ class NonDestructiveEditStack(
                 is EditOperation.BasicAdjust -> BasicAdjustmentProcessor.apply(current, operation.values)
                 is EditOperation.Levels -> LevelsProcessor.apply(current, operation.values)
                 is EditOperation.Curves -> CurvesProcessor.apply(current, operation.values)
-                is EditOperation.Crop -> crop(current, operation)
+                is EditOperation.Crop -> crop(current, operation)\n                is EditOperation.Hsl -> HslProcessor.apply(current,operation.values)
             }
             if (next !== current && !current.isRecycled) current.recycle()
             current = next
@@ -141,6 +141,8 @@ class NonDestructiveEditStack(
     }
 }
 
+private fun hslJson(v:HslAdjustments)=JSONObject().put("ranges",JSONArray().also{array->v.ranges.forEach{(range,value)->array.put(JSONObject().put("range",range.name).put("hueShift",value.hueShift).put("saturation",value.saturation).put("lightness",value.lightness))}})
+private fun hslFromJson(j:JSONObject)=HslAdjustments(buildMap{val array=j.optJSONArray("ranges")?:return@buildMap;for(i in 0 until array.length()){val item=array.optJSONObject(i)?:continue;val range=runCatching{HslColorRange.valueOf(item.optString("range"))}.getOrNull()?:continue;put(range,HslRangeAdjustment(item.optDouble("hueShift").toFloat(),item.optDouble("saturation").toFloat(),item.optDouble("lightness").toFloat()))}})
 private fun basicValuesJson(v: BasicAdjustmentValues)=JSONObject().apply {
     put("brightness",v.brightness);put("contrast",v.contrast);put("exposure",v.exposure);put("saturation",v.saturation);put("hue",v.hue)
     put("temperature",v.temperature);put("tint",v.tint);put("redBalance",v.redBalance);put("greenBalance",v.greenBalance);put("blueBalance",v.blueBalance)
