@@ -136,7 +136,7 @@ class NonDestructiveEditStack(
                 is EditOperation.Curves -> CurvesProcessor.apply(current, operation.values)
                 is EditOperation.Crop -> crop(current, operation)
                 is EditOperation.Hsl -> HslProcessor.apply(current,operation.values)
-                is EditOperation.Transform -> TransformProcessor.apply(current,TransformSpec(operation.left,operation.top,operation.right,operation.bottom,operation.rotationDegrees,operation.flipHorizontal,operation.flipVertical,operation.outputWidth,operation.outputHeight))
+                is EditOperation.Transform -> TransformProcessor.apply(current,operation.left,operation.top,operation.right,operation.bottom,operation.rotationDegrees,operation.flipHorizontal,operation.flipVertical,operation.outputWidth,operation.outputHeight))
             }
             if (next !== current && !current.isRecycled) current.recycle()
             current = next
