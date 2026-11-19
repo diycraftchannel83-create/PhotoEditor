@@ -7,7 +7,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
+import com.winsmediatama.winsphotostudio.core.editor.EditorLayer\nimport com.winsmediatama.winsphotostudio.core.history.EditOperation\nimport com.winsmediatama.winsphotostudio.core.adjustments.HslAdjustments\nimport com.winsmediatama.winsphotostudio.core.adjustments.HslColorRange\nimport com.winsmediatama.winsphotostudio.core.adjustments.HslRangeAdjustment
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk=[28])
@@ -17,7 +17,7 @@ class RecoveryStoreTest {
         val store=RecoveryStore(context)
         val bitmap=Bitmap.createBitmap(2,2,Bitmap.Config.ARGB_8888);bitmap.eraseColor(Color.GREEN)
         val mask=Bitmap.createBitmap(2,2,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.WHITE)}
-        val layer=EditorLayer(name="Recovery test",bitmap=bitmap,opacity=.6f,locked=true,alphaLocked=true,groupId="grp",groupName="Test Group",groupOpacity=.4f,clipToBelow=true,mask=mask)
+        val original=Bitmap.createBitmap(2,2,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.RED)}\n        val operations=listOf(EditOperation.Hsl(values=HslAdjustments(mapOf(HslColorRange.RED to HslRangeAdjustment(saturation=-.5f)))))\n        val layer=EditorLayer(name="Recovery test",bitmap=bitmap,opacity=.6f,locked=true,alphaLocked=true,groupId="grp",groupName="Test Group",groupOpacity=.4f,clipToBelow=true,mask=mask,originalBitmap=original,operations=operations)
         store.save(listOf(layer),layer.id,2,2)
         val recovered=store.recover()
         assertNotNull(recovered)
@@ -29,7 +29,7 @@ class RecoveryStoreTest {
         assertEquals("Test Group",recovered.layers.first().groupName)
         assertEquals(.4f,recovered.layers.first().groupOpacity,.01f)
         assertTrue(recovered.layers.first().clipToBelow)
-        assertNotNull(recovered.layers.first().mask)
+        assertNotNull(recovered.layers.first().mask)\n        assertNotNull(recovered.layers.first().originalBitmap)\n        assertEquals(1,recovered.layers.first().operations.size)\n        assertTrue(recovered.layers.first().operations.first() is EditOperation.Hsl)
         assertEquals(Color.GREEN,recovered.layers.first().bitmap.getPixel(0,0))
         store.clear()
     }
