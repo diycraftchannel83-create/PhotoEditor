@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
-import java.io.FileOutputStream
 import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
 import com.winsmediatama.winsphotostudio.core.editor.EditorBlendMode
 
@@ -16,10 +15,10 @@ class RecoveryStore(context:Context) {
     private val manifest=File(root,"recovery.json")
     data class Recovered(val canvasWidth:Int,val canvasHeight:Int,val layers:List<EditorLayer>,val selectedLayerId:String?)
 
-    fun save(layers:List<EditorLayer>,selectedLayerId:String?,canvasWidth:Int,canvasHeight:Int) {
+    @Synchronized fun save(layers:List<EditorLayer>,selectedLayerId:String?,canvasWidth:Int,canvasHeight:Int) {
         require(layers.isNotEmpty()){"Cannot autosave an empty layer stack"}
         val staging=File(root,"snapshot.tmp").apply{deleteRecursively();mkdirs()}
-        val assetDir=File(staging,"assets").apply{mkdirs()}
+        File(staging,"assets").mkdirs()
         val entries=JSONArray()
         layers.forEachIndexed{index,layer->
             val asset="assets/layer_$index.png"
@@ -30,9 +29,18 @@ class RecoveryStore(context:Context) {
         val json=JSONObject().put("schemaVersion",1).put("canvasWidth",canvasWidth).put("canvasHeight",canvasHeight).put("selectedLayerId",selectedLayerId).put("updatedAt",System.currentTimeMillis()).put("layers",entries)
         File(staging,"recovery.json").writeText(json.toString(2))
         val target=File(root,"snapshot")
-        if(target.exists())target.deleteRecursively()
-        if(!staging.renameTo(target))throw IllegalStateException("Could not atomically replace recovery snapshot")
-        manifest.writeText(JSONObject().put("snapshot","snapshot/recovery.json").put("updatedAt",System.currentTimeMillis()).toString())
+        val backup=File(root,"snapshot.bak")
+        backup.deleteRecursively()
+        if(target.exists()&&!target.renameTo(backup))throw IllegalStateException("Could not stage previous recovery snapshot")
+        if(!staging.renameTo(target)){
+            if(backup.exists())backup.renameTo(target)
+            throw IllegalStateException("Could not atomically replace recovery snapshot")
+        }
+        val manifestTemp=File(root,"recovery.tmp")
+        manifestTemp.writeText(JSONObject().put("snapshot","snapshot/recovery.json").put("updatedAt",System.currentTimeMillis()).toString())
+        if(manifest.exists())manifest.delete()
+        if(!manifestTemp.renameTo(manifest))throw IllegalStateException("Recovery manifest write failed")
+        backup.deleteRecursively()
     }
     fun exists():Boolean=manifest.isFile
     fun recover():Recovered?=runCatching{
