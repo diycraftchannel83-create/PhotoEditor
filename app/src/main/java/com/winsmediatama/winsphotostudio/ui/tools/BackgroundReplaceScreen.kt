@@ -33,7 +33,7 @@ fun BackgroundReplaceScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Un
     var status by remember{mutableStateOf<String?>(null)}
     val palette=listOf(Color.White,Color.Black,Color(0xFFFF3B30),Color(0xFFFFC107),Color(0xFF00C853),Color(0xFF00B0FF),Color(0xFF7C4DFF),Color(0xFFFF4081),Color(0xFF77D7C0))
     val picker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){uri->
-        if(uri!=null)runCatching{context.contentResolver.openInputStream(uri)?.use{android.graphics.BitmapFactory.decodeStream(it)}}
+        if(uri!=null)runCatching{context.contentResolver.openInputStream(uri)?.use{stream->val bounds=android.graphics.BitmapFactory.Options().apply{inJustDecodeBounds=true};android.graphics.BitmapFactory.decodeStream(stream,null,bounds);val sample=calculateBackgroundSample(bounds.outWidth,bounds.outHeight,2048);context.contentResolver.openInputStream(uri)?.use{input->android.graphics.BitmapFactory.decodeStream(input,null,android.graphics.BitmapFactory.Options().apply{inSampleSize=sample;inPreferredConfig=Bitmap.Config.ARGB_8888})}}}
             .onSuccess{decoded->if(decoded!=null){imported=decoded;status="Photo background loaded"}else status="Unable to decode selected image"}
             .onFailure{status=it.message}
     }
@@ -65,4 +65,11 @@ private fun composeBackground(source:Bitmap,background:Bitmap?,start:Int,end:Int
     else {val paint=AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG);paint.shader=if(gradient)LinearGradient(0f,0f,w.toFloat(),h.toFloat(),start,end,Shader.TileMode.CLAMP)else null;canvas.drawColor(if(gradient)android.graphics.Color.TRANSPARENT else start);if(gradient)canvas.drawRect(0f,0f,w.toFloat(),h.toFloat(),paint);paint.shader=null}
     canvas.drawBitmap(source,0f,0f,AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG or AndroidPaint.FILTER_BITMAP_FLAG))
     return out
+}
+
+private fun calculateBackgroundSample(width:Int,height:Int,maxDimension:Int):Int {
+    if(width<=0||height<=0)return 1
+    var sample=1
+    while(width/sample>maxDimension||height/sample>maxDimension)sample*=2
+    return sample
 }
