@@ -28,7 +28,9 @@ fun ProjectScreen(source:Bitmap,layers:List<EditorLayer>,selectedLayerId:String?
     var projects by remember{mutableStateOf(store.listProjects())}
     var status by remember{mutableStateOf<String?>(null)}
     var busy by remember{mutableStateOf(false)}
-    var deleteTarget by remember{mutableStateOf<File?>(null)}\n    var renameTarget by remember{mutableStateOf<File?>(null)}\n    var renameName by remember{mutableStateOf("")}
+    var deleteTarget by remember{mutableStateOf<File?>(null)}
+    var renameTarget by remember{mutableStateOf<File?>(null)}
+    var renameName by remember{mutableStateOf("")}
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))){
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically){Text("Projects",Modifier.weight(1f),color=Color.White);TextButton(onClick=onCancel){Text("Back")}}
         Column(Modifier.fillMaxWidth().padding(16.dp)){
@@ -63,6 +65,6 @@ fun ProjectScreen(source:Bitmap,layers:List<EditorLayer>,selectedLayerId:String?
             }
         }
     }
-    renameTarget?.let{target->AlertDialog(onDismissRequest={renameTarget=null},title={Text("Rename project")},text={OutlinedTextField(value=renameName,onValueChange={renameName=it},singleLine=true,label={Text("New name")})},confirmButton={TextButton(onClick={val ok=store.renameProject(target,renameName);projects=store.listProjects();status=if(ok)"Project renamed" else "Rename failed";renameTarget=null}){Text("Save")}},dismissButton={TextButton(onClick={renameTarget=null}){Text("Cancel")}})
+    renameTarget?.let{target->AlertDialog(onDismissRequest={renameTarget=null},title={Text("Rename project")},text={OutlinedTextField(value=renameName,onValueChange={renameName=it},singleLine=true,label={Text("New name")})},confirmButton={TextButton(onClick={val ok=store.renameProject(target,renameName);projects=store.listProjects();status=if(ok)"Project renamed" else "Rename failed";renameTarget=null}){Text("Save")}},dismissButton={TextButton(onClick={renameTarget=null}){Text("Cancel")}})}
     deleteTarget?.let{target->AlertDialog(onDismissRequest={deleteTarget=null},title={Text("Delete project?")},text={Text("Permanently delete ${store.projectName(target)} and its assets?")},confirmButton={TextButton(onClick={target.deleteRecursively();projects=store.listProjects();status="Project deleted";deleteTarget=null}){Text("Delete")}},dismissButton={TextButton(onClick={deleteTarget=null}){Text("Cancel")}})}
 }
