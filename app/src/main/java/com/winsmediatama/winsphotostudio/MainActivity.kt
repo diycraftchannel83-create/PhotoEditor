@@ -87,6 +87,7 @@ private fun WinsPhotoApp() {
     var error by remember { mutableStateOf<String?>(null) }
     var cropTransformOpen by remember { mutableStateOf(false) }
     var historyOpen by remember{mutableStateOf(false)}
+    var operationsOpen by remember{mutableStateOf(false)}
     var adjustmentOpen by remember { mutableStateOf(false) }
     var levelsOpen by remember { mutableStateOf(false) }
     var curvesOpen by remember { mutableStateOf(false) }
@@ -351,6 +352,7 @@ private fun WinsPhotoApp() {
                     cropTransformOpen = false
                 }
             )
+            else if(operationsOpen) {val target=layers.firstOrNull{it.id==selectedLayerId};if(target!=null)OperationStackScreen(layer=target,onCancel={operationsOpen=false},onApply={updatedLayer->recordUndo(current,"Operation stack");scope.launch{val updated=layers.map{if(it.id==updatedLayer.id)updatedLayer else it};val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,current.width,current.height)};layers=updated;selectedLayerId=updatedLayer.id;bitmap=composite;operationsOpen=false}}) else Text("No selected layer",color=Color.White)}
             else if(historyOpen) HistoryPanel(history=editHistory,onCancel={historyOpen=false},onRestore={index->val target=editHistory[index];restoreSnapshot(target);editHistory=editHistory.take(index);redoHistory=emptyList();historyOpen=false})
             else EditorPreviewScreen(
                 current,
@@ -378,9 +380,10 @@ private fun WinsPhotoApp() {
                 onAiBackgroundRemove = { aiBackgroundRemoveOpen = true },
                 onExport = { exportDialogOpen=true },
                 onHistory = { historyOpen=true },
+                onOperations = { operationsOpen=true },
                 onUndo = { if (editHistory.isNotEmpty() && bitmap!=null) { redoHistory=(redoHistory+EditorSnapshot(layers.toList(),selectedLayerId,bitmap!!,"Redo state")).takeLast(30);val previous=editHistory.last();restoreSnapshot(previous);editHistory=editHistory.dropLast(1) } },
                 onRedo = { if (redoHistory.isNotEmpty() && bitmap!=null) { editHistory=(editHistory+EditorSnapshot(layers.toList(),selectedLayerId,bitmap!!,"Undo state")).takeLast(30);val next=redoHistory.last();restoreSnapshot(next);redoHistory=redoHistory.dropLast(1) } },
-                canUndo = editHistory.isNotEmpty(), canRedo = redoHistory.isNotEmpty(), undoLabel=editHistory.lastOrNull()?.label, redoLabel=redoHistory.lastOrNull()?.label
+                canUndo = editHistory.isNotEmpty(), canRedo = redoHistory.isNotEmpty(), undoLabel=editHistory.lastOrNull()?.label, redoLabel=redoHistory.lastOrNull()?.label, canOperations=layers.firstOrNull{it.id==selectedLayerId}?.operations?.isNotEmpty()==true
             )
             if(exportDialogOpen) AlertDialog(
                 onDismissRequest={exportDialogOpen=false},
@@ -476,7 +479,7 @@ private fun HomeScreen(loading: Boolean, error: String?, onImport: () -> Unit) {
 }
 
 @Composable
-private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onLevels: () -> Unit, onCurves: () -> Unit, onLayers: () -> Unit, onProjects: () -> Unit, onBrush: () -> Unit, onSelection: () -> Unit, onTextShape: () -> Unit, onFilters: () -> Unit, onEffects: () -> Unit, onLut: () -> Unit, onCanvasSize: () -> Unit, onBackgroundReplace: () -> Unit, onPerspective: () -> Unit, onHsl: () -> Unit, onGradient: () -> Unit, onRetouch: () -> Unit, onBackgroundRemove: () -> Unit, onAiBackgroundRemove: () -> Unit, onExport: () -> Unit, onHistory:()->Unit, onUndo: () -> Unit, onRedo: () -> Unit, canUndo: Boolean, canRedo: Boolean, undoLabel:String?, redoLabel:String?) {
+private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onLevels: () -> Unit, onCurves: () -> Unit, onLayers: () -> Unit, onProjects: () -> Unit, onBrush: () -> Unit, onSelection: () -> Unit, onTextShape: () -> Unit, onFilters: () -> Unit, onEffects: () -> Unit, onLut: () -> Unit, onCanvasSize: () -> Unit, onBackgroundReplace: () -> Unit, onPerspective: () -> Unit, onHsl: () -> Unit, onGradient: () -> Unit, onRetouch: () -> Unit, onBackgroundRemove: () -> Unit, onAiBackgroundRemove: () -> Unit, onExport: () -> Unit, onHistory:()->Unit, onOperations:()->Unit, onUndo: () -> Unit, onRedo: () -> Unit, canUndo: Boolean, canRedo: Boolean, undoLabel:String?, redoLabel:String?, canOperations:Boolean) {
     var zoom by remember { mutableFloatStateOf(1f) }
     var panX by remember { mutableFloatStateOf(0f) }
     var panY by remember { mutableFloatStateOf(0f) }
@@ -493,6 +496,7 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
                 TextButton(onClick=onRedo,enabled=canRedo){Text(redoLabel?.let{"Redo: $it"}?:"Redo")}
                 TextButton(onClick=onExport){Text("Export")}
                 TextButton(onClick=onHistory){Text("History")}
+                TextButton(onClick=onOperations,enabled=canOperations){Text("Ops")}
             }
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal=4.dp)) {
                 TextButton(onClick=onCropTransform){Text("Crop")}
