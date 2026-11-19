@@ -15,5 +15,8 @@ data class EditorLayer(
     /** Optional grayscale layer mask: white reveals and black hides. */
     val mask:Bitmap?=null,
     val locked:Boolean=false,
-    val alphaLocked:Boolean=false
+    val alphaLocked:Boolean=false,
+    val groupId:String?=null,
+    val groupName:String?=null,
+    val groupOpacity:Float=1f
 )
