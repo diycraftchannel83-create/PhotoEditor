@@ -26,6 +26,6 @@ class ImageHistogramTest {
         assertEquals(1, histogram.green[255])
         assertEquals(1, histogram.green[0])
         assertEquals(1, histogram.blue[0])
-        assertEquals(1, histogram.luminance[54]) // green luminance approx 182? corrected below
+        assertEquals(1, histogram.luminance[54]) // red luminance\n        assertEquals(1, histogram.luminance[182]) // green luminance
     }
 }
