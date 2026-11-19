@@ -21,7 +21,7 @@ The roadmap below is the source of truth for continuing development. Update chec
 - RGB and per-channel Curves with draggable control points (replayable non-destructive per-layer operation)
 - Layer manager: add transparent/photo layers, duplicate, rename, visibility, opacity, reorder, blend modes, lock/alpha-lock, contiguous groups/group opacity/group blend modes, clipping-to-below, mask creation/inversion/painting
 - Brush and eraser with size, opacity, hardness and straight-line controls
-- Rectangle, ellipse, polygon, color-range and contiguous magic-wand selections; crop/mask/copy-to-layer/apply-as-layer-mask, invert, expand/contract and feather controls
+- Rectangle, ellipse, polygon, color-range and contiguous magic-wand selections; crop/mask/copy-to-layer/apply-as-layer-mask, invert, expand/contract and feather controls; selection masks now respect source transparency for color-range and magic-wand workflows (regression test authored, verification deferred)
 - Saved selection masks: capture/save current selection with a name from the Selection tool; app-private PNG/JSON storage supports reload/rename/delete (management UI now supports load/reuse, rename and delete; storage writes hardened with rollback; build verification pending)
 - Text and shape overlays with font families, text-file import, bold/italic/alignment/outline/shadow/rotation/tracking/line spacing, fill/outline shape mode and size controls
 - Linear/radial gradient layers with angle, color stops and opacity
