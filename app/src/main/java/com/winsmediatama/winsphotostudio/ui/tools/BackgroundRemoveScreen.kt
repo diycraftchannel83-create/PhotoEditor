@@ -34,7 +34,7 @@ fun BackgroundRemoveScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Uni
             TextButton(onClick=onCancel){Text("Cancel")}
             Button(enabled=sampled&&preview!=null,onClick={preview?.let(onApply)}){Text("Apply")}
         }
-        Box(Modifier.weight(1f).fillMaxWidth().aspectRatio(source.width.toFloat()/source.height).padding(12.dp).background(Color(0xFF25282D)) {
+        Box(Modifier.weight(1f).fillMaxWidth().aspectRatio(source.width.toFloat()/source.height).padding(12.dp).background(Color(0xFF25282D))) {
             preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize(),contentScale=ContentScale.Fit)}
             Canvas(Modifier.fillMaxSize().pointerInput(source) { detectTapGestures { point->
                 val x=(point.x/size.width*source.width).toInt().coerceIn(0,source.width-1)
