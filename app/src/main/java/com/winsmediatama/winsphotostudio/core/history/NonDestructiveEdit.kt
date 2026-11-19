@@ -14,7 +14,7 @@ import com.winsmediatama.winsphotostudio.core.adjustments.LevelsValues
 import com.winsmediatama.winsphotostudio.core.adjustments.HslAdjustments
 import com.winsmediatama.winsphotostudio.core.adjustments.HslColorRange
 import com.winsmediatama.winsphotostudio.core.adjustments.HslRangeAdjustment
-import com.winsmediatama.winsphotostudio.core.adjustments.HslProcessor
+import com.winsmediatama.winsphotostudio.core.adjustments.HslProcessor\nimport com.winsmediatama.winsphotostudio.core.adjustments.TransformProcessor
 
 /**
  * Serializable, replayable edit stack. Operations retain parameters rather than requiring
@@ -150,7 +150,7 @@ class NonDestructiveEditStack(
                         )
                         if (crop.valid()) ops += crop
                     }
-                    "hsl" -> ops += EditOperation.Hsl(id,enabled,hslFromJson(values))
+                    "hsl" -> ops += EditOperation.Hsl(id,enabled,hslFromJson(values))\n                    "transform" -> { val op=EditOperation.Transform(id,enabled,item.optDouble("left",0.0).toFloat(),item.optDouble("top",0.0).toFloat(),item.optDouble("right",1.0).toFloat(),item.optDouble("bottom",1.0).toFloat(),item.optDouble("rotation",0.0).toFloat(),item.optBoolean("flipH",false),item.optBoolean("flipV",false),item.optInt("outputWidth",0),item.optInt("outputHeight",0)); if(op.valid())ops+=op }
                 }
             }
             return NonDestructiveEditStack(source, ops)
