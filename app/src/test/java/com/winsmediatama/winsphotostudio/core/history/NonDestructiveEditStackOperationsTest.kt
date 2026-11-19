@@ -77,4 +77,15 @@ class NonDestructiveEditStackOperationsTest {
         val loaded = NonDestructiveEditStack.fromJson(src, json)
         assertTrue(loaded.operations.isEmpty())
     }
+
+    @Test
+    fun replaceKeepsTargetOperationIdStable() {
+        val src = source()
+        val original = EditOperation.BasicAdjust(values = BasicAdjustmentValues(brightness = 0.1f))
+        val stack = NonDestructiveEditStack(src).apply { append(original) }
+        val replacement = EditOperation.BasicAdjust(values = BasicAdjustmentValues(brightness = 0.4f))
+        assertTrue(stack.replace(original.id, replacement))
+        assertEquals(original.id, stack.operations.single().id)
+        assertEquals(0.4f, (stack.operations.single() as EditOperation.BasicAdjust).values.brightness, 0.0001f)
+    }
 }
