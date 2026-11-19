@@ -1,25 +1,24 @@
 # WinsPhoto Studio
 
-Professional, offline-first Android photo editor — Photoshop Mini concept.
+Professional, offline-first Android photo editor — Photoshop Mini.
 
-## Goals
-- Non-destructive editing and project workflow
-- GPU-accelerated canvas and image processing
-- Layers, masks, blend modes, and adjustment layers
-- Professional adjustments: Levels, Curves, RGB channels, histogram, color grading
-- AI subject segmentation and background removal, prioritizing on-device models
-- Crop, resize, transform, selection, retouch, text, shapes, filters, and export
-- Core editing works offline
+## Current implementation
+- Android Native scaffold (Kotlin + Jetpack Compose)
+- Home screen
+- Photo import through Android document picker
+- Image preview workspace
+- Replace imported photo
+- Dark professional UI
+- GitHub Actions debug build workflow
 
-## Planned stack
+## Vision
+A full-featured non-destructive photo editor with crop/resize, transforms, levels, curves, layers, masks, blend modes, AI background removal, selection tools, retouching, text/shapes, filters and high-quality export.
+
+## Technology
 - Kotlin, Android Native, Jetpack Compose
-- Modular editor core
-- GPU rendering pipeline (start with a supported GLES path; evaluate Vulkan for future)
-- Room for local project metadata
-- ONNX Runtime Mobile / TensorFlow Lite for on-device AI
-- SAF for import/export
+- Android SDK 35, minimum Android 8.0 (API 26)
+- Gradle build
+- On-device AI planned (model/license evaluation required)
+- Offline-first
 
-## Development status
-Repository initialized for project planning and implementation. No application code has been implemented yet.
-
-See [Architecture](docs/ARCHITECTURE.md) and [Roadmap](docs/ROADMAP.md).
+See docs/ROADMAP.md for implementation plan.
