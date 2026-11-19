@@ -77,7 +77,7 @@ class ProjectStore(context: Context) {
             File(folder,assetPath).outputStream().use { layer.bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
             layerArray.put(JSONObject().put("id",layer.id).put("name",layer.name).put("visible",layer.visible).put("opacity",layer.opacity).put("blendMode",layer.blendMode.name).put("locked",layer.locked).put("alphaLocked",layer.alphaLocked).put("groupId",layer.groupId).put("groupName",layer.groupName).put("groupOpacity",layer.groupOpacity).put("clipToBelow",layer.clipToBelow).put("asset",assetPath).apply { layer.mask?.let { maskBitmap -> val maskPath="assets/mask_${index}.png"; File(folder,maskPath).outputStream().use { maskBitmap.compress(Bitmap.CompressFormat.PNG,100,it) }; put("maskAsset",maskPath) } })
         }
-        val manifest=JSONObject().put("schemaVersion",2).put("projectId",id).put("name",projectName.trim().ifBlank{"Untitled Project"})
+        val manifest=JSONObject().put("schemaVersion",3).put("projectId",id).put("name",projectName.trim().ifBlank{"Untitled Project"})
             .put("canvasWidth",canvasWidth).put("canvasHeight",canvasHeight).put("createdAt",System.currentTimeMillis()).put("updatedAt",System.currentTimeMillis())
             .put("selectedLayerId",selectedLayerId).put("layers",layerArray)
         File(folder,"project.json").writeText(manifest.toString(2))
