@@ -12,13 +12,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.winsmediatama.winsphotostudio.core.storage.ProjectStore
+import com.winsmediatama.winsphotostudio.core.storage.LoadedStudioProject
+import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
 @Composable
-fun ProjectScreen(source:Bitmap,onCancel:()->Unit,onOpen:(Bitmap,String)->Unit) {
+fun ProjectScreen(source:Bitmap,layers:List<EditorLayer>,selectedLayerId:String?,onCancel:()->Unit,onOpen:(LoadedStudioProject)->Unit) {
     val context= androidx.compose.ui.platform.LocalContext.current
     val store=remember(context){ProjectStore(context)}
     val scope=rememberCoroutineScope()
@@ -34,7 +36,7 @@ fun ProjectScreen(source:Bitmap,onCancel:()->Unit,onOpen:(Bitmap,String)->Unit) 
         Column(Modifier.fillMaxWidth().padding(16.dp)) {
             OutlinedTextField(value=name,onValueChange={name=it},label={Text("Project name")},modifier=Modifier.fillMaxWidth())
             Button(enabled=!busy,onClick={busy=true;scope.launch {
-                val saved=withContext(Dispatchers.IO){store.saveSnapshot(source,name)}
+                val saved=withContext(Dispatchers.IO){store.saveLayerProject(layers,selectedLayerId,source.width,source.height,name)}
                 projects=store.listProjects();busy=false;status="Saved: ${store.projectName(saved)}"
             }},modifier=Modifier.fillMaxWidth()) { if(busy) CircularProgressIndicator(Modifier.size(18.dp)) else Text("Save current project") }
             status?.let { Text(it,color=Color(0xFF77D7C0),modifier=Modifier.padding(top=8.dp)) }
@@ -46,12 +48,12 @@ fun ProjectScreen(source:Bitmap,onCancel:()->Unit,onOpen:(Bitmap,String)->Unit) 
                     Row(Modifier.fillMaxWidth().padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text(store.projectName(folder),color=Color.White)
-                            Text("Saved snapshot",color=Color.LightGray,style=MaterialTheme.typography.labelSmall)
+                            Text("Editable layers and canvas saved",color=Color.LightGray,style=MaterialTheme.typography.labelSmall)
                         }
                         TextButton(enabled=!busy,onClick={busy=true;scope.launch {
-                            val loaded=withContext(Dispatchers.IO){store.loadSnapshot(folder)}
+                            val loaded=withContext(Dispatchers.IO){store.loadEditableProject(folder)}
                             busy=false
-                            if(loaded!=null) onOpen(loaded,store.projectName(folder)) else status="Could not open project snapshot"
+                            if(loaded!=null) onOpen(loaded) else status="Could not open saved project"
                         }}){Text("Open")}
                         TextButton(onClick={folder.deleteRecursively();projects=store.listProjects()}){Text("Delete")}
                     }
