@@ -105,7 +105,8 @@ class NonDestructiveEditStack(
             is EditOperation.Levels -> operation.copy(id = id)
             is EditOperation.Curves -> operation.copy(id = id)
             is EditOperation.Crop -> operation.copy(id = id)
-            is EditOperation.Hsl -> operation.copy(id = id)\n            is EditOperation.Transform -> operation.copy(id=id)
+            is EditOperation.Hsl -> operation.copy(id = id)
+            is EditOperation.Transform -> operation.copy(id=id)
         }
         return true
     }
