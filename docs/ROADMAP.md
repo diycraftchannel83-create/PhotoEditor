@@ -34,7 +34,7 @@
 ## Phase 3 — Non-destructive editing foundation
 - [x] Replayable edit-operation model (Basic Adjust, Levels, Curves, Crop)
 - [x] Enable/disable, replace and remove operations
-- [x] JSON serialization/deserialization and replay tests authored
+- [x] JSON serialization/deserialization and replay tests authored\n- [x] Operation-stack ordering, toggle, replace/remove and clear tests authored (verification pending)
 - [x] Persist original bitmap separately from operation JSON in a project-store foundation
 - [ ] Integrate operation stack into the live MainActivity/editor workflow
 - [ ] Add transform, HSL, selection, retouch, LUT/effect and layer operations to stack
