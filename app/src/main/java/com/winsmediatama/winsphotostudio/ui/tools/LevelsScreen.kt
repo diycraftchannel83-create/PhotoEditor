@@ -23,7 +23,6 @@ private enum class LevelsTarget(val label:String) { RGB("RGB"), RED("Red"), GREE
 @Composable
 fun LevelsScreen(source: Bitmap, onCancel:()->Unit, onApply:(Bitmap)->Unit) {
     var target by remember { mutableStateOf(LevelsTarget.RGB) }
-    var channel by remember { mutableStateOf(LevelsChannel()) }
     var composite by remember { mutableStateOf(LevelsChannel()) }
     var red by remember { mutableStateOf(LevelsChannel()) }
     var green by remember { mutableStateOf(LevelsChannel()) }
@@ -40,11 +39,11 @@ fun LevelsScreen(source: Bitmap, onCancel:()->Unit, onApply:(Bitmap)->Unit) {
             LevelsTarget.BLUE -> blue=v
         }
     }
-    channel=when(target) { LevelsTarget.RGB->composite; LevelsTarget.RED->red; LevelsTarget.GREEN->green; LevelsTarget.BLUE->blue }
+    val channel=when(target) { LevelsTarget.RGB->composite; LevelsTarget.RED->red; LevelsTarget.GREEN->green; LevelsTarget.BLUE->blue }
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
             Text("Levels",Modifier.weight(1f),color=Color.White)
-            TextButton(onClick={channel=LevelsChannel();updateTarget(channel)}){Text("Reset")}
+            TextButton(onClick={updateTarget(LevelsChannel())}){Text("Reset")}
             TextButton(onClick=onCancel){Text("Cancel")}
             Button(enabled=preview!=null,onClick={preview?.let(onApply)}){Text("Apply")}
         }
