@@ -1,8 +1,15 @@
 # WinsPhoto Studio
 
-**WinsPhoto Studio** is an offline-first native Android photo editor project (Photoshop Mini concept) built with Kotlin and Jetpack Compose.
+**WinsPhoto Studio** is an offline-first native Android photo editor with the long-term goal of becoming a capable **Photoshop Mini for Android**. It is built with Kotlin and Jetpack Compose.
 
-## Implemented editor tools
+## Product vision
+
+Build a mobile image editor with a unified workflow: canvas editing, non-destructive operations, layers and masks, selections, retouching, color correction, compositing, typography, effects, AI tools, project recovery, and high-quality export.
+
+The roadmap below is the source of truth for continuing development. Update checkboxes only after implementation is committed and verified. Do not mark build, tests, device testing, or release tasks complete without evidence.
+
+## Current implemented tools (not all production-verified)
+
 - Photo import and responsive editor preview
 - Crop presets: Original, Free, 1:1, 4:3, 3:2, 16:9, 9:16
 - Free crop size and position, rotate, flip, resize, preview and apply
@@ -24,20 +31,212 @@
 - Bounded undo history for applied canvas edits
 - Memory-conscious image import (preview/editor canvas currently capped to 2048 px maximum dimension)
 
+## Roadmap — Photoshop Mini
+
+> **Continuation rule:** Work in small feature batches. Before coding, inspect the current implementation and roadmap. Preserve existing behavior, avoid duplicate files/classes, and integrate new tools into the shared editor workflow. Commit directly to `main` only when requested/approved. After each batch, update this README and the detailed `docs/ROADMAP.md`. Keep build/test status factual.
+
+### Phase 0 — Engineering foundation & verification
+- [x] Android Kotlin/Compose project scaffold
+- [x] Repository architecture documentation
+- [x] CI workflow configured
+- [x] SAF image import foundation
+- [ ] Dependency and license inventory
+- [ ] Verify current main branch and latest CI run; resolve build/lint/test failures
+- [ ] Establish baseline unit/instrumentation test coverage and record verified status
+
+### Phase 1 — Core canvas, crop & transform
+- [x] Canvas preview, zoom and pan foundation
+- [x] Crop aspect-ratio presets and free crop
+- [x] Rotate and flip
+- [x] Resize controls and preview/apply workflow
+- [ ] Verify crop/transform correctness, edge cases, aspect ratios and undo behavior
+- [ ] Improve straighten/perspective correction tools
+- [ ] Canvas-size tool (change canvas dimensions independently of image resize)
+
+### Phase 2 — Color & tonal editing
+- [x] Brightness, contrast, exposure, saturation and hue
+- [x] Temperature, tint and RGB balance
+- [x] Highlights, shadows, whites, blacks, vibrance, clarity and sharpen
+- [x] Levels (composite/RGB)
+- [x] Curves (composite/RGB)
+- [x] Selective HSL
+- [ ] Histogram (luminance and RGB)
+- [ ] Validate adjustment math, clipping, alpha preservation and performance
+- [ ] Improve live preview responsiveness and controls
+- [ ] Add presets with editable/resettable parameter values
+- [ ] Color-management audit (working space, display and export consistency)
+
+### Phase 3 — Non-destructive editing engine
+- [ ] Store edit operations/parameters instead of baking every adjustment immediately
+- [ ] Non-destructive crop/transform and tonal adjustment pipeline
+- [ ] True adjustment layers with editable parameters
+- [ ] Operation-level history and undo/redo (not only bitmap snapshots)
+- [ ] History panel, named states and redo support
+- [ ] Define rendering pipeline and cache invalidation strategy
+- [ ] Ensure original imported asset remains untouched throughout editing
+- [ ] Add tests for operation serialization, ordering and replay
+
+### Phase 4 — Layers, masks & compositing
+- [x] Photo and transparent bitmap layers
+- [x] Add, duplicate, delete, rename, select and reorder layers
+- [x] Visibility and opacity
+- [x] Initial blend modes
+- [x] Layer metadata and bitmap project persistence
+- [ ] Layer groups/folders
+- [ ] Layer masks (create, invert, disable, edit, apply)
+- [ ] Mask painting with brush/eraser, feather and refine controls
+- [ ] True adjustment layers
+- [ ] Expand blend modes and validate compositing math
+- [ ] Layer lock/alpha lock and clipping masks
+- [ ] Layer effects (shadow, glow, stroke, bevel where feasible)
+- [ ] Improved layer panel UX, thumbnails and multi-select
+
+### Phase 5 — Selection tools
+- [x] Rectangle and ellipse selection foundation
+- [x] Crop and alpha-mask selection workflows
+- [ ] Freehand lasso selection
+- [ ] Polygon lasso
+- [ ] Magic wand / contiguous color selection
+- [ ] Color-range selection
+- [ ] Feather, expand, contract and refine edge
+- [ ] Invert, save and load selections
+- [ ] Selection overlay and edge visualization
+- [ ] Copy/cut/paste selection as a new layer
+
+### Phase 6 — Retouching & paint
+- [x] Brush and eraser
+- [x] Blur and pixelate
+- [x] Clone stamp foundation
+- [ ] Validate clone source selection/offset workflow and brush quality
+- [ ] Healing brush / spot healing
+- [ ] Dodge and burn
+- [ ] Smudge tool
+- [ ] More brush presets, hardness, spacing and pressure support where hardware permits
+- [ ] Stabilized strokes and high-resolution brush rendering
+- [ ] Retouch tools support masks and non-destructive workflows
+
+### Phase 7 — Text, shapes & design
+- [x] Basic text and shape overlays
+- [x] Linear and radial gradient layers
+- [ ] Font picker and font import/management
+- [ ] Text editing controls: size, weight, italic, alignment, tracking, line spacing
+- [ ] Text fill, stroke, shadow and gradient
+- [ ] Shape controls: fill, outline, stroke width, rounded corners
+- [ ] Custom paths and additional shapes
+- [ ] Sticker/overlay asset browser
+- [ ] Transform handles for text and graphic layers
+- [ ] Layer effects and reusable styles
+
+### Phase 8 — Filters & effects
+- [x] Initial filter presets
+- [ ] Filter strength and parameter editing
+- [ ] LUT import/support (e.g. cube format after compatibility review)
+- [ ] Gaussian blur and other blur types
+- [ ] Motion blur
+- [ ] Glow, vignette, grain and chromatic effects
+- [ ] Distortion/warp tools
+- [ ] Effect layers and non-destructive effect stack
+- [ ] Preview thumbnails and effect performance testing
+
+### Phase 9 — AI & background tools
+- [x] Color-key background removal
+- [x] On-device person segmentation/background removal
+- [ ] Edge refinement, hair/detail preservation
+- [ ] Subject selection integrated into selection/layer workflow
+- [ ] Background replacement with image/color/gradient
+- [ ] Object removal model feasibility and offline model-size evaluation
+- [ ] Image enhancement and upscaling model feasibility
+- [ ] AI tool progress, cancel, error handling and device capability checks
+- [ ] Clearly disclose on-device vs online processing if online models are ever added
+
+### Phase 10 — Project files, autosave & recovery
+- [x] Local project save/open foundation
+- [x] Editable bitmap layer stack and metadata persistence
+- [ ] Save all live adjustment, mask, group and operation parameters
+- [ ] Project format versioning and migration
+- [ ] Autosave and recovery snapshots
+- [ ] Crash recovery and unsaved-changes protection
+- [ ] Recent projects and project management
+- [ ] Duplicate/save-as/rename/delete project flows
+- [ ] Validate missing/corrupt assets and recover gracefully
+
+### Phase 11 — High-resolution rendering, performance & export
+- [ ] Separate preview resolution from full-resolution source/render pipeline
+- [ ] Full-resolution export (avoid exporting only the 2048px preview canvas)
+- [ ] Memory-aware tile/region rendering for large images
+- [ ] Background processing and progress reporting
+- [ ] Cancellation and safe failure handling
+- [ ] Export PNG/JPEG quality, transparency and color options
+- [ ] Export dimensions, metadata/EXIF policy and file naming
+- [ ] Benchmark on low-RAM devices and large source images
+- [ ] Evaluate GPU acceleration only after correctness and profiling
+
+### Phase 12 — UX, accessibility & localization
+- [ ] Consistent tool navigation and categorized tool panels
+- [ ] Contextual tool options and apply/cancel/reset patterns
+- [ ] Before/after preview
+- [ ] Touch-friendly canvas controls and handles
+- [ ] Keyboard support where relevant (external keyboard)
+- [ ] Accessibility labels, focus order, contrast and scalable text
+- [ ] Indonesian localization
+- [ ] English localization
+- [ ] Audit all UI strings for localization readiness
+
+### Phase 13 — Privacy, security & release readiness
+- [ ] Permissions and SAF access audit (request only what is necessary)
+- [ ] Privacy policy and data disclosure audit
+- [ ] Backup/export/project storage policy review
+- [ ] Dependency, license and vulnerability audit
+- [ ] No unintended network activity for offline tools
+- [ ] Automated unit tests for processors, compositing, masks and persistence
+- [ ] Instrumentation/UI regression tests for critical workflows
+- [ ] Manual device regression test matrix (Android 8/API 26 through current)
+- [ ] Low-memory, rotation, background/foreground and crash tests
+- [ ] CI green for tests, lint, debug and release builds
+- [ ] Release signing configuration secured
+- [ ] Generate and verify production AAB
+- [ ] Play Console listing, screenshots, privacy and app-content declarations
+- [ ] Closed testing and feedback-driven fixes
+- [ ] Production rollout plan and staged release
+
+## Recommended next work order
+
+1. Verify latest CI and fix any compile/lint/test failures.
+2. Test Crop & Transform thoroughly and fix defects.
+3. Add test coverage for image processors and project persistence.
+4. Implement Histogram.
+5. Strengthen adjustment preview, reset and undo/redo.
+6. Build the non-destructive operation/history engine.
+7. Implement layer masks and groups.
+8. Expand selection and retouch tools.
+9. Improve typography, shapes, effects and filters.
+10. Implement full-resolution render/export and memory optimization.
+11. Complete AI tools, project recovery and UX/localization.
+12. Run final production audit, closed testing and release.
+
 ## Technology
+
 - Kotlin, Android Native, Jetpack Compose
 - Android SDK 35, minimum Android 8.0 (API 26)
 - ML Kit Selfie Segmentation (bundled on-device model)
-- Offline-first processing; no server/API required for implemented tools
+- Offline-first processing for implemented tools; no server/API required by current features
 
-## Important limitations before production
-- The project is still in active implementation; the build/CI verification is intentionally deferred until the requested feature pass is complete.
-- Layer adjustment tools currently render/apply to the selected layer bitmap; crop and selection operations use the composite canvas and preserve a hidden previous-composite layer.
-- Project files preserve bitmap layers and layer metadata; adjustment tool parameters are baked into layer bitmaps rather than saved as live adjustment layers.
-- AI segmentation is optimized for people/selfies; color-key removal handles simple solid backgrounds.
-- Full-resolution RAW/large-image pipeline, advanced mask painting, GPU acceleration, true clone sampling UI, typography controls, and comprehensive testing remain future work.
+## Known limitations / items to verify
+
+- Feature checkboxes describe implementation presence, not production validation.
+- Current editor preview/import canvas is capped at approximately 2048 px maximum dimension; full-resolution rendering/export is not yet complete.
+- Some adjustments are baked into layer bitmaps rather than stored as live adjustment layers.
+- Crop and selection operations may use composite workflows; verify preservation of original/layers before claiming fully non-destructive behavior.
+- Undo/history is currently bounded and does not yet represent a full operation-level editable history.
+- AI segmentation is primarily person/selfie oriented; color-key removal works best with simple backgrounds.
+- Advanced mask painting, groups, healing, dodge/burn, full typography controls, GPU/tile rendering, autosave/recovery, and comprehensive testing remain incomplete.
+- Build and CI status must be checked against actual GitHub Actions runs; never assume green.
 
 ## Build
-Build verification is intentionally postponed until the implementation pass is finished. GitHub Actions workflow remains configured for a debug APK build and artifact upload.
 
-See [docs/ROADMAP.md](docs/ROADMAP.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Build verification and release readiness must be tracked honestly. Check the latest GitHub Actions workflow and its artifacts for actual results.
+
+## Project documentation
+
+- [Detailed roadmap](docs/ROADMAP.md)
+- [Architecture](docs/ARCHITECTURE.md)
