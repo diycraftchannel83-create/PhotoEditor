@@ -1,7 +1,6 @@
 package com.winsmediatama.winsphotostudio.core.history
 
 import android.graphics.Bitmap
-import android.graphics.Rect
 import org.json.JSONArray
 import org.json.JSONObject
 import com.winsmediatama.winsphotostudio.core.adjustments.BasicAdjustmentProcessor
@@ -11,7 +10,7 @@ import com.winsmediatama.winsphotostudio.core.adjustments.CurvesProcessor
 import com.winsmediatama.winsphotostudio.core.adjustments.CurvesValues
 import com.winsmediatama.winsphotostudio.core.adjustments.LevelsChannel
 import com.winsmediatama.winsphotostudio.core.adjustments.LevelsProcessor
-import com.wensmediatama.winsphotostudio.core.adjustments.LevelsValues
+import com.winsmediatama.winsphotostudio.core.adjustments.LevelsValues
 
 /**
  * Serializable, replayable edit stack. Operations retain parameters rather than requiring
