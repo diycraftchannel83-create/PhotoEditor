@@ -1,0 +1,118 @@
+package com.winsmediatama.winsphotostudio.ui.tools
+
+import android.graphics.Bitmap
+import android.graphics.Canvas as AndroidCanvas
+import android.graphics.Paint as AndroidPaint
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+private enum class RetouchMode(val label:String){BLUR("Blur"),PIXELATE("Pixelate"),CLONE("Clone")}
+private data class RetouchStroke(val points:List<Offset>,val size:Float,val mode:RetouchMode)
+
+@Composable
+fun RetouchScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
+    var mode by remember { mutableStateOf(RetouchMode.BLUR) }
+    var strokes by remember { mutableStateOf<List<RetouchStroke>>(emptyList()) }
+    var active by remember { mutableStateOf<RetouchStroke?>(null) }
+    var brushSize by remember { mutableFloatStateOf(40f) }
+    var strength by remember { mutableFloatStateOf(.6f) }
+    var offsetX by remember { mutableFloatStateOf(100f) }
+    var offsetY by remember { mutableFloatStateOf(100f) }
+    val preview by produceState<Bitmap?>(null,source,strokes,active,mode,brushSize,strength,offsetX,offsetY) {
+        value=withContext(Dispatchers.IO){renderRetouch(source,strokes+listOfNotNull(active),strength,offsetX,offsetY)}
+    }
+    Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
+        Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(10.dp)) {
+            Text("Retouch",Modifier.weight(1f),color=Color.White)
+            TextButton(onClick={if(strokes.isNotEmpty())strokes=strokes.dropLast(1)}){Text("Undo")}
+            TextButton(onClick=onCancel){Text("Cancel")}
+            Button(enabled=preview!=null,onClick={preview?.let(onApply)}){Text("Apply")}
+        }
+        Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D))) {
+            preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize())}
+            Canvas(Modifier.fillMaxSize().pointerInput(mode,brushSize,strokes) {
+                detectDragGestures(onDragStart={start->active=RetouchStroke(listOf(Offset(start.x/size.width,start.y/size.height)),brushSize,mode)},onDragEnd={active?.let{strokes=strokes+it};active=null},onDragCancel={active=null}) { change,_ ->
+                    active=active?.copy(points=active!!.points+Offset(change.position.x/size.width,change.position.y/size.height));change.consume()
+                }
+            }) {
+                (strokes+listOfNotNull(active)).forEach { s->if(s.points.size>1) {
+                    val path=Path().apply{moveTo(s.points.first().x*size.width,s.points.first().y*size.height);s.points.drop(1).forEach{lineTo(it.x*size.width,it.y*size.height)}}
+                    drawPath(path,Color(0xFF77D7C0),style=Stroke(s.size*size.width/source.width))
+                }}
+        }
+        Column(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp)) {
+            Row(horizontalArrangement=Arrangement.spacedBy(6.dp)){RetouchMode.entries.forEach{m->FilterChip(selected=mode==m,onClick={mode=m},label={Text(m.label)})}}
+            Text("Brush size ${brushSize.toInt()} px",color=Color.LightGray);Slider(value=brushSize,onValueChange={brushSize=it},valueRange=5f..180f)
+            if(mode!=RetouchMode.CLONE){Text("Strength ${(strength*100).toInt()}%",color=Color.LightGray);Slider(value=strength,onValueChange={strength=it},valueRange=.1f..1f)}
+            if(mode==RetouchMode.CLONE) {
+                Text("Source offset X: ${offsetX.toInt()}px",color=Color.LightGray);Slider(value=offsetX,onValueChange={offsetX=it},valueRange=-source.width.toFloat()..source.width.toFloat())
+                Text("Source offset Y: ${offsetY.toInt()}px",color=Color.LightGray);Slider(value=offsetY,onValueChange={offsetY=it},valueRange=-source.height.toFloat()..source.height.toFloat())
+            }
+        }
+    }
+}
+
+private fun renderRetouch(source:Bitmap,strokes:List<RetouchStroke>,strength:Float,offsetX:Float,offsetY:Float):Bitmap {
+    if(strokes.isEmpty())return source
+    val w=source.width;val h=source.height
+    val base=IntArray(w*h);source.getPixels(base,0,w,0,0,w,h)
+    val mask=FloatArray(w*h)
+    strokes.forEach{s->s.points.forEach { point->
+        val cx=(point.x*w).toInt();val cy=(point.y*h).toInt();val radius=(s.size/2f).toInt().coerceAtLeast(1)
+        for(y in (cy-radius).coerceAtLeast(0)..(cy+radius).coerceAtMost(h-1))for(x in (cx-radius).coerceAtLeast(0)..(cx+radius).coerceAtMost(w-1)) {
+            val d=(x-cx)*(x-cx)+(y-cy)*(y-cy);if(d<=radius*radius)mask[y*w+x]=1f
+        }
+    }}
+    val result=base.copyOf()
+    val blur=boxBlur(base,w,h,3)
+    val pixel=if(strokes.any{it.mode==RetouchMode.PIXELATE}) pixelate(base,w,h,12) else base
+    for(i in result.indices) {
+        val m=mask[i]*strength; if(m<=0f)continue
+        val mode=strokes.lastOrNull()?.mode ?: RetouchMode.BLUR
+        val target=when(mode) {
+            RetouchMode.BLUR->blur[i]
+            RetouchMode.PIXELATE->pixel[i]
+            RetouchMode.CLONE->{val x=i%w;val y=i/w;val sx=(x-offsetX.toInt()).coerceIn(0,w-1);val sy=(y-offsetY.toInt()).coerceIn(0,h-1);base[sy*w+sx]}
+        }
+        result[i]=blend(base[i],target,m)
+    }
+    return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).also{it.setPixels(result,0,w,0,0,w,h)}
+}
+private fun blend(a:Int,b:Int,t:Float):Int {
+    fun ch(s:Int,shift:Int)=(((a shr shift)and 255)*(1-t)+((b shr shift)and 255)*t).toInt().coerceIn(0,255)
+    return (a and -0x1000000) or (ch(0,16) shl 16) or (ch(0,8) shl 8) or ch(0,0)
+}
+private fun boxBlur(p:IntArray,w:Int,h:Int,r:Int):IntArray {
+    val out=IntArray(p.size)
+    for(y in 0 until h)for(x in 0 until w) {
+        var rs=0;var gs=0;var bs=0;var n=0
+        for(dy in -r..r)for(dx in -r..r) {val nx=(x+dx).coerceIn(0,w-1);val ny=(y+dy).coerceIn(0,h-1);val q=p[ny*w+nx];rs+=(q shr 16)and 255;gs+=(q shr 8)and 255;bs+=q and 255;n++}
+        out[y*w+x]=(p[y*w+x] and -0x1000000) or ((rs/n) shl 16) or ((gs/n) shl 8) or (bs/n)
+    }
+    return out
+}
+private fun pixelate(p:IntArray,w:Int,h:Int,block:Int):IntArray {
+    val out=p.copyOf()
+    for(by in 0 until h step block)for(bx in 0 until w step block) {
+        var r=0;var g=0;var b=0;var n=0
+        for(y in by until (by+block).coerceAtMost(h))for(x in bx until (bx+block).coerceAtMost(w)){val q=p[y*w+x];r+=(q shr 16)and 255;g+=(q shr 8)and 255;b+=q and 255;n++}
+        val avg=(r/n shl 16) or (g/n shl 8) or (b/n)
+        for(y in by until (by+block).coerceAtMost(h))for(x in bx until (bx+block).coerceAtMost(w))out[y*w+x]=(p[y*w+x] and -0x1000000) or avg
+    }
+    return out
+}
