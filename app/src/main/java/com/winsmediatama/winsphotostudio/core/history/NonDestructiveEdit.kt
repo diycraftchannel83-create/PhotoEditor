@@ -57,8 +57,8 @@ sealed interface EditOperation {
     }
 
     data class Hsl(override val id:String=java.util.UUID.randomUUID().toString(),override val enabled:Boolean=true,val values:HslAdjustments):EditOperation {
-        override val label=\"HSL / Color range\"
-        override fun toJson()=JSONObject().put(\"id\",id).put(\"type\",\"hsl\").put(\"enabled\",enabled).put(\"values\",hslJson(values))
+        override val label="HSL / Color range"
+        override fun toJson()=JSONObject().put("id",id).put("type","hsl").put("enabled",enabled).put("values",hslJson(values))
     }
 
     data class Crop(
@@ -153,8 +153,23 @@ class NonDestructiveEditStack(
     }
 }
 
-private fun hslJson(v:HslAdjustments)=JSONObject().put("ranges",JSONArray().also{array->v.ranges.forEach{(range,value)->array.put(JSONObject().put("range",range.name).put("hueShift",value.hueShift).put("saturation",value.saturation).put("lightness",value.lightness))}})
-private fun hslFromJson(j:JSONObject)=HslAdjustments(buildMap{val array=j.optJSONArray("ranges")?:return@buildMap;for(i in 0 until array.length()){val item=array.optJSONObject(i)?:continue;val range=runCatching{HslColorRange.valueOf(item.optString("range"))}.getOrNull()?:continue;put(range,HslRangeAdjustment(item.optDouble("hueShift").toFloat(),item.optDouble("saturation").toFloat(),item.optDouble("lightness").toFloat()))}})
+private fun hslJson(v:HslAdjustments):JSONObject {
+    val ranges=JSONArray()
+    v.ranges.forEach{(range,value)->
+        ranges.put(JSONObject().put("range",range.name).put("hueShift",value.hueShift).put("saturation",value.saturation).put("lightness",value.lightness))
+    }
+    return JSONObject().put("ranges",ranges)
+}
+private fun hslFromJson(j:JSONObject):HslAdjustments {
+    val ranges=j.optJSONArray("ranges")?:return HslAdjustments()
+    val values=mutableMapOf<HslColorRange,HslRangeAdjustment>()
+    for(i in 0 until ranges.length()){
+        val item=ranges.optJSONObject(i)?:continue
+        val range=runCatching{HslColorRange.valueOf(item.optString("range"))}.getOrNull()?:continue
+        values[range]=HslRangeAdjustment(item.optDouble("hueShift").toFloat(),item.optDouble("saturation").toFloat(),item.optDouble("lightness").toFloat())
+    }
+    return HslAdjustments(values)
+}
 private fun basicValuesJson(v: BasicAdjustmentValues)=JSONObject().apply {
     put("brightness",v.brightness);put("contrast",v.contrast);put("exposure",v.exposure);put("saturation",v.saturation);put("hue",v.hue)
     put("temperature",v.temperature);put("tint",v.tint);put("redBalance",v.redBalance);put("greenBalance",v.greenBalance);put("blueBalance",v.blueBalance)
