@@ -91,7 +91,7 @@ class NonDestructiveEditStackOperationsTest {
     @Test
     fun transformOperationSerializesAndReplaysQuarterTurn() {
         val src=Bitmap.createBitmap(4,2,Bitmap.Config.ARGB_8888).apply{eraseColor(android.graphics.Color.RED)}
-        val operation=EditOperation.Transform(left=0f,top=0f,right=1f,bottom=1f,rotation=90f)
+        val operation=EditOperation.Transform(left=0f,top=0f,right=1f,bottom=1f,rotationDegrees=90f)
         val stack=NonDestructiveEditStack(src).apply{append(operation)}
         val restored=NonDestructiveEditStack.fromJson(src,stack.toJson())
         assertEquals(operation.id,restored.operations.single().id)
