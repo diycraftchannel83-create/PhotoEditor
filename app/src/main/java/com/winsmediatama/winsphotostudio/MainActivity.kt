@@ -89,6 +89,7 @@ private fun WinsPhotoApp() {
     var exportQuality by remember { mutableFloatStateOf(92f)
     }
     var exportFormat by remember { mutableStateOf("JPEG") }
+    var exportBackground by remember { mutableIntStateOf(android.graphics.Color.WHITE) }
     var exportStatus by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -110,7 +111,7 @@ private fun WinsPhotoApp() {
     val jpegExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/jpeg")) { uri ->
         val currentBitmap=bitmap
         if(uri!=null && currentBitmap!=null) scope.launch {
-            val ok=withContext(Dispatchers.IO) { runCatching { context.contentResolver.openOutputStream(uri)?.use { currentBitmap.compress(Bitmap.CompressFormat.JPEG,exportQuality.toInt(),it) } ?: false }.getOrDefault(false) }
+            val ok=withContext(Dispatchers.IO) { runCatching { context.contentResolver.openOutputStream(uri)?.use { flattenForJpeg(currentBitmap,exportBackground).compress(Bitmap.CompressFormat.JPEG,exportQuality.toInt(),it) } ?: false }.getOrDefault(false) }
             exportStatus=if(ok) "JPEG exported successfully" else "Export failed"
         }
     }
@@ -260,7 +261,13 @@ private fun WinsPhotoApp() {
                 title={Text("Export image")},
                 text={Column {
                     Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) { listOf("JPEG","PNG").forEach { fmt->FilterChip(selected=exportFormat==fmt,onClick={exportFormat=fmt},label={Text(fmt)}) } }
-                    if(exportFormat=="JPEG") { Text("Quality: ${exportQuality.toInt()}%"); Slider(value=exportQuality,onValueChange={exportQuality=it},valueRange=50f..100f) }
+                    if(exportFormat=="JPEG") {
+                        Text("Quality: ${exportQuality.toInt()}%"); Slider(value=exportQuality,onValueChange={exportQuality=it},valueRange=50f..100f)
+                        Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                            FilterChip(selected=exportBackground==android.graphics.Color.WHITE,onClick={exportBackground=android.graphics.Color.WHITE},label={Text("White background")})
+                            FilterChip(selected=exportBackground==android.graphics.Color.BLACK,onClick={exportBackground=android.graphics.Color.BLACK},label={Text("Black background")})
+                        }
+                    }
                     Text("Current canvas: ${bitmap?.width} × ${bitmap?.height}px",style=MaterialTheme.typography.bodySmall)
                 }},
                 confirmButton={TextButton(onClick={
@@ -346,6 +353,11 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
             Text("Crop, transform, adjustments and undo are available. Source image is retained separately from the edit result.", color = Color.LightGray, style = MaterialTheme.typography.bodySmall)
         }
     }
+}
+
+private fun flattenForJpeg(source:Bitmap,backgroundColor:Int):Bitmap {
+    val output=Bitmap.createBitmap(source.width,source.height,Bitmap.Config.ARGB_8888)
+    val canvas=Canvas(output);canvas.drawColor(backgroundColor);canvas.drawBitmap(source,0f,0f,Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG));return output
 }
 
 private fun fitBitmapToCanvas(source:Bitmap,width:Int,height:Int):Bitmap {
