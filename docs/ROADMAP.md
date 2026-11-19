@@ -58,7 +58,7 @@
 - [x] Polygon selection
 - [x] Color-range selection
 - [x] Contiguous magic-wand selection
-- [x] Crop, alpha-mask and copy-selection-as-layer output
+- [x] Crop, alpha-mask and copy-selection-as-layer and apply-as-layer-mask output
 - [x] Invert, expand/contract and feather controls
 - [ ] Refine edge, saved selections, copy/cut/paste selection as layers, regression verification
 
