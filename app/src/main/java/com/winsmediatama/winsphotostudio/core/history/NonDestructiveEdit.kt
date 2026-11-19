@@ -86,7 +86,13 @@ class NonDestructiveEditStack(
     fun replace(id: String, operation: EditOperation): Boolean {
         val index = mutableOperations.indexOfFirst { it.id == id }
         if (index < 0) return false
-        mutableOperations[index] = operation
+        mutableOperations[index] = when (operation) {
+            is EditOperation.BasicAdjust -> operation.copy(id = id)
+            is EditOperation.Levels -> operation.copy(id = id)
+            is EditOperation.Curves -> operation.copy(id = id)
+            is EditOperation.Crop -> operation.copy(id = id)
+            is EditOperation.Hsl -> operation.copy(id = id)
+        }
         return true
     }
     fun toggle(id: String, enabled: Boolean): Boolean {
