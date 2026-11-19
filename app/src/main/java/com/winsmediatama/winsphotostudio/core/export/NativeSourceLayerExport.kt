@@ -22,8 +22,8 @@ object NativeSourceLayerExport {
         require(!source.isRecycled)
         require(source.width.toLong() * source.height <= FullResolutionExport.MAX_EXPORT_PIXELS)
         val sourceLayer = layers.firstOrNull { it.id == sourceLayerId } ?: return null
-        if (sourceLayer.originalBitmap?.isRecycled != false) return null
-        if (sourceLayer.originalBitmap == null) return null
+        val retainedPreview = sourceLayer.originalBitmap ?: return null
+        if (retainedPreview.isRecycled) return null
         val nativeSource = if (sourceLayer.operations.isNotEmpty()) {
             FullResolutionEditReplay.render(source, sourceLayer.operations, previewWidth, previewHeight)
         } else {
