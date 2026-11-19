@@ -19,6 +19,7 @@
 - [x] Perspective correction integrated as replayable operation with normalized corner quad, output dimensions, JSON round-trip, toggle and renderer; regression test authored (verification deferred)
 - [x] Canvas-size processor and independent canvas-size UI with anchors/background
 - [x] Canvas Size tool integrated as replayable operation (width/height, anchor and background serialized; test authored, verification deferred)
+- [x] Background replacement integrated as replayable operation (solid/gradient/photo mode and colors serialized; photo background PNG encoded into bounded project payload; test authored, verification deferred)
 - [ ] Full crop/transform correctness and undo regression tests (test files authored; verification pending)
 - [x] Source-level repair of Text & Shapes multiline and line-spacing declarations (build deferred)
 - [x] Align non-destructive Transform replay with TransformProcessor API (build deferred)
