@@ -36,7 +36,7 @@ fun TextShapeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
             TextButton(onClick=onCancel){Text("Cancel")}
             Button(onClick={onApply(renderOverlay(source,kind,text,color,fontSize,x,y,opacity))}){Text("Apply")}
         }
-        Box(Modifier.weight(1f).fillMaxWidth().aspectRatio(source.width.toFloat()/source.height).padding(12.dp).background(Color(0xFF25282D)) {
+        Box(Modifier.weight(1f).fillMaxWidth().aspectRatio(source.width.toFloat()/source.height).padding(12.dp).background(Color(0xFF25282D))) {
             Image(source.asImageBitmap(),null,Modifier.fillMaxSize())
             Canvas(Modifier.fillMaxSize()) {
                 val nc=drawContext.canvas.nativeCanvas
@@ -49,6 +49,7 @@ fun TextShapeScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
                     OverlayKind.LINE -> nc.drawLine(cx-size.width*.15f,cy,cx+size.width*.15f,cy,p)
                 }
             }
+        }
         }
         Column(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp)) {
             Row(horizontalArrangement=Arrangement.spacedBy(4.dp)) { OverlayKind.entries.forEach{k->FilterChip(selected=kind==k,onClick={kind=k},label={Text(k.title)})} }
