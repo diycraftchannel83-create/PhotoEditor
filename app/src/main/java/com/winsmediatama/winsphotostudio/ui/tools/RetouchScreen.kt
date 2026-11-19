@@ -21,9 +21,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-
-private enum class RetouchMode(val label:String){BLUR("Blur"),PIXELATE("Pixelate"),CLONE("Clone"),SPOT_HEAL("Spot heal"),DODGE("Dodge"),BURN("Burn"),SMUDGE("Smudge")}
-private data class RetouchStroke(val points:List<Offset>,val size:Float,val mode:RetouchMode)
+import com.winsmediatama.winsphotostudio.core.tools.RetouchMode
+import com.winsmediatama.winsphotostudio.core.tools.RetouchPoint
+import com.winsmediatama.winsphotostudio.core.tools.RetouchStroke
 
 @Composable
 fun RetouchScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
@@ -50,8 +50,8 @@ fun RetouchScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
         Box(Modifier.weight(1f).fillMaxWidth().aspectRatio(source.width.toFloat()/source.height).padding(12.dp).background(Color(0xFF25282D))) {
             preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize())}
             Canvas(Modifier.fillMaxSize().pointerInput(mode,brushSize) {
-                detectDragGestures(onDragStart={start->active=RetouchStroke(listOf(Offset(start.x/size.width,start.y/size.height)),brushSize,mode)},onDragEnd={active?.let{strokes=strokes+it};active=null},onDragCancel={active=null}) { change,_ ->
-                    val next=Offset(change.position.x/size.width,change.position.y/size.height)
+                detectDragGestures(onDragStart={start->active=RetouchStroke(points=listOf(RetouchPoint(start.x/size.width,start.y/size.height)),size=brushSize,mode=mode)},onDragEnd={active?.let{strokes=strokes+it};active=null},onDragCancel={active=null}) { change,_ ->
+                    val next=RetouchPoint(change.position.x/size.width,change.position.y/size.height)
                     val current=active
                     if(current!=null){
                         val previous=current.points.lastOrNull()?:next
@@ -60,7 +60,7 @@ fun RetouchScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Unit) {
                         val distance=kotlin.math.sqrt(dx*dx+dy*dy)
                         val spacing=(current.size*.22f).coerceAtLeast(1f)
                         val steps=(distance/spacing).toInt().coerceAtLeast(1)
-                        val interpolated=(1..steps).map{i->Offset(previous.x+(next.x-previous.x)*i/steps,previous.y+(next.y-previous.y)*i/steps)}
+                        val interpolated=(1..steps).map{i->RetouchPoint(previous.x+(next.x-previous.x)*i/steps,previous.y+(next.y-previous.y)*i/steps)}
                         active=current.copy(points=current.points+interpolated)
                     }
                     change.consume()
