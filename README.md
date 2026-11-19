@@ -17,7 +17,7 @@
 - Retouch: blur, pixelate and clone stamp
 - Color-key background removal with sample, tolerance and feather
 - On-device AI person/background removal using bundled ML Kit Selfie Segmentation
-- Local project snapshot save/open
+- Local project save/open with editable layer stack, visibility, opacity, blend mode, selected layer and PNG assets
 - JPEG and PNG export; JPEG quality and white/black flattening background
 - Bounded undo history for applied canvas edits
 - Memory-conscious image import (preview/editor canvas currently capped to 2048 px maximum dimension)
@@ -31,7 +31,7 @@
 ## Important limitations before production
 - The project is still in active implementation; the build/CI verification is intentionally deferred until the requested feature pass is complete.
 - Layer adjustment tools currently render/apply to the selected layer bitmap; crop and selection operations use the composite canvas and preserve a hidden previous-composite layer.
-- Saved projects currently reopen flattened snapshot canvases, not full editable layer/parameter documents.
+- Project files preserve bitmap layers and layer metadata; adjustment tool parameters are baked into layer bitmaps rather than saved as live adjustment layers.
 - AI segmentation is optimized for people/selfies; color-key removal handles simple solid backgrounds.
 - Full-resolution RAW/large-image pipeline, advanced mask painting, GPU acceleration, true clone sampling UI, typography controls, and comprehensive testing remain future work.
 
