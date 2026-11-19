@@ -16,6 +16,8 @@ object LayerCompositeRenderer {
         val paint=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
         val dest=Rect(0,0,output.width,output.height)
         layers.filter { it.visible && !it.bitmap.isRecycled }.forEach { layer ->
+            val masked=layer.mask?.takeUnless{it.isRecycled}?.let{LayerMaskProcessor.apply(layer.bitmap,it)}
+            val source=masked?:layer.bitmap
             paint.alpha=(layer.opacity.coerceIn(0f,1f)*255f).toInt()
             if(layer.blendMode==EditorBlendMode.DIFFERENCE && Build.VERSION.SDK_INT>=29) {
                 paint.xfermode=null
@@ -33,9 +35,11 @@ object LayerCompositeRenderer {
                     EditorBlendMode.DIFFERENCE->PorterDuff.Mode.XOR
                 })
             }
-            canvas.drawBitmap(layer.bitmap,null,dest,paint)
+            canvas.drawBitmap(source,null,dest,paint)
+            if(masked!=null && !masked.isRecycled) masked.recycle()
         }
         paint.xfermode=null
+        paint.blendMode=null
         return output
     }
 }
