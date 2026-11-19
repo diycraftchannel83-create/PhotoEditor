@@ -39,9 +39,9 @@
 - [x] Invalid crop JSON is rejected safely; operation replacement preserves stable IDs (tests authored, verification pending)
 - [x] Persist original bitmap separately from operation JSON in a project-store foundation
 - [x] Operation-project round-trip tests authored (original preservation, IDs/parameters, disabled ops, crop replay; verification pending)
-- [x] Add source-preserving operation-session controller with bounded undo/redo, render preview/final and JSON export (controller foundation; UI integration pending)
+- [x] Add source-preserving operation-session controller with bounded undo/redo, render preview/final and JSON export\n- [x] Session controller regression tests authored for append, undo/redo, source isolation and redo-branch clearing (verification pending)
 - [x] Add LayerOperationRenderer utility to reconstruct replayable layers from preserved source + operation metadata (tests authored; verification pending)
-- [x] Layer compositor now replays operation metadata for individual and grouped layers (regression test authored; verification pending)
+- [x] Layer compositor now replays operation metadata for individual and grouped layers (regression test authored; verification pending)\n- [x] Operation-replay compositor test authored to catch stale rendered bitmap usage (verification pending)
 - [x] Integrate Basic Adjustments, Levels, Curves and HSL parameter callbacks into MainActivity operation stack (verification pending)\n- [ ] Integrate remaining tools, Crop/Transform and full operation history into live editor
 - [ ] Add transform, HSL, selection, retouch, LUT/effect and layer operations to stack
 - [x] Layer-preserving bounded undo/redo snapshots and History panel restore
