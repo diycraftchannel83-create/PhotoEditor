@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.winsmediatama.winsphotostudio.ui.tools.CropTransformScreen
 import com.winsmediatama.winsphotostudio.ui.tools.AdjustmentScreen
 import com.winsmediatama.winsphotostudio.ui.tools.LevelsScreen
