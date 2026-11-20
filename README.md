@@ -384,3 +384,10 @@ The latest CI log exposed a selection-dispatch syntax/exhaustiveness issue and c
 ## WinsPhoto Studio continuation status — 20 November 2026
 
 Recent source-only integration fixes and the ordered remaining feature plan are documented in [docs/ROADMAP.md](docs/ROADMAP.md). The work committed in the latest continuation includes Selection action integration, compile-source corrections for LUT/effects/masks/retouch, Difference compositor target handling, project asset decode bounds, selection/brush/preview lifecycle fixes and documentation. CI/device verification and all remaining production roadmap gates are explicitly pending; source commits must not be interpreted as a verified release.
+
+
+## Rendering roadmap foundation
+
+- Bounded tile processing for independent/pointwise processors is available in the core render package.
+- Halo-aware tile processing supports neighborhood filters by processing expanded regions and retaining only each non-overlapping core tile; seam regression tests are authored but not executed yet.
+- These primitives are not yet wired into full-resolution filter, retouch or export replay. See [Roadmap](docs/ROADMAP.md) for implementation vs verification status.
