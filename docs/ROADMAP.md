@@ -515,3 +515,12 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Add safe stitching helper with caller-configurable pixel limit and cancellation checkpoints.
 - [x] Add regression tests for geometry edge tiles, source preservation, stitching, oversize rejection and pre-cancelled work (execution deferred).
 - [ ] Integrate this primitive into selected CPU effects/retouch and full-resolution export replay. Current utility is a foundation; no existing editor tool is tile-backed yet.
+
+
+## Halo-aware tile processing — 20 November 2026
+
+- [x] Add `BitmapHaloTileProcessor`: non-overlapping core tiles are processed with an expanded source region (halo) clamped to source bounds; only the core output is retained, so neighboring tiles can avoid filter seams when halo size covers the kernel radius.
+- [x] Enforce processor output dimension preservation, cancellation checkpoints and cleanup of temporary/input/output ownership on cancellation or failure.
+- [x] Add seam regression test comparing a radius-1 horizontal neighborhood processor across tile boundaries against whole-image output; test edge-clamped expanded geometry and pre-cancellation (execution deferred).
+- [ ] Integrate halo tiles into selected neighborhood-dependent effects and full-resolution export replay; choose halo from each filter's kernel/radius and verify seams/performance on device.
+- [ ] CI compilation/unit-test verification remains deferred.
