@@ -46,6 +46,60 @@ object TiledOperationReplayProcessor {
             it is EditOperation.Lut
     }
 
+    fun renderHaloTile(
+        source: Bitmap,
+        coreRect: Rect,
+        operations: List<EditOperation>,
+        cancellation: CancellationSignal? = null
+    ): OutputTile {
+        val halo = requireNotNull(haloRadius(operations)) { "Operation stack is not supported by halo replay" }
+        require(coreRect.left >= 0 && coreRect.top >= 0 && coreRect.right <= source.width && coreRect.bottom <= source.height && !coreRect.isEmpty)
+        val expanded = Rect(
+            (coreRect.left - halo).coerceAtLeast(0),
+            (coreRect.top - halo).coerceAtLeast(0),
+            (coreRect.right + halo).coerceAtMost(source.width),
+            (coreRect.bottom + halo).coerceAtMost(source.height)
+        )
+        cancellation?.throwIfCanceled()
+        var current: Bitmap? = Bitmap.createBitmap(source, expanded.left, expanded.top, expanded.width(), expanded.height())
+        var cropped: Bitmap? = null
+        try {
+            operations.filter { it.enabled }.forEach { operation ->
+                cancellation?.throwIfCanceled()
+                val input = requireNotNull(current)
+                val next = when (operation) {
+                    is EditOperation.BasicAdjust -> BasicAdjustmentProcessor.apply(input, operation.values, cancellation)
+                    is EditOperation.Levels -> LevelsProcessor.apply(input, operation.values)
+                    is EditOperation.Curves -> CurvesProcessor.apply(input, operation.values)
+                    is EditOperation.Hsl -> HslProcessor.apply(input, operation.values)
+                    is EditOperation.Lut -> CubeLut.parse(operation.cubeText).apply(input)
+                    is EditOperation.Effect -> when (operation.settings.kind) {
+                        PhotoEffectKind.BLUR -> EffectProcessor.gaussianBlur(input, (operation.settings.strength * 24).toInt(), cancellation)
+                        PhotoEffectKind.MOTION -> if (operation.settings.strength <= 0f) input.copy(Bitmap.Config.ARGB_8888, true)
+                            else EffectProcessor.motionBlur(input, (operation.settings.strength * 24).toInt().coerceAtLeast(1), operation.settings.angleDegrees, cancellation)
+                        else -> error("Unsupported effect in halo replay")
+                    }
+                    else -> error("Unsupported operation reached halo replay")
+                }
+                if (next !== input && !input.isRecycled) input.recycle()
+                current = next
+            }
+            val coreInExpanded = Rect(
+                coreRect.left - expanded.left, coreRect.top - expanded.top,
+                coreRect.right - expanded.left, coreRect.bottom - expanded.top
+            )
+            cropped = Bitmap.createBitmap(coreRect.width(), coreRect.height(), Bitmap.Config.ARGB_8888)
+            Canvas(cropped).drawBitmap(requireNotNull(current), coreInExpanded, Rect(0, 0, coreRect.width(), coreRect.height()), null)
+            cancellation?.throwIfCanceled()
+            val result = OutputTile(Rect(coreRect), requireNotNull(cropped))
+            cropped = null
+            return result
+        } finally {
+            current?.let { if (!it.isRecycled) it.recycle() }
+            cropped?.let { if (!it.isRecycled) it.recycle() }
+        }
+    }
+
     fun renderTile(
         source: Bitmap,
         rect: android.graphics.Rect,
