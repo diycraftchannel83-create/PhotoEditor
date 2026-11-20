@@ -31,7 +31,8 @@ object TiledLayerCompositeRenderer {
         height: Int,
         output: java.io.OutputStream,
         tileWidth: Int = 512,
-        cancellation: CancellationSignal? = null
+        cancellation: CancellationSignal? = null,
+        cancelCheck: (() -> Unit)? = null
     ) {
         require(width > 0 && height > 0 && tileWidth > 0)
         require(layers.isNotEmpty())
@@ -50,10 +51,11 @@ object TiledLayerCompositeRenderer {
         require(layers.all { it.mask == null || (it.mask.width == width && it.mask.height == height) }) {
             "Streaming compositor requires canvas-sized layer masks"
         }
-        TiledPngEncoder.encodeRows(width, height, output, cancellation) { y, rowPixels ->
+        TiledPngEncoder.encodeRows(width, height, output, cancellation, cancelCheck) { y, rowPixels ->
             var left = 0
             while (left < width) {
                 cancellation?.throwIfCanceled()
+                cancelCheck?.invoke()
                 val segmentWidth = (width - left).coerceAtMost(tileWidth)
                 val segmentRect = Rect(left, y, left + segmentWidth, y + 1)
                 val composite = Bitmap.createBitmap(segmentWidth, 1, Bitmap.Config.ARGB_8888)
@@ -61,6 +63,7 @@ object TiledLayerCompositeRenderer {
                     val canvas = Canvas(composite)
                     layers.filter { it.visible && !it.bitmap.isRecycled }.forEach { layer ->
                         cancellation?.throwIfCanceled()
+                        cancelCheck?.invoke()
                         val cropped = extractAlignedRegion(layer.bitmap, segmentRect)
                         var masked: Bitmap? = null
                         try {
