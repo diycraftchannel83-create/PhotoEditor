@@ -430,3 +430,10 @@ Normal-size PNG export can replay supported pointwise adjustment operations from
 - Added the missing `ClipAlphaProcessor` editor-package import in the tiled compositor.
 - Passed the cancellation signal to grouped compositor alpha-opacity processing.
 - These are source fixes for errors reported by CI. A new build is required to confirm further compile issues are resolved.
+
+
+## Perspective transform reliability update — 20 November 2026
+
+- Replaced platform `Matrix.setPolyToPoly` dependence with a local 8-parameter homography solver using pivoted Gaussian elimination. This addresses the reported Robolectric perspective-transform failure while retaining the perspective warp matrix approach.
+- Degenerate point configurations now fail with an explicit `Perspective points are degenerate` message.
+- Unit-test verification remains pending; APK/AAB builds remain paused until the unit-test suite stabilizes.
