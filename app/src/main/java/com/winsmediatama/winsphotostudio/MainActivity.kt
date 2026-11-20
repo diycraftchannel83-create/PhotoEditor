@@ -292,7 +292,7 @@ private fun WinsPhotoApp() {
                             replayLayer.visible && replayLayer.opacity>=0.999f && replayLayer.mask==null &&
                             replayLayer.blendMode==EditorBlendMode.NORMAL && replayLayer.groupId==null && !replayLayer.clipToBelow &&
                             replaySource.width==currentBitmap.width && replaySource.height==currentBitmap.height &&
-                            TiledOperationReplayProcessor.supports(replayLayer.operations) && replayLayer.operations.isNotEmpty()
+                            TiledOperationReplayProcessor.supportsHalo(replayLayer.operations) && replayLayer.operations.isNotEmpty()
                         val supportsStreaming=currentLayers.isNotEmpty() &&
                             currentLayers.none { it.groupId != null || it.clipToBelow || it.operations.isNotEmpty() || it.blendMode == EditorBlendMode.DIFFERENCE } &&
                             currentLayers.all { it.bitmap.width == currentBitmap.width && it.bitmap.height == currentBitmap.height && (it.mask == null || (it.mask.width == currentBitmap.width && it.mask.height == currentBitmap.height)) }
