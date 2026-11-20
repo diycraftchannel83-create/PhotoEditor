@@ -16,7 +16,8 @@ class NamedOperationStateStore(context:Context) {
         require(layerId.isNotBlank()&&layerId.length<=256){"Invalid layer ID"}
         val safe=layerId.map{if(it.isLetterOrDigit()||it=='-'||it=='_')it else '_'}
             .joinToString("").take(80)
-        val file=File(root,"${safe}-${java.lang.Integer.toHexString(layerId.hashCode())}.json").canonicalFile
+        val digest=java.security.MessageDigest.getInstance("SHA-256").digest(layerId.toByteArray(Charsets.UTF_8)).joinToString(""){byte->"%02x".format(byte)}
+        val file=File(root,"${safe}-${digest}.json").canonicalFile
         require(file.path.startsWith(root.canonicalPath+File.separator)){"Unsafe state path"}
         return file
     }
