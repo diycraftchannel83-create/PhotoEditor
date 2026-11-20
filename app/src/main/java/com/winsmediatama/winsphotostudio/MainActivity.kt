@@ -537,7 +537,7 @@ private fun WinsPhotoApp() {
                         scope.launch {
                             val restored=recovered.layers
                             val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(restored,recovered.canvasWidth,recovered.canvasHeight)}
-                            bitmap=composite;layers=restored;selectedLayerId=recovered.selectedLayerId ?: restored.lastOrNull()?.id;editHistory=emptyList();redoHistory=emptyList();editorDirty=false
+                            bitmap=composite;layers=restored;selectedLayerId=recovered.selectedLayerId ?: restored.lastOrNull()?.id;editHistory=emptyList();redoHistory=emptyList();editorDirty=true
                         }
                     }){Text("Restore")}},
                     dismissButton={TextButton(onClick={recoveryCandidate=null;scope.launch(Dispatchers.IO){RecoveryStore(context).clear()}}){Text("Discard")}}
