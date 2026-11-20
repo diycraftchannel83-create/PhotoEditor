@@ -135,7 +135,7 @@ private fun WinsPhotoApp() {
     var sourcePreviewHeight by remember { mutableIntStateOf(0) }
     var exportStatus by remember { mutableStateOf<String?>(null) }
     var beforeAfterBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    var beforeAfterLoading by remember { mutableStateOf(false) } }
+    var beforeAfterLoading by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     LaunchedEffect(bitmap) { beforeAfterBitmap?.takeUnless{it.isRecycled}?.recycle();beforeAfterBitmap=null;beforeAfterLoading=false }
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -641,40 +641,40 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
                 TextButton(onClick=onUndo,enabled=canUndo){Text(undoLabel?.let{"Undo: $it"}?:"Undo")}
                 TextButton(onClick=onRedo,enabled=canRedo){Text(redoLabel?.let{"Redo: $it"}?:"Redo")}
                 TextButton(onClick={if(beforeAfterVisible)beforeAfterVisible=false else {onBeforeAfter();beforeAfterVisible=true}},enabled=beforeAfterAvailable){Text(if(beforeAfterVisible)"After" else if(beforeAfterLoading)"Loading…" else "Before/After")}
-                TextButton(onClick=onExport){Text("Export")}
-                TextButton(onClick=onHistory){Text("History")}
-                TextButton(onClick=onOperations,enabled=canOperations){Text("Ops")}
+                TextButton(onClick=onExport,enabled=!beforeAfterVisible){Text("Export")}
+                TextButton(onClick=onHistory,enabled=!beforeAfterVisible){Text("History")}
+                TextButton(onClick=onOperations,enabled=canOperations&&!beforeAfterVisible){Text("Ops")}
             }
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal=4.dp),verticalAlignment=Alignment.CenterVertically) {
                 Text("CANVAS",color=StudioAccent,style=MaterialTheme.typography.labelSmall,modifier=Modifier.padding(horizontal=6.dp))
                 TextButton(onClick=onCropTransform,enabled=!beforeAfterVisible){Text("Crop")}
-                TextButton(onClick=onCanvasSize){Text("Canvas")}
-                TextButton(onClick=onPerspective){Text("Perspective")}
-                TextButton(onClick=onImportAnother){Text("Replace")}
+                TextButton(onClick=onCanvasSize,enabled=!beforeAfterVisible){Text("Canvas")}
+                TextButton(onClick=onPerspective,enabled=!beforeAfterVisible){Text("Perspective")}
+                TextButton(onClick=onImportAnother,enabled=!beforeAfterVisible){Text("Replace")}
                 Divider(Modifier.width(1.dp).height(28.dp),color=Color.DarkGray)
                 Text("COLOR",color=StudioAccent,style=MaterialTheme.typography.labelSmall,modifier=Modifier.padding(horizontal=6.dp))
-                TextButton(onClick=onAdjustments){Text("Adjust")}
-                TextButton(onClick=onLevels){Text("Levels")}
-                TextButton(onClick=onCurves){Text("Curves")}
-                TextButton(onClick=onHsl){Text("HSL")}
-                TextButton(onClick=onFilters){Text("Filters")}
-                TextButton(onClick=onEffects){Text("Effects")}
-                TextButton(onClick=onLut){Text("LUT")}
+                TextButton(onClick=onAdjustments,enabled=!beforeAfterVisible){Text("Adjust")}
+                TextButton(onClick=onLevels,enabled=!beforeAfterVisible){Text("Levels")}
+                TextButton(onClick=onCurves,enabled=!beforeAfterVisible){Text("Curves")}
+                TextButton(onClick=onHsl,enabled=!beforeAfterVisible){Text("HSL")}
+                TextButton(onClick=onFilters,enabled=!beforeAfterVisible){Text("Filters")}
+                TextButton(onClick=onEffects,enabled=!beforeAfterVisible){Text("Effects")}
+                TextButton(onClick=onLut,enabled=!beforeAfterVisible){Text("LUT")}
                 Divider(Modifier.width(1.dp).height(28.dp),color=Color.DarkGray)
                 Text("LAYERS",color=StudioAccent,style=MaterialTheme.typography.labelSmall,modifier=Modifier.padding(horizontal=6.dp))
-                TextButton(onClick=onLayers){Text("Layers")}
-                TextButton(onClick=onBrush){Text("Brush")}
-                TextButton(onClick=onSelection){Text("Select")}
-                TextButton(onClick=onRetouch){Text("Retouch")}
+                TextButton(onClick=onLayers,enabled=!beforeAfterVisible){Text("Layers")}
+                TextButton(onClick=onBrush,enabled=!beforeAfterVisible){Text("Brush")}
+                TextButton(onClick=onSelection,enabled=!beforeAfterVisible){Text("Select")}
+                TextButton(onClick=onRetouch,enabled=!beforeAfterVisible){Text("Retouch")}
                 Divider(Modifier.width(1.dp).height(28.dp),color=Color.DarkGray)
                 Text("DESIGN",color=StudioAccent,style=MaterialTheme.typography.labelSmall,modifier=Modifier.padding(horizontal=6.dp))
-                TextButton(onClick=onTextShape){Text("Text/Shape")}
-                TextButton(onClick=onGradient){Text("Gradient")}
-                TextButton(onClick=onBackgroundReplace){Text("Replace BG")}
+                TextButton(onClick=onTextShape,enabled=!beforeAfterVisible){Text("Text/Shape")}
+                TextButton(onClick=onGradient,enabled=!beforeAfterVisible){Text("Gradient")}
+                TextButton(onClick=onBackgroundReplace,enabled=!beforeAfterVisible){Text("Replace BG")}
                 Divider(Modifier.width(1.dp).height(28.dp),color=Color.DarkGray)
                 Text("AI",color=StudioAccent,style=MaterialTheme.typography.labelSmall,modifier=Modifier.padding(horizontal=6.dp))
-                TextButton(onClick=onBackgroundRemove){Text("Color Key")}
-                TextButton(onClick=onAiBackgroundRemove){Text("AI Remove")}
+                TextButton(onClick=onBackgroundRemove,enabled=!beforeAfterVisible){Text("Color Key")}
+                TextButton(onClick=onAiBackgroundRemove,enabled=!beforeAfterVisible){Text("AI Remove")}
             }
         }
         Box(Modifier.weight(1f).fillMaxWidth().background(Color(0xFF25282D)).padding(12.dp).pointerInput(bitmap) {
