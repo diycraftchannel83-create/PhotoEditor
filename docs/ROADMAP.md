@@ -8,6 +8,7 @@
 - [x] Android Kotlin/Compose scaffold, SAF import/export, offline-first foundation
 - [x] CI workflow configured
 - [x] Source dependency/license inventory documented (resolved transitive licenses and vulnerability scan remain release audit items)
+- [x] Region-decoded tile preview assembler with bounded output and cancellation (integrated as import fallback; device verification deferred)
 - [ ] Build, lint and CI verification (deferred)
 - [ ] Device regression and baseline performance audit (deferred)
 
@@ -38,7 +39,8 @@
 - [x] In-place parameter editing for Basic Adjust, Levels, Curves, HSL and Effects operation-stack entries (dialogs update same operation ID without changing order; implementation committed, verification deferred)
 - [x] Extend in-place editing to Transform/Crop, Perspective, Canvas Size, Background Replace, Retouch and LUT (source implementation; verification deferred)
 - [ ] Color-management consistency
-- [x] Layer-tree adjustment compositor reduces pixel-array memory by processing bounded 128-row strips; supports cancellation at layer/strip boundaries and tests authored (verification deferred)\n- [ ] Live parameter adjustment layers and preview cache
+- [x] Layer-tree adjustment compositor reduces pixel-array memory by processing bounded 128-row strips; supports cancellation at layer/strip boundaries and tests authored (verification deferred)
+- [ ] Live parameter adjustment layers and preview cache
 
 ## Phase 3 — Non-destructive editing foundation
 - [x] Replayable edit-operation model (Basic Adjust, Levels, Curves, HSL, Crop and Transform)
@@ -383,7 +385,8 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Replace unsupported AndroidJUnit4 imports/runner in local unit tests with the configured Robolectric runner in `FullResolutionEditReplayTest.kt` and `NativeSourceLayerExportTest.kt`.
 
 ### Newly observed CI issue and repair status
-- [x] CI run #666 reached `compileDebugUnitTestKotlin` and failed because three tests referenced `androidx.test.ext.junit.runners.AndroidJUnit4` not included in current test dependencies; two tests also contained literal `\\n` sequences instead of actual source newlines. The source corrections above are committed.
+- [x] CI run #666 reached `compileDebugUnitTestKotlin` and failed because three tests referenced `androidx.test.ext.junit.runners.AndroidJUnit4` not included in current test dependencies; two tests also contained literal `\
+` sequences instead of actual source newlines. The source corrections above are committed.
 - [ ] Confirm a green run on the exact latest commit. The current source additions have not yet been proven by compilation or test execution.
 - [ ] Review whether the render scheduler should be integrated with editor preview UI in a later dedicated pass; this class is a foundation, not yet a global render-engine replacement.
 
