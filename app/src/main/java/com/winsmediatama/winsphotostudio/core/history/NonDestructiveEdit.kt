@@ -213,6 +213,9 @@ class NonDestructiveEditStack(
             is EditOperation.Effect -> old.copy(enabled=enabled)
             is EditOperation.Lut -> old.copy(enabled=enabled)
             is EditOperation.Retouch -> old.copy(enabled=enabled)
+            is EditOperation.Perspective -> old.copy(enabled=enabled)
+            is EditOperation.CanvasSize -> old.copy(enabled=enabled)
+            is EditOperation.BackgroundReplace -> old.copy(enabled=enabled)
         }
         return true
     }
