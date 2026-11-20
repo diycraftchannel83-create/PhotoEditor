@@ -5,6 +5,7 @@
 **Feature implementation pass is ongoing. Build, CI, lint and device verification are intentionally deferred until the user asks to finish the feature pass.** Checkboxes in this document represent implementation presence only unless explicitly labeled verified.
 
 ## Phase 0 — Engineering foundation
+- [x] Streamed non-destructive PNG replay now processes pointwise operation stacks by horizontal tile-band, retaining/recycling one band at a time; single-tile replay API exposed for future tile scheduling (parity test authored; verification deferred)
 - [x] Android Kotlin/Compose scaffold, SAF import/export, offline-first foundation
 - [x] CI workflow configured
 - [x] Source dependency/license inventory documented (resolved transitive licenses and vulnerability scan remain release audit items)
