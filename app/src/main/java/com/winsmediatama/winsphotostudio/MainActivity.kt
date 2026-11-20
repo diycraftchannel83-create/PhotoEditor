@@ -479,8 +479,8 @@ private fun WinsPhotoApp() {
                 onExport = { exportDialogOpen=true },
                 onHistory = { historyOpen=true },
                 onOperations = { operationsOpen=true },
-                onUndo = { if (editHistory.isNotEmpty() && bitmap!=null) { redoHistory=(redoHistory+EditorSnapshot(layers.toList(),selectedLayerId,bitmap!!,"Redo state")).takeLast(30);val previous=editHistory.last();restoreSnapshot(previous);editHistory=editHistory.dropLast(1) } },
-                onRedo = { if (redoHistory.isNotEmpty() && bitmap!=null) { editHistory=(editHistory+EditorSnapshot(layers.toList(),selectedLayerId,bitmap!!,"Undo state")).takeLast(30);val next=redoHistory.last();restoreSnapshot(next);redoHistory=redoHistory.dropLast(1) } },
+                onUndo = { if (editHistory.isNotEmpty() && bitmap!=null) { redoHistory=(redoHistory+EditorSnapshot(layers.toList(),selectedLayerId,bitmap!!,"Redo state")).takeLast(MAX_HISTORY_STATES);val previous=editHistory.last();restoreSnapshot(previous);editHistory=editHistory.dropLast(1) } },
+                onRedo = { if (redoHistory.isNotEmpty() && bitmap!=null) { editHistory=(editHistory+EditorSnapshot(layers.toList(),selectedLayerId,bitmap!!,"Undo state")).takeLast(MAX_HISTORY_STATES);val next=redoHistory.last();restoreSnapshot(next);redoHistory=redoHistory.dropLast(1) } },
                 canUndo = editHistory.isNotEmpty(), canRedo = redoHistory.isNotEmpty(), undoLabel=editHistory.lastOrNull()?.label, redoLabel=redoHistory.lastOrNull()?.label, canOperations=layers.firstOrNull{it.id==selectedLayerId}?.operations?.isNotEmpty()==true
             )
             if(pendingEditorAction!=null) AlertDialog(
