@@ -149,7 +149,7 @@ private fun WinsPhotoApp() {
     var beforeAfterLoading by remember { mutableStateOf(false) }
     var beforeAfterError by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
-    val compositeScheduler=remember{BitmapRenderScheduler(96L*1024L*1024L,"WinsPhoto-LayerComposite")}
+    val compositeScheduler=remember{BitmapRenderScheduler(32L*1024L*1024L,"WinsPhoto-LayerComposite")}
     DisposableEffect(compositeScheduler){onDispose{compositeScheduler.close()}}
     suspend fun renderCompositeCached(renderLayers:List<EditorLayer>,width:Int,height:Int):Bitmap {
         val future=compositeScheduler.requestLayerStackComposite(renderLayers,width,height)
