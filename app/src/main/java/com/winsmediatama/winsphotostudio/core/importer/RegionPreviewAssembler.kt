@@ -17,6 +17,19 @@ object RegionPreviewAssembler {
     const val DEFAULT_TILE_SIZE = 1024
     const val MAX_OUTPUT_PIXELS = 4_194_304L
 
+    data class OutputSize(val width: Int, val height: Int, val sampleSize: Int)
+
+    fun calculateOutputSize(sourceWidth: Int, sourceHeight: Int, maxDimension: Int): OutputSize {
+        require(sourceWidth in 1..PreviewImageDecoder.MAX_SOURCE_DIMENSION)
+        require(sourceHeight in 1..PreviewImageDecoder.MAX_SOURCE_DIMENSION)
+        require(maxDimension in 1..PreviewImageDecoder.MAX_PREVIEW_DIMENSION)
+        val sample = PreviewImageDecoder.calculateSampleSize(sourceWidth, sourceHeight, maxDimension)
+        val width = ceil(sourceWidth.toDouble() / sample).toInt().coerceAtLeast(1)
+        val height = ceil(sourceHeight.toDouble() / sample).toInt().coerceAtLeast(1)
+        require(width.toLong() * height <= MAX_OUTPUT_PIXELS) { "Preview output exceeds pixel safety limit" }
+        return OutputSize(width, height, sample)
+    }
+
     fun decode(
         resolver: ContentResolver,
         uri: Uri,
@@ -31,12 +44,10 @@ object RegionPreviewAssembler {
         decoder.use {
             val width = it.sourceWidth
             val height = it.sourceHeight
-            val sample = PreviewImageDecoder.calculateSampleSize(width, height, maxDimension)
-            val outputWidth = ceil(width.toDouble() / sample).toInt().coerceAtLeast(1)
-            val outputHeight = ceil(height.toDouble() / sample).toInt().coerceAtLeast(1)
-            require(outputWidth.toLong() * outputHeight <= MAX_OUTPUT_PIXELS) {
-                "Preview output exceeds pixel safety limit"
-            }
+            val size = calculateOutputSize(width, height, maxDimension)
+            val sample = size.sampleSize
+            val outputWidth = size.width
+            val outputHeight = size.height
             val output = Bitmap.createBitmap(outputWidth, outputHeight, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(output)
             val paint = Paint(Paint.FILTER_BITMAP_FLAG or Paint.DITHER_FLAG)
