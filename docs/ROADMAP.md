@@ -169,7 +169,8 @@
 - [x] Disk-backed source cache and bounded original decode foundation (24 MP cap; tests authored, verification deferred)
 - [x] Native source-layer replay path for source-dimension JPEG/PNG export; replayable operations scaled to source dimensions with 24 MP guards; destructive/non-replayable fallback remains (tests authored, verification pending)
 - [ ] Tile/region processing, memory-aware caches, background progress and cancellation
-- [ ] Metadata/EXIF policy, color profile consistency and export dimension tests
+- [x] Export metadata policy defined: source EXIF/location metadata is not copied into bitmap-generated exports and the export UI states this
+- [ ] Color profile consistency and export dimension tests
 - [ ] Benchmark low-RAM devices and large images
 
 ## Phase 12 — UX, accessibility and localization
