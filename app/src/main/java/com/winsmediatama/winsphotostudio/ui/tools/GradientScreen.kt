@@ -35,8 +35,7 @@ fun GradientScreen(canvasWidth:Int,canvasHeight:Int,onCancel:()->Unit,onApply:(B
         value=null
         value=withContext(Dispatchers.IO){createGradient(canvasWidth,canvasHeight,kind,startColor,endColor,angle,opacity)}
     }
-    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==source}?.recycle()}}
-    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.recycle()}}
+    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeUnless{it.isRecycled}?.recycle()}}
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
             Text("Gradient Layer",Modifier.weight(1f),color=Color.White)
