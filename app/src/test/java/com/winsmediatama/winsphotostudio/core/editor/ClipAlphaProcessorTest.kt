@@ -3,6 +3,7 @@ package com.winsmediatama.winsphotostudio.core.editor
 import android.graphics.Bitmap
 import android.graphics.Color
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -18,5 +19,15 @@ class ClipAlphaProcessorTest {
         assertEquals(128,Color.alpha(result.getPixel(0,0)))
         assertEquals(0,Color.alpha(result.getPixel(1,0)))
         assertEquals(255,Color.red(result.getPixel(0,0)))
+    }
+    @Test fun clippingDoesNotRecycleOrMutateCallerBitmaps() {
+        val source=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{setPixel(0,0,Color.RED)}
+        val below=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{setPixel(0,0,Color.WHITE)}
+        val result=ClipAlphaProcessor.apply(source,below)
+        assertEquals(Color.RED,result.getPixel(0,0))
+        assertEquals(Color.RED,source.getPixel(0,0))
+        assertEquals(Color.WHITE,below.getPixel(0,0))
+        assertFalse(source.isRecycled)
+        assertFalse(below.isRecycled)
     }
 }
