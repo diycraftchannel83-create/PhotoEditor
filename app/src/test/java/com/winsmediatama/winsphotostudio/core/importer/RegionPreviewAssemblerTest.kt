@@ -14,7 +14,7 @@ class RegionPreviewAssemblerTest {
 
     @Test fun outputSizeUsesPowerOfTwoSamplingAndBoundsDimension() {
         val result = RegionPreviewAssembler.calculateOutputSize(12000, 8000, 2048)
-        assertEquals(4, result.sampleSize)
+        assertEquals(8, result.sampleSize)
         assertTrue(result.width <= 2048)
         assertTrue(result.height <= 2048)
     }
