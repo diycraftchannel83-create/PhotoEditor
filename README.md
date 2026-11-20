@@ -302,3 +302,5 @@ Build verification and release readiness must be tracked honestly. Check the lat
 
 ### Compositor ownership continuation
 - Difference-blend scaled temporary bitmap cleanup is now protected by `finally`; a regression test checks repeated compositing does not recycle caller-owned source or mask bitmaps. Tests remain unexecuted.
+
+- Layer-mask processors now reject source/mask inputs above 24 MP before large pixel-array allocation (source-level guard; verification pending).
