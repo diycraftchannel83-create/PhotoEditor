@@ -472,3 +472,14 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Added Robolectric source tests for pre-cancelled processor calls and source-pixel preservation.
 - [ ] CI/build/test confirmation pending; these tests and changes are not yet verified by execution.
 - [ ] Extend cancellation to blur/effects, retouch, perspective/transform and segmentation pipelines; optimize row-check overhead and use region/tile rendering for large originals.
+
+
+## Effect, retouch and perspective cancellation — 20 November 2026
+- [x] Effect processors (Gaussian blur, motion blur, vignette and grain) support row-level cancellation signals.
+- [x] Effects preview passes scheduler cancellation into processor loops.
+- [x] Retouch rendering and its blur/pixelate helpers check cancellation during row/stroke work; dodge-burn and smudge processors also support cancellation.
+- [x] Retouch preview now passes scheduler cancellation through the complete processing pipeline.
+- [x] Perspective warp checks cancellation and rejects output above 24 MP before allocation; its preview passes cancellation into the processor.
+- [x] Added cancellation regression tests for effects, retouch processors and perspective transform safety.
+- [ ] CI/build/test verification remains pending; no successful build is claimed for these commits.
+- [ ] Remaining render optimization: reduce temporary arrays and add tiled/region rendering, especially for full-resolution edits.
