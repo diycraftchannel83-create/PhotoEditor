@@ -361,3 +361,6 @@ Build verification and release readiness must be tracked honestly. Check the lat
 
 
 - Export safety: JPEG/PNG intermediates now use exception-safe cleanup; JPEG flattening and layer-fit allocations have 24 MP bounds and failure cleanup. Verification pending.
+
+
+- Before/after comparison is implemented using the retained original source layer; comparison composite renders on demand and editor tools/history are gated while viewing the baseline (verification pending).
