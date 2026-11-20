@@ -288,6 +288,98 @@ object TiledLayerCompositeRenderer {
         }finally{clearBand()}
     }
 
+    /**
+     * Flat-layer streaming path with clip-to-below alpha. The clip source is the previous
+     * visible layer's prepared alpha after its own mask, clipping and opacity, matching the
+     * editor compositor's source-alpha semantics. Groups and Difference remain excluded.
+     */
+    fun encodeStreamingClippedOperationLayers(
+        layers: List<EditorLayer>,
+        width: Int,
+        height: Int,
+        output: java.io.OutputStream,
+        tileSize: Int = 256,
+        cancellation: CancellationSignal? = null,
+        cancelCheck: (() -> Unit)? = null
+    ) {
+        require(width>0&&height>0&&tileSize in 32..2048&&layers.isNotEmpty())
+        require(layers.none{it.groupId!=null}){"Clipping stream does not support groups"}
+        require(layers.none{it.blendMode==EditorBlendMode.DIFFERENCE}){"Difference blend unsupported in clipping stream"}
+        require(layers.all{it.bitmap.width==width&&it.bitmap.height==height}){"Canvas-aligned layers required"}
+        require(layers.all{it.mask==null||(it.mask.width==width&&it.mask.height==height)}){"Canvas-aligned masks required"}
+        require(layers.filter{it.visible}.all{TiledOperationReplayProcessor.supportsHalo(it.operations)}){"Unsupported operation replay"}
+        val visibleCount=layers.count{it.visible&&!it.bitmap.isRecycled}.coerceAtLeast(1)
+        val bandHeight=minOf(tileSize,(4_000_000L/(width.toLong()*visibleCount)).coerceAtLeast(1L).toInt())
+        var bandTopActive=-1
+        val replayBands=mutableMapOf<String,Bitmap>()
+        var previousAlphaRow:Bitmap?=null
+        fun clearBand(){replayBands.values.forEach{if(!it.isRecycled)it.recycle()};replayBands.clear()}
+        try{
+            TiledPngEncoder.encodeRows(width,height,output,cancellation,cancelCheck){y,row->
+                val bandTop=(y/bandHeight)*bandHeight
+                if(bandTop!=bandTopActive){
+                    clearBand();bandTopActive=bandTop
+                    val bottom=minOf(height,bandTop+bandHeight)
+                    layers.filter{it.visible&&!it.bitmap.isRecycled}.forEach{layer->
+                        cancellation?.throwIfCanceled();cancelCheck?.invoke()
+                        replayBands[layer.id]=TiledOperationReplayProcessor.renderHaloTile(
+                            layer.bitmap,Rect(0,bandTop,width,bottom),layer.operations,cancellation
+                        ).bitmap
+                    }
+                }
+                var left=0
+                while(left<width){
+                    cancellation?.throwIfCanceled();cancelCheck?.invoke()
+                    val sw=minOf(tileSize,width-left)
+                    val composite=Bitmap.createBitmap(sw,1,Bitmap.Config.ARGB_8888)
+                    try{
+                        val canvas=Canvas(composite)
+                        layers.filter{it.visible&&!it.bitmap.isRecycled}.forEach{layer->
+                            val replay=requireNotNull(replayBands[layer.id])
+                            val sourceRow=Bitmap.createBitmap(replay,left,y-bandTop,sw,1)
+                            var masked:Bitmap?=null
+                            var clipped:Bitmap?=null
+                            var alphaSource:Bitmap?=null
+                            try{
+                                masked=layer.mask?.let{mask->
+                                    val maskRow=Bitmap.createBitmap(mask,left,y,sw,1)
+                                    try{LayerMaskProcessor.apply(sourceRow,maskRow)}finally{maskRow.recycle()}
+                                }
+                                val prepared=masked?:sourceRow
+                                clipped=if(layer.clipToBelow&&previousAlphaRow!=null)ClipAlphaProcessor.apply(prepared,previousAlphaRow!!) else prepared
+                                val paint=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply{
+                                    alpha=(layer.opacity.coerceIn(0f,1f)*255).toInt()
+                                    xfermode=blendMode(layer.blendMode)
+                                }
+                                canvas.drawBitmap(clipped!!,0f,0f,paint);paint.xfermode=null
+                                alphaSource=if(layer.opacity<1f){
+                                    val opacityBitmap=Bitmap.createBitmap(sw,1,Bitmap.Config.ARGB_8888)
+                                    val pixels=IntArray(sw);clipped!!.getPixels(pixels,0,sw,0,0,sw,1)
+                                    for(i in pixels.indices)pixels[i]=( ((pixels[i] ushr 24)*layer.opacity.coerceIn(0f,1f)).toInt() shl 24) or (pixels[i] and 0x00FFFFFF)
+                                    opacityBitmap.setPixels(pixels,0,sw,0,0,sw,1);opacityBitmap
+                                }else clipped
+                                if(alphaSource!==previousAlphaRow){
+                                    previousAlphaRow?.let{if(!it.isRecycled)it.recycle()}
+                                    previousAlphaRow=alphaSource
+                                }
+                            }finally{
+                                if(alphaSource!==clipped)alphaSource?.let{if(!it.isRecycled)it.recycle()}
+                                clipped?.takeIf{it!==sourceRow&&it!==masked}?.let{if(!it.isRecycled)it.recycle()}
+                                masked?.let{if(!it.isRecycled)it.recycle()}
+                                if(!sourceRow.isRecycled)sourceRow.recycle()
+                            }
+                        }
+                        composite.getPixels(row,left,width,0,0,sw,1)
+                    }finally{if(!composite.isRecycled)composite.recycle()}
+                    left+=sw
+                }
+            }
+        }finally{
+            clearBand()
+            previousAlphaRow?.takeUnless{it.isRecycled}?.recycle()
+        }
+    }
+
     fun renderTiles(
         layers: List<EditorLayer>,
         width: Int,
