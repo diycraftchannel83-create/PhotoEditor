@@ -353,3 +353,5 @@ Build verification and release readiness must be tracked honestly. Check the lat
 
 
 - Editor toolbar tools are categorized as Canvas, Color, Layers, Design and AI, with horizontally scrollable groups; comprehensive localization/accessibility and responsive layout verification remain pending.
+
+- Project/recovery backward-compatibility and corruption regression tests have been added (schema-one legacy fixtures, invalid manifests, unsupported schemas, traversal paths); not executed yet.
