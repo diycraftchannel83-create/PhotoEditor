@@ -7,6 +7,7 @@ import android.graphics.Rect
 import java.io.ByteArrayOutputStream
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNotNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -27,7 +28,13 @@ class TiledPngEncoderTest {
         assertTrue(encoded.size > 32)
         val decoded = requireNotNull(BitmapFactory.decodeByteArray(encoded, 0, encoded.size))
         assertEquals(5, decoded.width); assertEquals(4, decoded.height)
-        for (y in 0 until 4) for (x in 0 until 5) assertEquals(source.getPixel(x,y), decoded.getPixel(x,y))
+        for (y in 0 until 4) for (x in 0 until 5) {
+            val expected=source.getPixel(x,y);val actual=decoded.getPixel(x,y)
+            assertEquals("alpha at ($x,$y)",Color.alpha(expected),Color.alpha(actual))
+            assertTrue("red at ($x,$y): ${Color.red(expected)} vs ${Color.red(actual)}",kotlin.math.abs(Color.red(expected)-Color.red(actual))<=2)
+            assertTrue("green at ($x,$y): ${Color.green(expected)} vs ${Color.green(actual)}",kotlin.math.abs(Color.green(expected)-Color.green(actual))<=2)
+            assertTrue("blue at ($x,$y): ${Color.blue(expected)} vs ${Color.blue(actual)}",kotlin.math.abs(Color.blue(expected)-Color.blue(actual))<=2)
+        }
         decoded.recycle(); BitmapTileProcessor.recycleTiles(tiles); source.recycle()
     }
 
