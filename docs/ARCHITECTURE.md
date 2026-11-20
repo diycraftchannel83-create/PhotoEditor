@@ -65,3 +65,5 @@ A branch-specific bitmap ownership/recycling checklist is tracked in `docs/COMPO
 
 
 **Mask allocation safety:** LayerMaskProcessor validates source, mask and combined-mask dimensions against a 24 MP pixel budget before allocating pixel arrays. Verification remains deferred.
+
+**Mask and clipping safety update:** LayerMaskProcessor now also guards inversion and white-mask creation at 24 MP. ClipAlphaProcessor checks source and base dimensions before large arrays, and its scaled base bitmap is disposed through `finally`. A regression test covers clip output and caller input ownership. These are source-level changes only; no tests/build were run.
