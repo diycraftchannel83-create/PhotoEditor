@@ -195,3 +195,7 @@
 - [x] Regression tests authored for dimension choice, identity path and oversize rejection.
 - [x] Native-resolution source-layer replay integrated into JPEG/PNG source-dimension export when the imported source layer and replayable operations are retained; otherwise preview resampling fallback (tests authored, verification pending).
 - [ ] Build/test verification (deferred).
+
+## Selection crop integration
+- [x] Selection crop bounding box converted to normalized replayable Transform operation and committed through operation stack
+- [x] Replay regression test authored for normalized crop transform (build/test verification deferred)
