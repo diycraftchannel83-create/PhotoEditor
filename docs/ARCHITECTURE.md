@@ -113,3 +113,7 @@ A branch-specific bitmap ownership/recycling checklist is tracked in `docs/COMPO
 
 
 - Before/after comparison is implemented using the retained original source layer; comparison composite renders on demand and editor tools/history are gated while viewing the baseline (verification pending).
+
+
+### Before/after render lifecycle
+- Baseline preview is rendered on demand on IO, uses a captured layer snapshot, rejects stale results when the active canvas/source layer changes, and surfaces render failure feedback. Editor actions are gated while comparison is active.
