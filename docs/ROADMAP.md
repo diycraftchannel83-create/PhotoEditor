@@ -585,3 +585,5 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Add parity regression test against full compositor (test authored, execution deferred).
 - [ ] Extend scanline streaming to replay operation stacks, groups, clipping, masks with layer transform/offset semantics and native source-resolution replay.
 - [ ] Build/test/device performance verification deferred.
+
+- [x] Restrict streaming export to canvas-sized bitmap layers/masks and explicitly fall back for Difference blend, avoiding incorrect scaling/mask behavior while those semantics are not implemented in scanline mode.
