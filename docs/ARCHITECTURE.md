@@ -148,3 +148,5 @@ A source-only integration repair pass corrected the Selection action dispatcher 
 ### Scanline PNG stream
 
 The normal-size PNG export can use `TiledLayerCompositeRenderer.encodeStreamingPng` for flat canvas-aligned bitmap layers without operation stacks or clipping/groups. It composes horizontal segments for each scanline and passes pixels to `TiledPngEncoder.encodeRows`, which writes IDAT chunks incrementally. Segment bitmaps are recycled immediately; output memory is bounded by row buffers and one temporary segment. Unsupported layer semantics use the existing preview-compress fallback. This path is not yet native-source-resolution replay.
+
+Streaming eligibility also requires all layer and mask bitmaps to match canvas dimensions. Difference blend is excluded because pre-29 parity needs the legacy compositor; unsupported cases use the existing preview export fallback.
