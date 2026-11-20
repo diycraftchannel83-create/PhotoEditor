@@ -16,6 +16,61 @@ object TiledPngEncoder {
     private const val MAX_DIMENSION = 100_000
     private const val DEFLATE_BUFFER = 32 * 1024
 
+    /**
+     * Replay pointwise operations one tile-band at a time while PNG scanlines are emitted.
+     * Only one horizontal tile band is retained, then recycled before the next band.
+     */
+    fun encodeOperationReplayStreaming(
+        source: Bitmap,
+        operations: List<com.winsmediatama.winsphotostudio.core.history.EditOperation>,
+        output: OutputStream,
+        tileSize: Int = 256,
+        cancellation: CancellationSignal? = null,
+        cancelCheck: (() -> Unit)? = null
+    ) {
+        require(tileSize in 32..2048)
+        require(TiledOperationReplayProcessor.supports(operations)) {
+            "Operation stack contains spatial/geometric operations not supported by streamed replay"
+        }
+        var bandTop = -1
+        var bandTiles = mutableListOf<TiledOperationReplayProcessor.OutputTile>()
+        fun recycleBand() {
+            TiledOperationReplayProcessor.recycleTiles(bandTiles)
+            bandTiles.clear()
+        }
+        try {
+            encodeRows(source.width, source.height, output, cancellation, cancelCheck) { y, rowPixels ->
+                val nextBand = (y / tileSize) * tileSize
+                if (nextBand != bandTop) {
+                    recycleBand()
+                    bandTop = nextBand
+                    val bottom = minOf(source.height, bandTop + tileSize)
+                    var left = 0
+                    while (left < source.width) {
+                        cancellation?.throwIfCanceled()
+                        cancelCheck?.invoke()
+                        val right = minOf(source.width, left + tileSize)
+                        bandTiles += TiledOperationReplayProcessor.renderTile(
+                            source, Rect(left, bandTop, right, bottom), operations, cancellation
+                        )
+                        left = right
+                    }
+                }
+                var x = 0
+                bandTiles.forEach { tile ->
+                    cancellation?.throwIfCanceled()
+                    cancelCheck?.invoke()
+                    val width = tile.rect.width()
+                    tile.bitmap.getPixels(rowPixels, x, source.width, 0, y - tile.rect.top, width, 1)
+                    x += width
+                }
+                require(x == source.width) { "Operation replay tile band did not cover row $y" }
+            }
+        } finally {
+            recycleBand()
+        }
+    }
+
     fun encodeOperationTiles(
         tiles: List<TiledOperationReplayProcessor.OutputTile>,
         width: Int,
