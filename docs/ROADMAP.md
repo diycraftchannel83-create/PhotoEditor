@@ -587,3 +587,5 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [ ] Build/test/device performance verification deferred.
 
 - [x] Restrict streaming export to canvas-sized bitmap layers/masks and explicitly fall back for Difference blend, avoiding incorrect scaling/mask behavior while those semantics are not implemented in scanline mode.
+
+- [x] Propagate cancellation from the export coroutine through per-scanline and per-segment rendering and PNG deflate; add a cancellation regression test (authored, not run).
