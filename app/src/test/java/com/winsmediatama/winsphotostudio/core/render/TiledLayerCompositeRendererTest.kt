@@ -58,6 +58,37 @@ class TiledLayerCompositeRendererTest {
         decoded.recycle(); reference.recycle(); base.recycle(); overlay.recycle()
     }
 
+    @Test fun streamedMultiLayerOperationReplayMatchesFullComposite() {
+        val base = Bitmap.createBitmap(45, 37, Bitmap.Config.ARGB_8888).apply {
+            for(y in 0 until height) for(x in 0 until width) setPixel(x,y,Color.rgb((x*5)%256,(y*7)%256,90))
+        }
+        val overlay = Bitmap.createBitmap(45, 37, Bitmap.Config.ARGB_8888).apply {
+            eraseColor(Color.TRANSPARENT)
+            for(y in 4 until 34) for(x in 6 until 39) setPixel(x,y,Color.rgb(210,45,75))
+        }
+        val mask = Bitmap.createBitmap(45, 37, Bitmap.Config.ARGB_8888).apply {
+            for(y in 0 until height) for(x in 0 until width) {
+                val value=if(x<width/2) 255 else 100
+                setPixel(x,y,Color.argb(255,value,value,value))
+            }
+        }
+        val adjustment=com.winsmediatama.winsphotostudio.core.adjustments.BasicAdjustmentValues(brightness=.08f,contrast=.04f,saturation=.1f)
+        val operation=com.winsmediatama.winsphotostudio.core.history.EditOperation.BasicAdjust(values=adjustment)
+        val layers=listOf(
+            EditorLayer(name="Base",bitmap=base),
+            EditorLayer(name="Edited Overlay",bitmap=overlay,opacity=.8f,mask=mask,operations=listOf(operation))
+        )
+        val reference=com.winsmediatama.winsphotostudio.core.editor.LayerCompositeRenderer.render(layers,45,37)
+        val stream=java.io.ByteArrayOutputStream()
+        try {
+            TiledLayerCompositeRenderer.encodeStreamingOperationLayers(layers,45,37,stream,tileSize=32)
+            val decoded=requireNotNull(android.graphics.BitmapFactory.decodeByteArray(stream.toByteArray(),0,stream.size()))
+            for(y in 0 until 37) for(x in 0 until 45)
+                assertEquals("multi-layer replay pixel ($x,$y)",reference.getPixel(x,y),decoded.getPixel(x,y))
+            decoded.recycle()
+        } finally { reference.recycle();base.recycle();overlay.recycle();mask.recycle() }
+    }
+
     @Test fun streamingScanlineEncoderHonorsCancellationCallback() {
         val bitmap = Bitmap.createBitmap(3, 3, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.WHITE) }
         val layers = listOf(EditorLayer(name = "Layer", bitmap = bitmap))
