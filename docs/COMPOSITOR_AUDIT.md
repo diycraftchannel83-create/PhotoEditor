@@ -50,3 +50,9 @@ LayerMaskProcessor now checks source/mask/combined dimensions using Long pixel-c
 - ClipAlphaProcessor validates source and base pixel counts, and scaled base bitmap cleanup is in `finally` around pixel extraction.
 - Regression test checks clip result and verifies source/base inputs remain intact.
 - These changes are source-level only and not verified by test execution. Full compositor exception cleanup remains open.
+
+## Layer tree renderer follow-up
+- Added 24 MP render canvas guard and max nesting depth 32.
+- Child intermediate bitmap is recycled in `finally`; output bitmap is recycled on exceptions.
+- Regression tests cover oversize rejection and depth rejection; not run.
+- Remaining exception ownership audit: LayerCompositeRenderer mask/clip/group branches.
