@@ -52,12 +52,12 @@ LUT_3D_SIZE 2
 DOMAIN_MIN 0 0 0
 DOMAIN_MAX 1 1 1
 0 0 0
-0 0 1
-0 1 0
-0 1 1
 1 0 0
-1 0 1
+0 1 0
 1 1 0
+0 0 1
+1 0 1
+0 1 1
 1 1 1"""
         val source=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{setPixel(0,0,Color.RED)}
         val stack=NonDestructiveEditStack(source).apply{append(EditOperation.Lut(cubeText=cube))}
