@@ -43,6 +43,7 @@ fun OperationStackScreen(layer:EditorLayer,onCancel:()->Unit,onApply:(EditorLaye
     var saveNamedStateOpen by remember{mutableStateOf(false)}
     var manageNamedStatesOpen by remember{mutableStateOf(false)}
     var namedStateName by remember{mutableStateOf("")}
+    var namedStateError by remember{mutableStateOf<String?>(null)}
     var operations by remember(layer.id,layer.operations){mutableStateOf(layer.operations)}
     var editingBasicId by remember { mutableStateOf<String?>(null) }
     var undoOperations by remember(layer.id,layer.operations){mutableStateOf<List<List<EditOperation>>>(emptyList())}
@@ -76,8 +77,8 @@ fun OperationStackScreen(layer:EditorLayer,onCancel:()->Unit,onApply:(EditorLaye
     if(saveNamedStateOpen) AlertDialog(
         onDismissRequest={saveNamedStateOpen=false},
         title={Text("Save operation state")},
-        text={Column {Text("Save this operation stack under a name.");OutlinedTextField(value=namedStateName,onValueChange={namedStateName=it},label={Text("State name")},singleLine=true)}},
-        confirmButton={TextButton(onClick={val saved=namedStateStore.save(layer.id,namedStateName,operations);if(saved){namedStateNames=namedStateStore.names(layer.id);namedStateName="";saveNamedStateOpen=false}}){Text("Save")}},
+        text={Column {Text("Save this operation stack under a name.");namedStateError?.let{Text(it,color=MaterialTheme.colorScheme.error)};OutlinedTextField(value=namedStateName,onValueChange={namedStateName=it;namedStateError=null},label={Text("State name")},singleLine=true)}},
+        confirmButton={TextButton(onClick={val saved=runCatching{namedStateStore.save(layer.id,namedStateName,operations)}.getOrDefault(false);if(saved){namedStateNames=namedStateStore.names(layer.id);namedStateName="";namedStateError=null;saveNamedStateOpen=false}else namedStateError="Name invalid or state storage limit reached."}){Text("Save")}},
         dismissButton={TextButton(onClick={saveNamedStateOpen=false}){Text("Cancel")}}
     )
     if(manageNamedStatesOpen) AlertDialog(
