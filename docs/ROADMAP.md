@@ -334,3 +334,39 @@ Additional corrections after inspecting the CI job log and current source:
 - [x] Consolidate EffectsScreen preview disposal and ensure it never recycles the caller-owned source bitmap.
 - [ ] Confirm a successful CI run on the exact latest `main` commit. Previous runs were superseded/cancelled or used earlier commit snapshots.
 - [ ] Resolve any further compiler errors, test failures and lint diagnostics surfaced by the current run.
+
+
+## Latest continuation handoff — 20 November 2026
+
+### Source changes completed in this pass
+- [x] Repair SelectionScreen result dispatcher in MainActivity and restore exhaustive handling for Copy Layer, Mask, Cut, Cut-to-Layer and Crop.
+- [x] Fix compile-time numeric expressions and ARGB color packing in CubeLut, EffectProcessor, LayerMaskProcessor and retouch processors.
+- [x] Restore EffectProcessor package namespace used by EffectSettings and EffectsScreen.
+- [x] Replace unsupported Canvas bitmap access for legacy Difference blend with explicit backing-bitmap parameters for root and group composites.
+- [x] Add the missing BitmapFactory reference and bounds-first asset decode guard to ProjectStore.
+- [x] Correct selection Magic Wand neighbors/feather, brush preview points, gradient/effect preview lifecycle and Operation Stack Compose annotations.
+- [x] Add/retain 24 MP guards in LUT, CPU effects, retouch, selection and project asset loading paths.
+- [x] Update README, Architecture, Compositor Audit, Dependency Inventory and this roadmap.
+
+### Verification status — do not mark as complete yet
+- [ ] Confirm a green Android CI run for the exact latest `main` SHA.
+- [ ] Unit tests and Robolectric suite passed.
+- [ ] Android lint passed with all actionable warnings reviewed.
+- [ ] Debug APK and unsigned release APK/AAB created and attached as CI artifacts.
+- [ ] Manual device test on supported Android versions, including import/export, crop, masks, selection, layer groups, blend modes, undo/redo, project save/reopen/recovery, large images and memory pressure.
+- [ ] No regressions or leaks across repeated effect/selection/retouch preview cancellation and apply.
+
+### Remaining feature roadmap, ordered by dependency
+1. **Rendering foundation:** introduce a render scheduler, immutable edit snapshots, cancellation/progress, bounded cache and tile/region processing; profile large images and make 24 MP limits user-visible rather than silently failing.
+2. **Layer/history model:** true adjustment layers with editable parameters and masks; nested groups and group effects; one operation-based history timeline that includes layer-tree mutations; durable recovery of the complete editable session.
+3. **Selection and brush:** refine edge-aware hair/object masks (without claiming ML Kit selfie segmentation selects arbitrary objects), refine/expand/contract/feather/paste-selection workflows, brush hardness/spacing/pressure/stylus support and mask painting UX.
+4. **Typography and design:** font import/management, richer text styling and gradients, vector/custom path shapes, bezier controls, stickers/assets, layer styles and transform handles.
+5. **AI tools:** generic object segmentation/removal, edge refinement, inpainting, quality controls and clear offline/model availability status. Existing ML Kit person segmentation remains person-focused.
+6. **Color/export:** color profiles and wide-gamut handling, explicit EXIF policy testing, alpha/transparency behavior, metadata audit and robust full-resolution/tiled replay.
+7. **Quality/accessibility:** Indonesian and English localization first, then supported locales; semantic labels, contrast, keyboard/shortcut navigation, tablet/foldable/responsive layouts and accessibility checks.
+8. **Security/release:** verify backup/export/share boundaries, storage permission model, crash/recovery behavior, dependency graph, SBOM, license notices, CVE scan, ML Kit terms, privacy statement, app icon/name/screenshots, Play target API/content rating/data safety and signed release configuration.
+
+### CI observations
+Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` with conclusion `pending`. This run was created by the repository's push workflow; it is not a locally executed build. Earlier runs were cancelled because newer commits superseded them. Check the exact latest run above before continuing build-related repairs.
+
+**Continuation rule:** keep the roadmap honest. Source implementation, source audit, CI compilation, automated tests, device verification and production readiness are separate acceptance gates. Do not tick a verification gate without evidence.
