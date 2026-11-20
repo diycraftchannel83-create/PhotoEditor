@@ -20,6 +20,15 @@ import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
 import com.winsmediatama.winsphotostudio.core.history.EditOperation
 import com.winsmediatama.winsphotostudio.core.history.NonDestructiveEditStack
 import com.winsmediatama.winsphotostudio.core.adjustments.BasicAdjustmentValues
+import com.winsmediatama.winsphotostudio.core.adjustments.LevelsValues
+import com.winsmediatama.winsphotostudio.core.adjustments.LevelsChannel
+import com.winsmediatama.winsphotostudio.core.adjustments.CurvesValues
+import com.winsmediatama.winsphotostudio.core.adjustments.CurvePoint
+import com.winsmediatama.winsphotostudio.core.adjustments.HslAdjustments
+import com.winsmediatama.winsphotostudio.core.adjustments.HslColorRange
+import com.winsmediatama.winsphotostudio.core.adjustments.HslRangeAdjustment
+import com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectSettings
+import com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectKind
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -28,6 +37,7 @@ fun OperationStackScreen(layer:EditorLayer,onCancel:()->Unit,onApply:(EditorLaye
     val original=layer.originalBitmap?:layer.bitmap
     var operations by remember(layer.id,layer.operations){mutableStateOf(layer.operations)}
     var editingBasicId by remember { mutableStateOf<String?>(null) }
+    var editingOperationId by remember { mutableStateOf<String?>(null) }
     val preview by produceState<Bitmap?>(null,original,operations){
         value?.takeIf{it!==original}?.recycle();value=null
         value=withContext(Dispatchers.IO){NonDestructiveEditStack(original,operations).render()}
@@ -43,6 +53,7 @@ fun OperationStackScreen(layer:EditorLayer,onCancel:()->Unit,onApply:(EditorLaye
                     Checkbox(checked=op.enabled,onCheckedChange={v->operations=operations.toMutableList().also{it[index]=toggle(it[index],v)}})
                     Text(op.label,Modifier.weight(1f),color=Color.White)
                     if(op is EditOperation.BasicAdjust)TextButton(onClick={editingBasicId=op.id}){Text("Edit")}
+                    if(op is EditOperation.Levels || op is EditOperation.Curves || op is EditOperation.Hsl || op is EditOperation.Effect)TextButton(onClick={editingOperationId=op.id}){Text("Edit")}
                     TextButton(enabled=index>0,onClick={operations=operations.toMutableList().also{val item=it.removeAt(index);it.add(index-1,item)}}){Text("Up")}
                     TextButton(enabled=index<operations.lastIndex,onClick={operations=operations.toMutableList().also{val item=it.removeAt(index);it.add(index+1,item)}}){Text("Down")}
                     TextButton(onClick={operations=operations.filterIndexed{i,_->i!=index}}){Text("Remove")}
@@ -50,6 +61,10 @@ fun OperationStackScreen(layer:EditorLayer,onCancel:()->Unit,onApply:(EditorLaye
             }
         }
         if(operations.isEmpty())Text("No operations. Apply an adjustment to create a replayable operation.",color=Color.LightGray,modifier=Modifier.padding(12.dp))
+    }
+    editingOperationId?.let { id ->
+        val op=operations.firstOrNull{it.id==id}
+        if(op==null)editingOperationId=null else OperationParameterDialog(op,onDismiss={editingOperationId=null},onSave={updated->operations=operations.map{if(it.id==id)updated else it};editingOperationId=null})
     }
     editingBasicId?.let { id ->
         val current=operations.firstOrNull{it.id==id} as? EditOperation.BasicAdjust
@@ -87,6 +102,71 @@ private fun BasicSlider(label:String,value:Float,range:ClosedFloatingPointRange<
         Slider(value=value.coerceIn(range.start,range.endInclusive),onValueChange=onChange,valueRange=range)
     }
 }
+@Composable
+private fun OperationParameterDialog(operation:EditOperation,onDismiss:()->Unit,onSave:(EditOperation)->Unit){
+    when(operation){
+        is EditOperation.Levels -> LevelsEditDialog(operation,onDismiss,onSave)
+        is EditOperation.Curves -> CurvesEditDialog(operation,onDismiss,onSave)
+        is EditOperation.Hsl -> HslEditDialog(operation,onDismiss,onSave)
+        is EditOperation.Effect -> EffectEditDialog(operation,onDismiss,onSave)
+        else -> Unit
+    }
+}
+private enum class EditLevelsChannel(val title:String){RGB("RGB"),RED("Red"),GREEN("Green"),BLUE("Blue")}
+@Composable
+private fun LevelsEditDialog(operation:EditOperation.Levels,onDismiss:()->Unit,onSave:(EditOperation)->Unit){
+    var values by remember(operation.id){mutableStateOf(operation.values)}
+    var target by remember{mutableStateOf(EditLevelsChannel.RGB)}
+    val channel=when(target){EditLevelsChannel.RGB->values.composite;EditLevelsChannel.RED->values.red;EditLevelsChannel.GREEN->values.green;EditLevelsChannel.BLUE->values.blue}
+    fun update(v:LevelsChannel){values=when(target){EditLevelsChannel.RGB->values.copy(composite=v);EditLevelsChannel.RED->values.copy(red=v);EditLevelsChannel.GREEN->values.copy(green=v);EditLevelsChannel.BLUE->values.copy(blue=v)}}
+    AlertDialog(onDismissRequest=onDismiss,title={Text("Edit Levels")},text={Column(Modifier.heightIn(max=470.dp).verticalScroll(rememberScrollState())){
+        Row(horizontalArrangement=Arrangement.spacedBy(3.dp)){EditLevelsChannel.entries.forEach{FilterChip(selected=target==it,onClick={target=it},label={Text(it.title)})}}
+        BasicSlider("Input Black",channel.inputBlack,0f..0.95f){update(channel.copy(inputBlack=it.coerceAtMost(channel.inputWhite-.01f)))}
+        BasicSlider("Gamma",channel.inputGamma,.1f..3f){update(channel.copy(inputGamma=it))}
+        BasicSlider("Input White",channel.inputWhite,.05f..1f){update(channel.copy(inputWhite=it.coerceAtLeast(channel.inputBlack+.01f)))}
+        BasicSlider("Output Black",channel.outputBlack,0f..1f){update(channel.copy(outputBlack=it.coerceAtMost(channel.outputWhite)))}
+        BasicSlider("Output White",channel.outputWhite,0f..1f){update(channel.copy(outputWhite=it.coerceAtLeast(channel.outputBlack)))}
+    }},confirmButton={Button(onClick={onSave(operation.copy(values=values))}){Text("Update")}},dismissButton={TextButton(onClick=onDismiss){Text("Cancel")}})
+}
+private fun curveIdentity()=listOf(CurvePoint(0f,0f),CurvePoint(.25f,.25f),CurvePoint(.5f,.5f),CurvePoint(.75f,.75f),CurvePoint(1f,1f))
+private enum class EditCurveChannel(val title:String){RGB("RGB"),RED("Red"),GREEN("Green"),BLUE("Blue")}
+@Composable
+private fun CurvesEditDialog(operation:EditOperation.Curves,onDismiss:()->Unit,onSave:(EditOperation)->Unit){
+    var values by remember(operation.id){mutableStateOf(operation.values)}
+    var target by remember{mutableStateOf(EditCurveChannel.RGB)}
+    val curve=when(target){EditCurveChannel.RGB->values.composite;EditCurveChannel.RED->values.red.ifEmpty{curveIdentity()};EditCurveChannel.GREEN->values.green.ifEmpty{curveIdentity()};EditCurveChannel.BLUE->values.blue.ifEmpty{curveIdentity()}}
+    fun setCurve(list:List<CurvePoint>){values=when(target){EditCurveChannel.RGB->values.copy(composite=list);EditCurveChannel.RED->values.copy(red=list);EditCurveChannel.GREEN->values.copy(green=list);EditCurveChannel.BLUE->values.copy(blue=list)}}
+    AlertDialog(onDismissRequest=onDismiss,title={Text("Edit Curves")},text={Column(Modifier.heightIn(max=470.dp).verticalScroll(rememberScrollState())){
+        Row(horizontalArrangement=Arrangement.spacedBy(3.dp)){EditCurveChannel.entries.forEach{FilterChip(selected=target==it,onClick={target=it},label={Text(it.title)})}}
+        Text("Adjust control-point output values",color=Color.LightGray)
+        curve.forEachIndexed{index,point->BasicSlider("Point "+(index+1)+" · "+(point.x*100).toInt()+"% input",point.y,0f..1f){v->setCurve(curve.toMutableList().also{it[index]=point.copy(y=v)})}}
+        TextButton(onClick={setCurve(curveIdentity())}){Text("Reset selected channel")}
+    }},confirmButton={Button(onClick={onSave(operation.copy(values=values))}){Text("Update")}},dismissButton={TextButton(onClick=onDismiss){Text("Cancel")}})
+}
+@Composable
+private fun HslEditDialog(operation:EditOperation.Hsl,onDismiss:()->Unit,onSave:(EditOperation)->Unit){
+    var values by remember(operation.id){mutableStateOf(operation.values)}
+    var target by remember{mutableStateOf(HslColorRange.RED)}
+    val current=values.ranges[target]?:HslRangeAdjustment()
+    fun update(v:HslRangeAdjustment){values=HslAdjustments(values.ranges.toMutableMap().also{it[target]=v})}
+    AlertDialog(onDismissRequest=onDismiss,title={Text("Edit HSL / Color Range")},text={Column(Modifier.heightIn(max=480.dp).verticalScroll(rememberScrollState())){
+        HslColorRange.entries.forEach{range->FilterChip(selected=target==range,onClick={target=range},label={Text(range.label)})}
+        BasicSlider("Hue shift",current.hueShift,-180f..180f){update(current.copy(hueShift=it))}
+        BasicSlider("Saturation",current.saturation,-1f..1f){update(current.copy(saturation=it))}
+        BasicSlider("Lightness",current.lightness,-1f..1f){update(current.copy(lightness=it))}
+        TextButton(onClick={update(HslRangeAdjustment())}){Text("Reset selected range")}
+    }},confirmButton={Button(onClick={onSave(operation.copy(values=values))}){Text("Update")}},dismissButton={TextButton(onClick=onDismiss){Text("Cancel")}})
+}
+@Composable
+private fun EffectEditDialog(operation:EditOperation.Effect,onDismiss:()->Unit,onSave:(EditOperation)->Unit){
+    var settings by remember(operation.id){mutableStateOf(operation.settings)}
+    AlertDialog(onDismissRequest=onDismiss,title={Text("Edit Effect")},text={Column(Modifier.heightIn(max=420.dp).verticalScroll(rememberScrollState())){
+        PhotoEffectKind.entries.forEach{kind->FilterChip(selected=settings.kind==kind,onClick={settings=settings.copy(kind=kind)},label={Text(kind.name)})}
+        BasicSlider("Strength",settings.strength,0f..1f){settings=settings.copy(strength=it)}
+        if(settings.kind==PhotoEffectKind.MOTION)BasicSlider("Angle",settings.angleDegrees,0f..360f){settings=settings.copy(angleDegrees=it)}
+    }},confirmButton={Button(onClick={onSave(operation.copy(settings=settings))}){Text("Update")}},dismissButton={TextButton(onClick=onDismiss){Text("Cancel")}})
+}
+
 private fun toggle(op:EditOperation,enabled:Boolean):EditOperation=when(op){
     is EditOperation.BasicAdjust->op.copy(enabled=enabled)
     is EditOperation.Levels->op.copy(enabled=enabled)
