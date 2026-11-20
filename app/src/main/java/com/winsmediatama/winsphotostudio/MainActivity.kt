@@ -837,52 +837,47 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
     var zoom by remember { mutableFloatStateOf(1f) }
     var panX by remember { mutableFloatStateOf(0f) }
     var panY by remember { mutableFloatStateOf(0f) }
-    Column(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxWidth().background(StudioSurface)) {
-            Row(Modifier.fillMaxWidth().padding(horizontal=8.dp,vertical=4.dp),verticalAlignment=Alignment.CenterVertically) {
-                IconButton(onClick=onBack){Icon(Icons.Default.ArrowBack,contentDescription="Back")}
+    var activeMenuCategory by remember { mutableStateOf("Canvas") }
+    val menuCategories = listOf("Canvas","Color","Layers","Design","AI")
+    Column(Modifier.fillMaxSize().background(StudioBackground)) {
+        Column(Modifier.fillMaxWidth().background(Color(0xFF15181D)).padding(horizontal=12.dp,vertical=10.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+            Row(verticalAlignment=Alignment.CenterVertically) {
+                IconButton(onClick=onBack){Icon(Icons.Default.ArrowBack,contentDescription="Back",tint=Color.White)}
                 Column(Modifier.weight(1f)) {
-                    Text("Editor Preview",fontWeight=FontWeight.SemiBold)
-                    Text("${bitmap.width} × ${bitmap.height}px",style=MaterialTheme.typography.labelSmall,color=Color.LightGray)
+                    Text("WINS PHOTO STUDIO",fontWeight=FontWeight.Bold,letterSpacing=1.2f,color=StudioAccent,style=MaterialTheme.typography.titleSmall)
+                    Text("Creative workspace  •  ${bitmap.width} × ${bitmap.height}px",style=MaterialTheme.typography.labelSmall,color=Color(0xFF9DA5B0))
                 }
-                TextButton(onClick={zoom=1f;panX=0f;panY=0f}){Text("Fit")}
-                TextButton(onClick=onUndo,enabled=canUndo&&!beforeAfterVisible){Text(undoLabel?.let{"Undo: $it"}?:"Undo")}
-                TextButton(onClick=onRedo,enabled=canRedo&&!beforeAfterVisible){Text(redoLabel?.let{"Redo: $it"}?:"Redo")}
-                TextButton(onClick={if(beforeAfterVisible)beforeAfterVisible=false else {onBeforeAfter();beforeAfterVisible=true}},enabled=beforeAfterAvailable){Text(if(beforeAfterVisible)"After" else if(beforeAfterLoading)"Loading…" else "Before/After")}
-                TextButton(onClick=onExport,enabled=!beforeAfterVisible){Text("Export")}
-                TextButton(onClick=onHistory,enabled=!beforeAfterVisible){Text("History")}
-                TextButton(onClick=onOperations,enabled=canOperations&&!beforeAfterVisible){Text("Ops")}
+                TextButton(onClick={zoom=1f;panX=0f;panY=0f}){Text("FIT")}
+                TextButton(onClick=onExport,enabled=!beforeAfterVisible){Text("EXPORT",fontWeight=FontWeight.Bold)}
             }
-            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal=4.dp),verticalAlignment=Alignment.CenterVertically) {
-                Text("CANVAS",color=StudioAccent,style=MaterialTheme.typography.labelSmall,modifier=Modifier.padding(horizontal=6.dp))
-                TextButton(onClick=onCropTransform,enabled=!beforeAfterVisible){Text("Crop")}
-                TextButton(onClick=onCanvasSize,enabled=!beforeAfterVisible){Text("Canvas")}
-                TextButton(onClick=onPerspective,enabled=!beforeAfterVisible){Text("Perspective")}
-                TextButton(onClick=onImportAnother,enabled=!beforeAfterVisible){Text("Replace")}
-                Divider(Modifier.width(1.dp).height(28.dp),color=Color.DarkGray)
-                Text("COLOR",color=StudioAccent,style=MaterialTheme.typography.labelSmall,modifier=Modifier.padding(horizontal=6.dp))
-                TextButton(onClick=onAdjustments,enabled=!beforeAfterVisible){Text("Adjust")}
-                TextButton(onClick=onLevels,enabled=!beforeAfterVisible){Text("Levels")}
-                TextButton(onClick=onCurves,enabled=!beforeAfterVisible){Text("Curves")}
-                TextButton(onClick=onHsl,enabled=!beforeAfterVisible){Text("HSL")}
-                TextButton(onClick=onFilters,enabled=!beforeAfterVisible){Text("Filters")}
-                TextButton(onClick=onEffects,enabled=!beforeAfterVisible){Text("Effects")}
-                TextButton(onClick=onLut,enabled=!beforeAfterVisible){Text("LUT")}
-                Divider(Modifier.width(1.dp).height(28.dp),color=Color.DarkGray)
-                Text("LAYERS",color=StudioAccent,style=MaterialTheme.typography.labelSmall,modifier=Modifier.padding(horizontal=6.dp))
-                TextButton(onClick=onLayers,enabled=!beforeAfterVisible){Text("Layers")}
-                TextButton(onClick=onBrush,enabled=!beforeAfterVisible){Text("Brush")}
-                TextButton(onClick=onSelection,enabled=!beforeAfterVisible){Text("Select")}
-                TextButton(onClick=onRetouch,enabled=!beforeAfterVisible){Text("Retouch")}
-                Divider(Modifier.width(1.dp).height(28.dp),color=Color.DarkGray)
-                Text("DESIGN",color=StudioAccent,style=MaterialTheme.typography.labelSmall,modifier=Modifier.padding(horizontal=6.dp))
-                TextButton(onClick=onTextShape,enabled=!beforeAfterVisible){Text("Text/Shape")}
-                TextButton(onClick=onGradient,enabled=!beforeAfterVisible){Text("Gradient")}
-                TextButton(onClick=onBackgroundReplace,enabled=!beforeAfterVisible){Text("Replace BG")}
-                Divider(Modifier.width(1.dp).height(28.dp),color=Color.DarkGray)
-                Text("AI",color=StudioAccent,style=MaterialTheme.typography.labelSmall,modifier=Modifier.padding(horizontal=6.dp))
-                TextButton(onClick=onBackgroundRemove,enabled=!beforeAfterVisible){Text("Color Key")}
-                TextButton(onClick=onAiBackgroundRemove,enabled=!beforeAfterVisible){Text("AI Remove")}
+            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(5.dp),verticalAlignment=Alignment.CenterVertically) {
+                menuCategories.forEach { category ->
+                    val selected=activeMenuCategory==category
+                    Surface(onClick={activeMenuCategory=category},shape=RoundedCornerShape(14.dp),color=if(selected)Color(0xFF263C39) else Color(0xFF20242A),modifier=Modifier.weight(1f)) {
+                        Column(Modifier.padding(vertical=8.dp),horizontalAlignment=Alignment.CenterHorizontally) {
+                            Text(category.uppercase(),fontWeight=if(selected)FontWeight.Bold else FontWeight.Medium,style=MaterialTheme.typography.labelSmall,color=if(selected)StudioAccent else Color(0xFFB6BDC7))
+                            if(selected) Spacer(Modifier.height(3.dp)) else Spacer(Modifier.height(3.dp))
+                            Box(Modifier.width(if(selected)24.dp else 8.dp).height(2.dp).background(if(selected)StudioAccent else Color.Transparent, RoundedCornerShape(2.dp)))
+                        }
+                    }
+                }
+            }
+            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically) {
+                @Composable fun ToolTile(label:String, onClick:()->Unit, enabled:Boolean=true, accent:Boolean=false) {
+                    Surface(onClick=onClick,enabled=enabled,shape=RoundedCornerShape(14.dp),color=if(accent)Color(0xFF263C39) else Color(0xFF20242A),border=androidx.compose.foundation.BorderStroke(1.dp,if(accent)StudioAccent.copy(alpha=.35f) else Color(0xFF343A43)) {
+                        Column(Modifier.width(76.dp).padding(vertical=10.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(5.dp)) {
+                            Text(label.take(2).uppercase(),fontWeight=FontWeight.Bold,color=if(accent)StudioAccent else Color(0xFFE4E8EC),style=MaterialTheme.typography.titleSmall)
+                            Text(label,style=MaterialTheme.typography.labelSmall,color=if(enabled)Color(0xFFB9C0CA) else Color.Gray,maxLines=1)
+                        }
+                    }
+                }
+                when(activeMenuCategory) {
+                    "Canvas" -> { ToolTile("Crop",onCropTransform,!beforeAfterVisible,true);ToolTile("Canvas",onCanvasSize,!beforeAfterVisible);ToolTile("Perspective",onPerspective,!beforeAfterVisible);ToolTile("Replace",onImportAnother,!beforeAfterVisible) }
+                    "Color" -> { ToolTile("Adjust",onAdjustments,!beforeAfterVisible,true);ToolTile("Levels",onLevels,!beforeAfterVisible);ToolTile("Curves",onCurves,!beforeAfterVisible);ToolTile("HSL",onHsl,!beforeAfterVisible);ToolTile("Filters",onFilters,!beforeAfterVisible);ToolTile("Effects",onEffects,!beforeAfterVisible);ToolTile("LUT",onLut,!beforeAfterVisible) }
+                    "Layers" -> { ToolTile("Layers",onLayers,!beforeAfterVisible,true);ToolTile("Brush",onBrush,!beforeAfterVisible);ToolTile("Select",onSelection,!beforeAfterVisible);ToolTile("Retouch",onRetouch,!beforeAfterVisible) }
+                    "Design" -> { ToolTile("Text",onTextShape,!beforeAfterVisible,true);ToolTile("Gradient",onGradient,!beforeAfterVisible);ToolTile("BG Replace",onBackgroundReplace,!beforeAfterVisible) }
+                    else -> { ToolTile("Color Key",onBackgroundRemove,!beforeAfterVisible,true);ToolTile("AI Remove",onAiBackgroundRemove,!beforeAfterVisible) }
+                }
             }
         }
         Box(Modifier.weight(1f).fillMaxWidth().background(Color(0xFF25282D)).padding(12.dp).pointerInput(bitmap) {
