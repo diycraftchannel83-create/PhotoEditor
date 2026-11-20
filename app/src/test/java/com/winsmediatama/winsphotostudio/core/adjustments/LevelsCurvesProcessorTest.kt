@@ -29,4 +29,11 @@ class LevelsCurvesProcessorTest {
         val values=CurvesValues(composite=listOf(CurvePoint(0f,0f),CurvePoint(.5f,.75f),CurvePoint(1f,1f)))
         assertTrue(Color.red(CurvesProcessor.apply(source,values).getPixel(0,0))>128)
     }
+    @Test fun canceledLevelsAndCurvesRenderAbortAndKeepSource() {
+        val source=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888);source.setPixel(0,0,android.graphics.Color.RED)
+        val cancellation=android.os.CancellationSignal().apply{cancel()}
+        assertThrows(android.os.OperationCanceledException::class.java){LevelsProcessor.apply(source,LevelsValues(),cancellation)}
+        assertThrows(android.os.OperationCanceledException::class.java){CurvesProcessor.apply(source,CurvesValues(),cancellation)}
+        assertEquals(android.graphics.Color.RED,source.getPixel(0,0))
+    }
 }
