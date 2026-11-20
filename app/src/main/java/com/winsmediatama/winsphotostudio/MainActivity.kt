@@ -412,29 +412,143 @@ private fun WinsPhotoApp() {
                 onApply={edited -> commitEdit(edited,current);textShapeOpen=false}
             )
             else if (selectionOpen) SelectionScreen(
-                source=current,
-                onCancel={selectionOpen=false},
-                onApply={result -> when(result.action){
-                    com.winsmediatama.winsphotostudio.ui.tools.SelectionAction.COPY_LAYER->{recordUndo(current,"Copy selection");scope.launch{val mask=result.selectionMask;val operation=mask?.let{runCatching{com.winsmediatama.winsphotostudio.core.history.EditOperation.SelectionMask.fromBitmap(it)}.getOrNull()};val layer=if(operation!=null)EditorLayer(name="Selection Layer ${layers.size+1}",bitmap=result.bitmap,originalBitmap=current.copy(Bitmap.Config.ARGB_8888,true),operations=listOf(operation))else EditorLayer(name="Selection Layer ${layers.size+1}",bitmap=result.bitmap);mask?.recycle();val updated=layers+layer;val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,current.width,current.height)};layers=updated;selectedLayerId=layer.id;bitmap=composite;selectionOpen=false}}
-                    com.winsmediatama.winsphotostudio.ui.tools.SelectionAction.MASK->{val selected=layers.firstOrNull{it.id==selectedLayerId};val mask=result.selectionMask;if(selected==null||mask==null){mask?.recycle();result.bitmap.recycle();exportStatus="Select a layer before applying a selection mask";selectionOpen=false}else{runCatching{com.winsmediatama.winsphotostudio.core.history.EditOperation.SelectionMask.fromBitmap(mask)}.onFailure{result.bitmap.recycle();exportStatus="Selection mask could not be stored: ${it.message}";selectionOpen=false}.onSuccess{maskOperation->recordUndo(current,"Selection mask");result.bitmap.recycle();val sourceLayer=selected.originalBitmap?:selected.bitmap;val updatedLayer=selected.copy(originalBitmap=sourceLayer,operations=selected.operations+maskOperation);scope.launch{val renderedLayer=withContext(Dispatchers.IO){com.winsmediatama.winsphotostudio.core.history.NonDestructiveEditStack(sourceLayer,updatedLayer.operations).render()};val updated=layers.map{if(it.id==selected.id)updatedLayer.copy(bitmap=renderedLayer)else it};val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,current.width,current.height)};layers=updated;bitmap=composite;selectionOpen=false}};mask.recycle()}}
+                source = current,
+                onCancel = { selectionOpen = false },
+                onApply = { result ->
+                    val selected = layers.firstOrNull { it.id == selectedLayerId }
+                    when (result.action) {
+                        com.winsmediatama.winsphotostudio.ui.tools.SelectionAction.COPY_LAYER -> {
+                            recordUndo(current, "Copy selection")
+                            scope.launch {
+                                val mask = result.selectionMask
+                                val operation = mask?.let {
+                                    runCatching { EditOperation.SelectionMask.fromBitmap(it) }.getOrNull()
+                                }
+                                val newLayer = if (operation != null) {
+                                    EditorLayer(
+                                        name = "Selection Layer ${layers.size + 1}",
+                                        bitmap = result.bitmap,
+                                        originalBitmap = current.copy(Bitmap.Config.ARGB_8888, true),
+                                        operations = listOf(operation)
+                                    )
+                                } else EditorLayer(name = "Selection Layer ${layers.size + 1}", bitmap = result.bitmap)
+                                mask?.takeUnless { it.isRecycled }?.recycle()
+                                val updated = layers + newLayer
+                                val composite = withContext(Dispatchers.IO) {
+                                    LayerCompositeRenderer.render(updated, current.width, current.height)
+                                }
+                                layers = updated; selectedLayerId = newLayer.id; bitmap = composite; selectionOpen = false
+                            }
+                        }
+                        com.winsmediatama.winsphotostudio.ui.tools.SelectionAction.MASK -> {
+                            val mask = result.selectionMask
+                            if (selected == null || mask == null) {
+                                mask?.takeUnless { it.isRecycled }?.recycle()
+                                result.bitmap.takeUnless { it.isRecycled }?.recycle()
+                                exportStatus = "Select a layer before applying a selection mask"
+                                selectionOpen = false
+                            } else {
+                                val operation = runCatching { EditOperation.SelectionMask.fromBitmap(mask) }.getOrNull()
+                                mask.takeUnless { it.isRecycled }?.recycle()
+                                result.bitmap.takeUnless { it.isRecycled }?.recycle()
+                                if (operation == null) {
+                                    exportStatus = "Selection mask could not be stored"; selectionOpen = false
+                                } else {
+                                    recordUndo(current, "Selection mask")
+                                    val original = selected.originalBitmap ?: selected.bitmap
+                                    val updatedLayer = selected.copy(originalBitmap = original, operations = selected.operations + operation)
+                                    scope.launch {
+                                        val rendered = withContext(Dispatchers.IO) { NonDestructiveEditStack(original, updatedLayer.operations).render() }
+                                        val updated = layers.map { if (it.id == selected.id) updatedLayer.copy(bitmap = rendered) else it }
+                                        val composite = withContext(Dispatchers.IO) { LayerCompositeRenderer.render(updated, current.width, current.height) }
+                                        layers = updated; bitmap = composite; selectionOpen = false
+                                    }
+                                }
+                            }
+                        }
+                        com.winsmediatama.winsphotostudio.ui.tools.SelectionAction.CUT -> {
+                            val mask = result.selectionMask
+                            if (selected == null || mask == null) {
+                                mask?.takeUnless { it.isRecycled }?.recycle()
+                                commitEdit(result.bitmap, current, flatten = true); selectionOpen = false
+                            } else {
+                                val operation = runCatching {
+                                    EditOperation.SelectionMask.fromBitmap(mask).copy(invertSelection = true)
+                                }.getOrNull()
+                                mask.takeUnless { it.isRecycled }?.recycle()
+                                if (operation == null) {
+                                    exportStatus = "Could not create a non-destructive cut operation"
+                                    commitEdit(result.bitmap, current, flatten = true)
+                                } else {
+                                    recordUndo(current, "Selection cut")
+                                    result.bitmap.takeUnless { it.isRecycled }?.recycle()
+                                    val original = selected.originalBitmap ?: selected.bitmap
+                                    val updatedLayer = selected.copy(originalBitmap = original, operations = selected.operations + operation)
+                                    scope.launch {
+                                        val rendered = withContext(Dispatchers.IO) { NonDestructiveEditStack(original, updatedLayer.operations).render() }
+                                        val updated = layers.map { if (it.id == selected.id) updatedLayer.copy(bitmap = rendered) else it }
+                                        val composite = withContext(Dispatchers.IO) { LayerCompositeRenderer.render(updated, current.width, current.height) }
+                                        layers = updated; bitmap = composite
+                                    }
+                                }
+                                selectionOpen = false
+                            }
+                        }
+                        com.winsmediatama.winsphotostudio.ui.tools.SelectionAction.CUT_TO_LAYER -> {
+                            val copied = result.copiedLayerBitmap
+                            val mask = result.selectionMask
+                            if (copied == null || mask == null) {
+                                result.bitmap.takeUnless { it.isRecycled }?.recycle()
+                                copied?.takeUnless { it.isRecycled }?.recycle()
+                                mask?.takeUnless { it.isRecycled }?.recycle()
+                                exportStatus = "Cut-to-layer selection output missing"; selectionOpen = false
+                            } else {
+                                recordUndo(current, "Cut to layer")
+                                scope.launch {
+                                    val baseOperation = runCatching {
+                                        EditOperation.SelectionMask.fromBitmap(mask).copy(invertSelection = true)
+                                    }.getOrNull()
+                                    val topOperation = baseOperation?.copy(invertSelection = false)
+                                    val baseLayer = if (baseOperation != null) EditorLayer(
+                                        name = "Cut Base", bitmap = result.bitmap,
+                                        originalBitmap = current.copy(Bitmap.Config.ARGB_8888, true), operations = listOf(baseOperation)
+                                    ) else EditorLayer(name = "Cut Base", bitmap = result.bitmap)
+                                    val topLayer = if (topOperation != null) EditorLayer(
+                                        name = "Cut Selection", bitmap = copied,
+                                        originalBitmap = current.copy(Bitmap.Config.ARGB_8888, true), operations = listOf(topOperation)
+                                    ) else EditorLayer(name = "Cut Selection", bitmap = copied)
+                                    mask.takeUnless { it.isRecycled }?.recycle()
+                                    val updated = listOf(baseLayer, topLayer)
+                                    val composite = withContext(Dispatchers.IO) { LayerCompositeRenderer.render(updated, current.width, current.height) }
+                                    layers = updated; selectedLayerId = topLayer.id; bitmap = composite; selectionOpen = false
+                                }
+                            }
+                        }
+                        com.winsmediatama.winsphotostudio.ui.tools.SelectionAction.CROP -> {
+                            val mask = result.selectionMask
+                            if (mask != null && !mask.isRecycled) {
+                                val pixels = IntArray(mask.width * mask.height)
+                                mask.getPixels(pixels, 0, mask.width, 0, 0, mask.width, mask.height)
+                                var minX = mask.width; var minY = mask.height; var maxX = -1; var maxY = -1
+                                pixels.forEachIndexed { index, color ->
+                                    if (android.graphics.Color.red(color) > 0) {
+                                        val x = index % mask.width; val y = index / mask.width
+                                        minX = minOf(minX, x); minY = minOf(minY, y); maxX = maxOf(maxX, x); maxY = maxOf(maxY, y)
+                                    }
+                                }
+                                if (maxX >= minX && maxY >= minY) {
+                                    val transform = EditOperation.Transform(
+                                        left = minX.toFloat() / mask.width, top = minY.toFloat() / mask.height,
+                                        right = (maxX + 1).toFloat() / mask.width, bottom = (maxY + 1).toFloat() / mask.height
+                                    )
+                                    commitOperation(result.bitmap, current, transform, flatten = true)
+                                } else commitEdit(result.bitmap, current, flatten = true)
+                                mask.takeUnless { it.isRecycled }?.recycle()
+                            } else commitEdit(result.bitmap, current, flatten = true)
+                            selectionOpen = false
+                        }
                     }
-                    com.winsmediatama.winsphotostudio.ui.tools.SelectionAction.CUT->{val selected=layers.firstOrNull{it.id==selectedLayerId};val mask=result.selectionMask;if(selected==null||mask==null){mask?.recycle();commitEdit(result.bitmap,current,flatten=true);selectionOpen=false}else{runCatching{com.winsmediatama.winsphotostudio.core.history.EditOperation.SelectionMask.fromBitmap(mask).copy(invertSelection=true)}.onFailure{exportStatus="Non-destructive cut fallback: ${it.message}";commitEdit(result.bitmap,current,flatten=true);selectionOpen=false}.onSuccess{cutOperation->recordUndo(current,"Selection cut");result.bitmap.recycle();val sourceLayer=selected.originalBitmap?:selected.bitmap;val updatedLayer=selected.copy(originalBitmap=sourceLayer,operations=selected.operations+cutOperation);scope.launch{val renderedLayer=withContext(Dispatchers.IO){com.winsmediatama.winsphotostudio.core.history.NonDestructiveEditStack(sourceLayer,updatedLayer.operations).render()};val updated=layers.map{if(it.id==selected.id)updatedLayer.copy(bitmap=renderedLayer)else it};val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,current.width,current.height)};layers=updated;bitmap=composite;selectionOpen=false}};mask.recycle()}}
-                    com.winsmediatama.winsphotostudio.ui.tools.SelectionAction.CUT_TO_LAYER->{val copied=result.copiedLayerBitmap;val mask=result.selectionMask;if(copied==null||mask==null){result.bitmap.recycle();copied?.recycle();mask?.recycle();exportStatus="Cut-to-layer selection output missing";selectionOpen=false}else{recordUndo(current,"Cut to layer");scope.launch{val baseOperation=runCatching{com.winsmediatama.winsphotostudio.core.history.EditOperation.SelectionMask.fromBitmap(mask).copy(invertSelection=true)}.getOrNull();val topOperation=baseOperation?.copy(invertSelection=false);val cutBase=if(baseOperation!=null)EditorLayer(name="Cut Base",bitmap=result.bitmap,originalBitmap=current.copy(Bitmap.Config.ARGB_8888,true),operations=listOf(baseOperation))else EditorLayer(name="Cut Base",bitmap=result.bitmap);val top=if(topOperation!=null)EditorLayer(name="Cut Selection",bitmap=copied,originalBitmap=current.copy(Bitmap.Config.ARGB_8888,true),operations=listOf(topOperation))else EditorLayer(name="Cut Selection",bitmap=copied);mask.recycle();val updated=listOf(cutBase,top);val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,current.width,current.height)};layers=updated;selectedLayerId=top.id;bitmap=composite;selectionOpen=false}}}
-                    com.winsmediatama.winsphotostudio.ui.tools.SelectionAction.CROP->{
-                    val mask=result.selectionMask
-                    if(mask!=null&&!mask.isRecycled){
-                        val pixels=IntArray(mask.width*mask.height);mask.getPixels(pixels,0,mask.width,0,0,mask.width,mask.height)
-                        var minX=mask.width;var minY=mask.height;var maxX=-1;var maxY=-1
-                        pixels.forEachIndexed{idx,color->if(android.graphics.Color.red(color)>0){val x=idx%mask.width;val y=idx/mask.width;minX=minOf(minX,x);minY=minOf(minY,y);maxX=maxOf(maxX,x);maxY=maxOf(maxY,y)}}
-                        if(maxX>=minX&&maxY>=minY){
-                            val cropOp=EditOperation.Transform(left=minX.toFloat()/mask.width,top=minY.toFloat()/mask.height,right=(maxX+1).toFloat()/mask.width,bottom=(maxY+1).toFloat()/mask.height)
-                            commitOperation(result.bitmap,current,cropOp,flatten=true)
-                        }else commitEdit(result.bitmap,current,flatten=true)
-                        mask.recycle()
-                    }else commitEdit(result.bitmap,current,flatten=true)
-                    selectionOpen=false
                 }
-                }}
             )
             else if (brushOpen) BrushScreen(
                 source=selectedBitmap,
