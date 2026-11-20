@@ -57,13 +57,18 @@ object TiledPngEncoder {
         val deflater = Deflater(Deflater.DEFAULT_COMPRESSION)
         val compressed = ByteArray(DEFLATE_BUFFER)
         val row = ByteArray(width * 4 + 1)
+        val starts = tiles.groupBy { it.sourceRect.top }
+        val ends = tiles.groupBy { it.sourceRect.bottom }
+        val active = mutableListOf<BitmapTileProcessor.ProcessedTile>()
         try {
             for (y in 0 until height) {
                 cancellation?.throwIfCanceled()
+                ends[y]?.let { removed -> active.removeAll(removed.toSet()) }
+                starts[y]?.let { added -> active.addAll(added) }
+                if (starts.containsKey(y) || ends.containsKey(y)) active.sortBy { it.sourceRect.left }
                 row[0] = 0 // PNG filter: None
                 var cursor = 1
-                val rowTiles = tiles.filter { y >= it.sourceRect.top && y < it.sourceRect.bottom }.sortedBy { it.sourceRect.left }
-                rowTiles.forEach { tile ->
+                active.forEach { tile ->
                     val rect = tile.sourceRect
                     val localY = y - rect.top
                     val pixels = IntArray(rect.width())
@@ -108,14 +113,22 @@ object TiledPngEncoder {
                 "Tile rectangle lies outside PNG canvas"
             }
         }
-        // Coverage is validated per scanline; overlapping regions would overfill row buffers.
-        for (y in 0 until height) {
+        // Validate only at vertical boundaries. Coverage is constant between boundaries,
+        // so large canvases avoid a tile-list scan for every pixel row.
+        val starts = tiles.groupBy { it.first.top }
+        val ends = tiles.groupBy { it.first.bottom }
+        val boundaries = (starts.keys + ends.keys + setOf(0, height)).distinct().sorted()
+        val active = mutableListOf<Pair<Rect, Bitmap>>()
+        boundaries.zipWithNext().forEach { (top, bottom) ->
+            ends[top]?.let { removed -> active.removeAll(removed.toSet()) }
+            starts[top]?.let { added -> active.addAll(added) }
+            if (bottom <= top) return@forEach
             var nextX = 0
-            tiles.filter { y >= it.first.top && y < it.first.bottom }.sortedBy { it.first.left }.forEach { (rect, _) ->
-                require(rect.left == nextX) { "Tile row has gap or overlap at y=$y, x=$nextX" }
+            active.sortedBy { it.first.left }.forEach { (rect, _) ->
+                require(rect.left == nextX) { "Tile row has gap or overlap at y=$top, x=$nextX" }
                 nextX = rect.right
             }
-            require(nextX == width) { "Tile row does not cover PNG width at y=$y" }
+            require(nextX == width) { "Tile row does not cover PNG width at y=$top" }
         }
     }
 
