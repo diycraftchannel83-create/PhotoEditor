@@ -198,10 +198,19 @@ class ProjectStore(context: Context) {
     fun duplicateProject(projectFolder:File,newName:String?=null):File? {
         return runCatching{
             requireSupportedProjectFolder(projectFolder)
+            val requested=newName?.trim()?.takeIf{it.isNotBlank()}
+            require(requested==null||requested.length<=120){"Project name is too long"}
             val sourceManifest=readManifest(projectFolder);val id=UUID.randomUUID().toString();val target=File(root,id)
-            projectFolder.copyRecursively(target,overwrite=false)
-            val manifest=readManifest(target);manifest.put("projectId",id).put("name",newName?.trim()?.takeIf{it.isNotBlank()}?:("${sourceManifest.optString("name","Project")} Copy")).put("createdAt",System.currentTimeMillis()).put("updatedAt",System.currentTimeMillis())
-            writeManifestAtomically(target,manifest);target
+            try {
+                projectFolder.copyRecursively(target,overwrite=false)
+                val manifest=readManifest(target)
+                manifest.put("projectId",id).put("name",requested?:("${sourceManifest.optString("name","Project")} Copy")).put("createdAt",System.currentTimeMillis()).put("updatedAt",System.currentTimeMillis())
+                writeManifestAtomically(target,manifest)
+                target
+            } catch(error:Throwable) {
+                target.deleteRecursively()
+                throw error
+            }
         }.getOrNull()
     }
     fun deleteProject(projectId: String): Boolean {
