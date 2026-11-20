@@ -136,8 +136,12 @@ object TiledLayerCompositeRenderer {
                     val bandBottom = minOf(height, bandTop + bandHeight)
                     layers.filter { it.visible && !it.bitmap.isRecycled }.forEach { layer ->
                         cancellation?.throwIfCanceled(); cancelCheck?.invoke()
+                        val replaySource = layer.originalBitmap?.takeUnless { it.isRecycled } ?: layer.bitmap
+                        require(replaySource.width == width && replaySource.height == height) {
+                            "Operation replay source must match canvas dimensions"
+                        }
                         val replayed = TiledOperationReplayProcessor.renderHaloTile(
-                            layer.bitmap, Rect(0, bandTop, width, bandBottom), layer.operations, cancellation
+                            replaySource, Rect(0, bandTop, width, bandBottom), layer.operations, cancellation
                         )
                         activeTiles[layer.id] = replayed
                     }
