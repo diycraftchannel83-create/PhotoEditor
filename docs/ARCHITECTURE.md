@@ -99,3 +99,6 @@ A branch-specific bitmap ownership/recycling checklist is tracked in `docs/COMPO
 
 ### Tool navigation structure
 - The main editor tool strip is grouped into Canvas, Color, Layers, Design and AI categories, retaining horizontal scrolling. This is a navigation foundation, not a complete responsive/accessibility audit.
+
+### Legacy persistence compatibility
+- Authored tests cover schema-one legacy snapshot projects and recovery snapshots with missing optional fields, alongside corrupt manifest/schema/path traversal cases. Test execution remains deferred.
