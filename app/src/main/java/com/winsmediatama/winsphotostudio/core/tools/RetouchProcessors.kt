@@ -35,7 +35,7 @@ object RetouchProcessors {
             val d=sqrt(((x-centerX)*(x-centerX)+(y-centerY)*(y-centerY)).toFloat());if(d>r)continue
             val i=y*w+x;val p=original[i];val blend=(1f-(d/r.toFloat())).coerceIn(0f,1f)
             val nr=lerp(p shr 16 and 255,rr,blend);val ng=lerp(p shr 8 and 255,gg,blend);val nb=lerp(p and 255,bb,blend)
-            pixels[i]=(p and 0xFF000000) or (nr shl 16) or (ng shl 8) or nb
+            pixels[i]=(p and -0x1000000) or (nr shl 16) or (ng shl 8) or nb
         }
         return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(pixels,0,w,0,0,w,h)}
     }
@@ -44,7 +44,7 @@ object RetouchProcessors {
         val w=source.width;val h=source.height;val src=IntArray(w*h);source.getPixels(src,0,w,0,0,w,h)
         val out=src.copyOf();val mix=strength.coerceIn(0f,1f)
         for(y in 0 until h)for(x in 0 until w){val sx=(x-offsetX).coerceIn(0,w-1);val sy=(y-offsetY).coerceIn(0,h-1);val i=y*w+x;val p=src[i];val q=src[sy*w+sx]
-            out[i]=(p and 0xFF000000) or (lerp(p shr 16 and 255,q shr 16 and 255,mix) shl 16) or (lerp(p shr 8 and 255,q shr 8 and 255,mix) shl 8) or lerp(p and 255,q and 255,mix)
+            out[i]=(p and -0x1000000) or (lerp(p shr 16 and 255,q shr 16 and 255,mix) shl 16) or (lerp(p shr 8 and 255,q shr 8 and 255,mix) shl 8) or lerp(p and 255,q and 255,mix)
         }
         return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(out,0,w,0,0,w,h)}
     }
