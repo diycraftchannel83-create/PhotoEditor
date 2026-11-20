@@ -26,7 +26,7 @@ object BitmapTilePlanner {
         val rows=(height+tileSize-1)/tileSize
         return sequence {
             for(row in 0 until rows) {
-                cancellation?.throwIfCanceled()
+                if(cancellation?.isCanceled==true) throw android.os.OperationCanceledException()
                 for(column in 0 until columns) {
                     cancellation?.throwIfCanceled()
                     val left=column*tileSize
