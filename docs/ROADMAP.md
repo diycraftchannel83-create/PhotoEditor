@@ -51,7 +51,7 @@
 - [x] Operation-replay compositor test authored to catch stale rendered bitmap usage (verification pending)
 - [x] Integrate Basic Adjustments, Levels, Curves and HSL parameter callbacks into MainActivity operation stack (verification pending)
 - [x] Crop/Transform screen now returns normalized operation parameters and commits non-destructively as a flattened replayable layer (verification pending)
-- [x] Operation-stack UI now edits Basic Adjust values on existing entries in-place (ID/order preserved)\n- [ ] Extend operation-stack parameter editor to remaining operation types and integrate full operation history into live editor
+- [x] Operation-stack UI now edits Basic Adjust values on existing entries in-place (ID/order preserved)\n- [x] Extend operation-stack parameter editor to remaining replayable types: Crop, Transform, Levels, Curves, HSL, Effect, LUT, Retouch, Perspective, Canvas Size and Background Replace (source implementation; build/test verification deferred)
 - [x] Filter screen commits selected preset and strength as replayable Basic Adjust operation (source implementation; verification deferred)
 - [x] Effects screen commits effect kind, strength and angle as replayable Effect operation (source implementation; verification deferred)
 - [x] Effect operation can be enabled/disabled from operation stack and replays from retained source
@@ -148,7 +148,7 @@
 - [x] Basic Adjustment operation stack is live-integrated and per-layer operation metadata is saved in projects/recovery
 - [x] Levels, Curves, HSL, Transform, Effects and LUT live operation integration and per-layer persistence
 - [x] Operation stack toggle, reorder, remove and reset UI
-- [ ] Parameter editing inside existing operations, full editable-state recovery
+- [x] Parameter editing inside existing replayable operations (Basic Adjust and remaining stack types; source implementation, verification deferred)\n- [ ] Full editable-state recovery, parameter-level operation history
 
 ## Phase 11 — Render/export and performance
 - [x] JPEG/PNG export, JPEG quality and background flattening controls
