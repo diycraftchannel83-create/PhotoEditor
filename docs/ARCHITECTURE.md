@@ -77,3 +77,6 @@ A branch-specific bitmap ownership/recycling checklist is tracked in `docs/COMPO
 - Mask processing outputs are now protected by `try/catch` cleanup, including multiply-combined masks; internally scaled masks use `finally` cleanup and caller inputs are preserved.
 - Clip-alpha output cleanup is guarded against setPixels failures.
 - Tests are not run pending the user's instruction to defer verification.
+
+### Opacity intermediate ownership
+- `LayerCompositeRenderer.applyAlphaOpacity` now guards generated output against pixel-transfer failure and recycles it before rethrowing. Caller-owned layer bitmaps remain untouched.
