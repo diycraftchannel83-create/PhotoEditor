@@ -105,7 +105,8 @@ object LayerTreeRenderer {
     private fun renderInternal(nodes:List<LayerNode>,width:Int,height:Int,depth:Int,cancellation:CancellationSignal?):Bitmap {
         val w=width.coerceAtLeast(1);val h=height.coerceAtLeast(1)
         require(w.toLong()*h.toLong()<=MAX_PIXELS) { "Layer tree render exceeds 24 MP safety limit (${w}x${h})" }
-        require(depth<=MAX_DEPTH) { "Layer tree nesting exceeds maximum depth ($MAX_DEPTH)" }\n        cancellation?.throwIfCanceled()
+        require(depth<=MAX_DEPTH) { "Layer tree nesting exceeds maximum depth ($MAX_DEPTH)" }
+        cancellation?.throwIfCanceled()
         val out=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888)
         try {
             val canvas=Canvas(out)
@@ -125,7 +126,8 @@ object LayerTreeRenderer {
                     paint.alpha=(node.opacity.coerceIn(0f,1f)*255f).toInt()
                     canvas.drawBitmap(rendered,0f,0f,paint)
                 } finally {
-                    if(!rendered.isRecycled)rendered.recycle()\n                    cancellation?.throwIfCanceled()
+                    if(!rendered.isRecycled)rendered.recycle()
+                    cancellation?.throwIfCanceled()
                 }
             }
             return out
