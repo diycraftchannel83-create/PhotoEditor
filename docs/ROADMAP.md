@@ -33,7 +33,7 @@
 - [x] RGB/luminance histogram processor and UI
 - [x] Unit tests authored for basic adjustment, levels, curves, HSL and histogram (CI verification pending)
 - [x] Histogram large-image sampling bounded to 1,000,000 samples; regression test authored (verification pending)
-- [x] In-place parameter editing for Basic Adjust, Levels, Curves, HSL and Effects operation-stack entries (dialogs update same operation ID without changing order; implementation committed, verification deferred)\n- [ ] Extend in-place editing to Transform/Crop, Perspective, Canvas Size, Background Replace, Retouch and LUT; color-management consistency
+- [x] In-place parameter editing for Basic Adjust, Levels, Curves, HSL and Effects operation-stack entries (dialogs update same operation ID without changing order; implementation committed, verification deferred)\n- [x] Extend in-place editing to Transform/Crop, Perspective, Canvas Size, Background Replace, Retouch and LUT (source implementation; verification deferred)\n- [ ] Color-management consistency
 - [ ] Live parameter adjustment layers and preview cache
 
 ## Phase 3 — Non-destructive editing foundation
@@ -56,7 +56,7 @@
 - [x] Effects screen commits effect kind, strength and angle as replayable Effect operation (source implementation; verification deferred)
 - [x] Effect operation can be enabled/disabled from operation stack and replays from retained source
 - [x] Imported .cube LUT text is retained in a replayable LUT operation, with parse validation and stack toggle
-- [ ] Add selection and remaining tool operations to stack
+- [x] Selection-mask output now commits as a replayable, serialized per-layer Selection Mask operation with enable/disable and renderer replay; regression test authored (verification deferred)\n- [ ] Integrate other selection actions (copy/cut/crop) into operation-based workflows and add remaining tool operations to stack
 - [x] Retouch operation model added to NonDestructiveEditStack with normalized stroke JSON, strength/offset parameters, enable/disable/replay and source-preserving render path (test authored; verification pending)
 - [x] Retouch UI returns stroke parameters and MainActivity commits it as a replayable per-layer operation (build/device verification pending)
 - [x] Core retouch mode/stroke model with normalized points, validation and JSON codec
