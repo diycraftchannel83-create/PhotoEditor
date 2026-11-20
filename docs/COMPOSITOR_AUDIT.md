@@ -44,3 +44,9 @@ Once the current renderer source is available for fresh inspection, apply owners
 
 ## Mask allocation guard
 LayerMaskProcessor now checks source/mask/combined dimensions using Long pixel-count calculations and rejects work above 24 MP before large pixel-array allocations. Source-level change only; tests/build remain pending.
+
+## Processor-level follow-up safeguards
+- LayerMaskProcessor `invert` and `createWhiteMask` reject allocation requests above 24 MP before bitmap/pixel-array allocation.
+- ClipAlphaProcessor validates source and base pixel counts, and scaled base bitmap cleanup is in `finally` around pixel extraction.
+- Regression test checks clip result and verifies source/base inputs remain intact.
+- These changes are source-level only and not verified by test execution. Full compositor exception cleanup remains open.
