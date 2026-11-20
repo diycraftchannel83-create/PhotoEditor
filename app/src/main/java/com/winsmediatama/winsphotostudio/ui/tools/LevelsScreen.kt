@@ -17,6 +17,10 @@ import com.winsmediatama.winsphotostudio.core.adjustments.LevelsProcessor
 import com.winsmediatama.winsphotostudio.core.adjustments.LevelsValues
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CancellationException
+import com.winsmediatama.winsphotostudio.core.render.BitmapRenderScheduler
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 
 private enum class LevelsTarget(val label:String) { RGB("RGB"), RED("Red"), GREEN("Green"), BLUE("Blue") }
 
@@ -28,11 +32,15 @@ fun LevelsScreen(source: Bitmap, onCancel:()->Unit, onApply:(Bitmap,LevelsValues
     var green by remember { mutableStateOf(LevelsChannel()) }
     var blue by remember { mutableStateOf(LevelsChannel()) }
     val values=LevelsValues(composite,red,green,blue)
-    val preview by produceState<Bitmap?>(null,source,values) {
-        val previousPreview=value
-        value=null
-        previousPreview?.takeIf { it !== source }?.recycle()
-        value=withContext(Dispatchers.IO) { LevelsProcessor.apply(source,values) }
+    val renderScheduler=remember{BitmapRenderScheduler(48L*1024L*1024L,"WinsPhoto-LevelsPreview")}
+    DisposableEffect(renderScheduler){onDispose{renderScheduler.close()}}
+    val preview by produceState<Bitmap?>(null,source,values,renderScheduler) {
+        value?.takeIf{it!==source&&!it.isRecycled}?.recycle();value=null
+        val key="levels:"+System.identityHashCode(source)+":"+source.width+"x"+source.height+":"+values.hashCode()
+        var request:Future<Bitmap>?=null
+        try{value=withContext(Dispatchers.IO){request=renderScheduler.request(key){signal->signal.throwIfCanceled();LevelsProcessor.apply(source,values).also{signal.throwIfCanceled()}};request!!.get(60,TimeUnit.SECONDS)}}
+        catch(cancelled:CancellationException){request?.cancel(true);throw cancelled}
+        catch(_:Exception){request?.cancel(true);value=null}
     }
     fun updateTarget(v:LevelsChannel) {
         when(target) {
