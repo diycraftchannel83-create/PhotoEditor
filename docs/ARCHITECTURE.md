@@ -62,3 +62,6 @@ A branch-specific bitmap ownership/recycling checklist is tracked in `docs/COMPO
 
 
 **Compositor ownership update:** Difference blending now releases the scaled source bitmap in a `finally` block. A regression test asserts caller-owned layer and mask inputs remain unrecycled across repeated renders. Exception cleanup for all renderer branches remains incomplete and verification is deferred.
+
+
+**Mask allocation safety:** LayerMaskProcessor validates source, mask and combined-mask dimensions against a 24 MP pixel budget before allocating pixel arrays. Verification remains deferred.
