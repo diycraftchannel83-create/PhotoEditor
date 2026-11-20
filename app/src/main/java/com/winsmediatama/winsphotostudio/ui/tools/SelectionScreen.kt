@@ -22,6 +22,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CancellationException
+import com.winsmediatama.winsphotostudio.core.render.BitmapRenderScheduler
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 
 private enum class SelectionShape { RECTANGLE, ELLIPSE, POLYGON, FREEHAND, COLOR_RANGE, MAGIC_WAND }
 enum class SelectionAction { CROP, MASK, COPY_LAYER, CUT, CUT_TO_LAYER }
@@ -52,10 +56,17 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->U
     var renameTarget by remember{mutableStateOf<com.winsmediatama.winsphotostudio.core.selection.SavedSelection?>(null)}
     var renameValue by remember{mutableStateOf("")}
     DisposableEffect(Unit){onDispose{loadedMask?.recycle()}}
-    val selectionOverlay by produceState<Bitmap?>(null,source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection,loadedMask){
-        value?.takeIf{it!==source}?.recycle();value=null
-        value=withContext(Dispatchers.Default){runCatching{buildSelectionOverlay(source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection,loadedMask)}.getOrNull()}
+    val selectionScheduler=remember{BitmapRenderScheduler(32L*1024L*1024L,"WinsPhoto-SelectionPreview")}
+    DisposableEffect(selectionScheduler){onDispose{selectionScheduler.close()}}
+    val selectionOverlay by produceState<Bitmap?>(null,source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection,loadedMask,selectionScheduler){
+        value?.takeIf{it!==source&&!it.isRecycled}?.recycle();value=null
+        val cacheKey="selection-preview:${System.identityHashCode(source)}:${shape.name}:${rect}:${polygonPoints.hashCode()}:${sampleColor}:${tolerance}:${softness}:${seedPoint}:${featherRadius}:${expandRadius}:${invertSelection}:${System.identityHashCode(loadedMask)}"
+        var request:Future<Bitmap?>?=null
+        try{value=withContext(Dispatchers.IO){request=selectionScheduler.request(cacheKey){signal->signal.throwIfCanceled();buildSelectionOverlay(source,shape,rect,polygonPoints,sampleColor,tolerance,softness,seedPoint,featherRadius,expandRadius,invertSelection,loadedMask,signal).also{signal.throwIfCanceled()}};request!!.get(60,TimeUnit.SECONDS)}}
+        catch(cancelled:CancellationException){request?.cancel(true);throw cancelled}
+        catch(_:Exception){request?.cancel(true);value=null}
     }
+    DisposableEffect(selectionOverlay){onDispose{selectionOverlay?.takeIf{it!==source&&!it.isRecycled}?.recycle()}}
     if(manageDialogOpen) AlertDialog(
         onDismissRequest={manageDialogOpen=false},
         title={Text("Saved selection masks")},
@@ -161,16 +172,16 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->U
     }
 }
 
-private fun buildSelectionOverlay(source:Bitmap,shape:SelectionShape,rect:Rect,points:List<Pair<Float,Float>>,sampleColor:Int,tolerance:Float,softness:Float,seed:Pair<Float,Float>,featherRadius:Float,expandRadius:Float,invertSelection:Boolean,loadedMask:Bitmap?):Bitmap? {
+private fun buildSelectionOverlay(source:Bitmap,shape:SelectionShape,rect:Rect,points:List<Pair<Float,Float>>,sampleColor:Int,tolerance:Float,softness:Float,seed:Pair<Float,Float>,featherRadius:Float,expandRadius:Float,invertSelection:Boolean,loadedMask:Bitmap?,cancellation:android.os.CancellationSignal?=null):Bitmap? {
     val processor=com.winsmediatama.winsphotostudio.core.tools.SelectionMaskProcessor
     val mask=loadedMask?.let{if(it.width==source.width&&it.height==source.height)it.copy(Bitmap.Config.ARGB_8888,true)else Bitmap.createScaledBitmap(it,source.width,source.height,true)}?:when(shape){
-        SelectionShape.RECTANGLE->processor.rectangle(source.width,source.height,rect.left,rect.top,rect.right,rect.bottom)
-        SelectionShape.ELLIPSE->processor.ellipse(source.width,source.height,rect.left,rect.top,rect.right,rect.bottom)
-        SelectionShape.POLYGON,SelectionShape.FREEHAND->if(points.size>=3)processor.polygon(source.width,source.height,points)else return null
-        SelectionShape.COLOR_RANGE->processor.colorRange(source,sampleColor,tolerance,softness)
-        SelectionShape.MAGIC_WAND->processor.magicWand(source,(seed.first*source.width).toInt(),(seed.second*source.height).toInt(),tolerance)
+        SelectionShape.RECTANGLE->processor.rectangle(source.width,source.height,rect.left,rect.top,rect.right,rect.bottom,cancellation)
+        SelectionShape.ELLIPSE->processor.ellipse(source.width,source.height,rect.left,rect.top,rect.right,rect.bottom,cancellation)
+        SelectionShape.POLYGON,SelectionShape.FREEHAND->if(points.size>=3)processor.polygon(source.width,source.height,points,cancellation)else return null
+        SelectionShape.COLOR_RANGE->processor.colorRange(source,sampleColor,tolerance,softness,cancellation)
+        SelectionShape.MAGIC_WAND->processor.magicWand(source,(seed.first*source.width).toInt(),(seed.second*source.height).toInt(),tolerance,cancellation)
     }
-    val processed=processSelectionMask(mask,invertSelection,expandRadius.toInt(),featherRadius.toInt())
+    val processed=processSelectionMask(mask,invertSelection,expandRadius.toInt(),featherRadius.toInt(),cancellation)
     val overlay=buildMaskOverlay(source,processed);processed.recycle();return overlay
 }
 private fun Rect.normalize()=Rect(minOf(left,right),minOf(top,bottom),maxOf(left,right),maxOf(top,bottom))
@@ -233,12 +244,12 @@ private fun renderSavedMask(source:Bitmap,mask:Bitmap,action:SelectionAction,inv
     if(maxX<minX||maxY<minY)return SelectionOutput(source.copy(Bitmap.Config.ARGB_8888,true),action)
     return SelectionOutput(Bitmap.createBitmap(source,minX,minY,maxX-minX+1,maxY-minY+1),action)
 }
-private fun processSelectionMask(mask:Bitmap,invert:Boolean,expand:Int,feather:Int):Bitmap {
+private fun processSelectionMask(mask:Bitmap,invert:Boolean,expand:Int,feather:Int,cancellation:android.os.CancellationSignal?=null):Bitmap {
     val processor=com.winsmediatama.winsphotostudio.core.tools.SelectionMaskProcessor
     var current=mask
-    if(invert){val next=processor.invert(current);current.recycle();current=next}
-    if(expand!=0){val next=processor.expandContract(current,expand);current.recycle();current=next}
-    if(feather>0){val next=processor.feather(current,feather);current.recycle();current=next}
+    if(invert){val next=processor.invert(current,cancellation);current.recycle();current=next}
+    if(expand!=0){val next=processor.expandContract(current,expand,cancellation);current.recycle();current=next}
+    if(feather>0){val next=processor.feather(current,feather,cancellation);current.recycle();current=next}
     return current
 }
 private fun createCurrentSelectionMask(source:Bitmap,shape:SelectionShape,rect:Rect,points:List<Pair<Float,Float>>,sampleColor:Int,tolerance:Float,softness:Float,seed:Pair<Float,Float>,featherRadius:Float,expandRadius:Float,invertSelection:Boolean,loadedMask:Bitmap?):Bitmap {
