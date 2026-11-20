@@ -463,3 +463,12 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Guard canvas output at 24 MP and 8192 px per side; invalid sizes show a warning and disable Apply.
 - [ ] Verify compile/preview behavior in CI and on device (deferred during feature pass).
 - [ ] Processor-level cancellation checkpoints and tiled/full-resolution canvas resize remain future rendering tasks.
+
+
+## Color processor cancellation continuation — 20 November 2026
+- [x] Basic Adjustment, Levels, Curves and HSL pixel processors accept optional Android cancellation signals and check cancellation at row boundaries.
+- [x] Preview screens pass scheduler signals into those processors so active renders can stop during pixel processing rather than only before/after.
+- [x] Processors clean up allocated output bitmaps when cancellation/errors occur; Basic Adjustment delays output allocation until after its pixel loop.
+- [x] Added Robolectric source tests for pre-cancelled processor calls and source-pixel preservation.
+- [ ] CI/build/test confirmation pending; these tests and changes are not yet verified by execution.
+- [ ] Extend cancellation to blur/effects, retouch, perspective/transform and segmentation pipelines; optimize row-check overhead and use region/tile rendering for large originals.
