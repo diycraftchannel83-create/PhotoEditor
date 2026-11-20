@@ -53,3 +53,5 @@ No build, CI, lint or tests were run during this feature pass, by request. New t
 **Selection Crop integration:** the selection mask's non-zero bounding rectangle is normalized into an `EditOperation.Transform` and committed via `commitOperation` (flattened canvas output but replayable operation/source retained). A replay regression test was authored; verification is deferred.
 
 Operation Stack Apply now records a main-editor history snapshot with descriptive labels derived from operation diffs (Add/Remove/Edit or stack summary). Screen-local undo/redo remains separate until the global history timeline is unified; verification deferred.
+
+**Compositor allocation safety:** `LayerCompositeRenderer` enforces a 24 MP output limit before allocating the output bitmap. A regression test covers rejection above the limit; verification is deferred. Temporary bitmap ownership/lifecycle audit remains open.
