@@ -20,7 +20,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 @Composable
-fun ProjectScreen(source:Bitmap,layers:List<EditorLayer>,selectedLayerId:String?,onCancel:()->Unit,onOpen:(LoadedStudioProject)->Unit) {
+fun ProjectScreen(source:Bitmap,layers:List<EditorLayer>,selectedLayerId:String?,onCancel:()->Unit,onSaved:()->Unit={},onOpen:(LoadedStudioProject)->Unit) {
     val context=androidx.compose.ui.platform.LocalContext.current
     val store=remember(context){ProjectStore(context)}
     val scope=rememberCoroutineScope()
@@ -38,7 +38,7 @@ fun ProjectScreen(source:Bitmap,layers:List<EditorLayer>,selectedLayerId:String?
             Button(enabled=!busy&&layers.isNotEmpty(),onClick={busy=true;scope.launch{
                 val result=runCatching{withContext(Dispatchers.IO){store.saveLayerProject(layers,selectedLayerId,source.width,source.height,name)}}
                 busy=false
-                result.onSuccess{folder->projects=store.listProjects();status="Saved: ${store.projectName(folder)}"}.onFailure{status="Save failed: ${it.message?:"Unknown error"}"}
+                result.onSuccess{folder->projects=store.listProjects();status="Saved: ${store.projectName(folder)}";onSaved()}.onFailure{status="Save failed: ${it.message?:"Unknown error"}"}
             }},modifier=Modifier.fillMaxWidth()){if(busy)CircularProgressIndicator(Modifier.size(18.dp))else Text("Save current project")}
             status?.let{Text(it,color=Color(0xFF77D7C0),modifier=Modifier.padding(top=8.dp))}
         }
