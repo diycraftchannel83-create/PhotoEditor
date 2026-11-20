@@ -298,3 +298,7 @@ Build verification and release readiness must be tracked honestly. Check the lat
 ### Compositor lifecycle audit
 
 - Added `docs/COMPOSITOR_AUDIT.md` with ownership/recycling invariants and branch-specific audit questions. This is a checklist, not a verified source audit; renderer inspection and build/test verification remain pending.
+
+
+### Compositor ownership continuation
+- Difference-blend scaled temporary bitmap cleanup is now protected by `finally`; a regression test checks repeated compositing does not recycle caller-owned source or mask bitmaps. Tests remain unexecuted.
