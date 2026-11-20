@@ -2,6 +2,7 @@ package com.winsmediatama.winsphotostudio.core.editor
 
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.os.CancellationSignal
 import com.winsmediatama.winsphotostudio.core.history.EditOperation
 import com.winsmediatama.winsphotostudio.core.adjustments.LevelsChannel
 import com.winsmediatama.winsphotostudio.core.adjustments.LevelsValues
@@ -53,7 +54,7 @@ class LayerTreeRendererTest {
         output.recycle();source.recycle();blackMask.recycle()
     }
 
-    @Test fun rejectsOversizedLayerTreeCanvasBeforeAllocation() {
+    @Test fun preCancelledLayerTreeRenderStopsBeforeAllocatingOutput() {\n        val signal=CancellationSignal().apply{cancel()}\n        assertThrows(android.os.OperationCanceledException::class.java) {\n            LayerTreeRenderer.render(emptyList(),2,2,signal)\n        }\n    }\n\n    @Test fun rejectsOversizedLayerTreeCanvasBeforeAllocation() {
         val error=assertThrows(IllegalArgumentException::class.java) {
             LayerTreeRenderer.render(emptyList(),6000,5000)
         }
