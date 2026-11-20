@@ -864,7 +864,7 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
             }
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically) {
                 @Composable fun ToolTile(label:String, onClick:()->Unit, enabled:Boolean=true, accent:Boolean=false) {
-                    Surface(onClick=onClick,enabled=enabled,shape=RoundedCornerShape(14.dp),color=if(accent)Color(0xFF263C39) else Color(0xFF20242A),border=androidx.compose.foundation.BorderStroke(1.dp,if(accent)StudioAccent.copy(alpha=.35f) else Color(0xFF343A43)) {
+                    Surface(onClick=onClick,enabled=enabled,shape=RoundedCornerShape(14.dp),color=if(accent)Color(0xFF263C39) else Color(0xFF20242A),border=androidx.compose.foundation.BorderStroke(1.dp,if(accent)StudioAccent.copy(alpha=.35f) else Color(0xFF343A43))) {
                         Column(Modifier.width(76.dp).padding(vertical=10.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(5.dp)) {
                             Text(label.take(2).uppercase(),fontWeight=FontWeight.Bold,color=if(accent)StudioAccent else Color(0xFFE4E8EC),style=MaterialTheme.typography.titleSmall)
                             Text(label,style=MaterialTheme.typography.labelSmall,color=if(enabled)Color(0xFFB9C0CA) else Color.Gray,maxLines=1)
