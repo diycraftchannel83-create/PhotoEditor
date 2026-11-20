@@ -65,7 +65,7 @@ class TiledLayerCompositeRendererTest {
         var rows = 0
         try {
             TiledLayerCompositeRenderer.encodeStreamingPng(layers, 3, 3, stream, tileWidth = 2, cancelCheck = {
-                if (rows >= 1) throw kotlinx.coroutines.CancellationException("test cancellation")
+                if (rows >= 1) throw kotlinx.coroutines.CancellationException("test cancellation") else rows++
             })
         } catch (_: kotlinx.coroutines.CancellationException) {
             assertEquals(1, rows)
