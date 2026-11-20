@@ -624,3 +624,12 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Add layer-stack invalidation helper using deterministic composite cache keys.
 - [x] Add regression test that invalidates an exact key and confirms a fresh render (authored; execution deferred).
 - [ ] Wire dirty-region/layer mutations to invalidation calls and implement region-specific incremental composite updates.
+
+
+## Unit-test stabilization batch — 20 November 2026
+- [x] Pin Robolectric to Android API 28 for deterministic framework selection.
+- [x] Configure Robolectric native graphics for pixel/compositor regression tests (verification pending).
+- [x] Replace perspective matrix `setPolyToPoly` dependency with an explicit homography solver and add a non-identity regression test.
+- [x] Relax PNG RGB round-trip assertion to ±2 while retaining exact alpha comparison to account for premultiplied-alpha conversion rounding.
+- [ ] Re-run unit-test CI and analyze remaining renderer/compositor/tile failures; test environment changes are hypotheses until CI confirms.
+- [ ] Do not resume APK/AAB builds until unit-test suite is stable and passing.
