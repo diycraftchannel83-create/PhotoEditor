@@ -275,15 +275,14 @@ private fun WinsPhotoApp() {
             val ok=withContext(Dispatchers.IO) { runCatching {
                 context.contentResolver.openOutputStream(uri)?.use { stream ->
                     if(!exportOriginalDimensions) {
-                        val tiled=runCatching {
-                            TiledLayerCompositeRenderer.renderTiles(currentLayers,currentBitmap.width,currentBitmap.height,tileSize=512)
-                        }.getOrNull()
-                        if(tiled!=null) {
-                            try {
-                                TiledPngEncoder.encodeCompositeTiles(tiled,currentBitmap.width,currentBitmap.height,stream)
-                                tiledExportUsed=true
-                                true
-                            } finally { TiledLayerCompositeRenderer.recycleTiles(tiled) }
+                        val supportsStreaming=currentLayers.isNotEmpty() &&
+                            currentLayers.none { it.groupId != null || it.clipToBelow || it.operations.isNotEmpty() }
+                        if(supportsStreaming) {
+                            TiledLayerCompositeRenderer.encodeStreamingPng(
+                                currentLayers,currentBitmap.width,currentBitmap.height,stream,tileWidth=512
+                            )
+                            tiledExportUsed=true
+                            true
                         } else currentBitmap.compress(Bitmap.CompressFormat.PNG,100,stream)
                     } else {
                         val (resized,nativeReplay)=buildExportBitmap(currentBitmap)
