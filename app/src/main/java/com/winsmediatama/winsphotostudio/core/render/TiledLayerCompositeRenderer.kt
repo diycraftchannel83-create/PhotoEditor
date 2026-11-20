@@ -306,7 +306,7 @@ object TiledLayerCompositeRenderer {
         require(layers.none{it.groupId!=null}){"Clipping stream does not support groups"}
         require(layers.none{it.blendMode==EditorBlendMode.DIFFERENCE}){"Difference blend unsupported in clipping stream"}
         require(layers.all{it.bitmap.width==width&&it.bitmap.height==height}){"Canvas-aligned layers required"}
-        require(layers.all{it.mask==null||(it.mask.width==width&&it.mask.height==height}){"Canvas-aligned masks required"}
+        require(layers.all { it.mask == null || (it.mask.width == width && it.mask.height == height) }) { "Canvas-aligned masks required" }
         require(layers.filter{it.visible}.all{TiledOperationReplayProcessor.supportsHalo(it.operations)}){"Unsupported operation replay"}
         val visibleCount=layers.count{it.visible&&!it.bitmap.isRecycled}.coerceAtLeast(1)
         val bandHeight=minOf(tileSize,(4_000_000L/(width.toLong()*visibleCount)).coerceAtLeast(1L).toInt())
