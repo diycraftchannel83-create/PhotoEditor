@@ -620,28 +620,36 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
                 TextButton(onClick=onHistory){Text("History")}
                 TextButton(onClick=onOperations,enabled=canOperations){Text("Ops")}
             }
-            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal=4.dp)) {
+            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal=4.dp),verticalAlignment=Alignment.CenterVertically) {
+                Text("CANVAS",color=StudioAccent,style=MaterialTheme.typography.labelSmall,modifier=Modifier.padding(horizontal=6.dp))
                 TextButton(onClick=onCropTransform){Text("Crop")}
+                TextButton(onClick=onCanvasSize){Text("Canvas")}
+                TextButton(onClick=onPerspective){Text("Perspective")}
+                TextButton(onClick=onImportAnother){Text("Replace")}
+                Divider(Modifier.width(1.dp).height(28.dp),color=Color.DarkGray)
+                Text("COLOR",color=StudioAccent,style=MaterialTheme.typography.labelSmall,modifier=Modifier.padding(horizontal=6.dp))
                 TextButton(onClick=onAdjustments){Text("Adjust")}
                 TextButton(onClick=onLevels){Text("Levels")}
                 TextButton(onClick=onCurves){Text("Curves")}
-                TextButton(onClick=onLayers){Text("Layers")}
-                TextButton(onClick=onProjects){Text("Project")}
-                TextButton(onClick=onBrush){Text("Brush")}
-                TextButton(onClick=onSelection){Text("Select")}
-                TextButton(onClick=onTextShape){Text("Text/Shape")}
+                TextButton(onClick=onHsl){Text("HSL")}
                 TextButton(onClick=onFilters){Text("Filters")}
                 TextButton(onClick=onEffects){Text("Effects")}
                 TextButton(onClick=onLut){Text("LUT")}
-                TextButton(onClick=onCanvasSize){Text("Canvas")}
-                TextButton(onClick=onBackgroundReplace){Text("Replace BG")}
-                TextButton(onClick=onPerspective){Text("Perspective")}
-                TextButton(onClick=onHsl){Text("HSL")}
-                TextButton(onClick=onGradient){Text("Gradient")}
+                Divider(Modifier.width(1.dp).height(28.dp),color=Color.DarkGray)
+                Text("LAYERS",color=StudioAccent,style=MaterialTheme.typography.labelSmall,modifier=Modifier.padding(horizontal=6.dp))
+                TextButton(onClick=onLayers){Text("Layers")}
+                TextButton(onClick=onBrush){Text("Brush")}
+                TextButton(onClick=onSelection){Text("Select")}
                 TextButton(onClick=onRetouch){Text("Retouch")}
+                Divider(Modifier.width(1.dp).height(28.dp),color=Color.DarkGray)
+                Text("DESIGN",color=StudioAccent,style=MaterialTheme.typography.labelSmall,modifier=Modifier.padding(horizontal=6.dp))
+                TextButton(onClick=onTextShape){Text("Text/Shape")}
+                TextButton(onClick=onGradient){Text("Gradient")}
+                TextButton(onClick=onBackgroundReplace){Text("Replace BG")}
+                Divider(Modifier.width(1.dp).height(28.dp),color=Color.DarkGray)
+                Text("AI",color=StudioAccent,style=MaterialTheme.typography.labelSmall,modifier=Modifier.padding(horizontal=6.dp))
                 TextButton(onClick=onBackgroundRemove){Text("Color Key")}
                 TextButton(onClick=onAiBackgroundRemove){Text("AI Remove")}
-                TextButton(onClick=onImportAnother){Text("Replace")}
             }
         }
         Box(Modifier.weight(1f).fillMaxWidth().background(Color(0xFF25282D)).padding(12.dp).pointerInput(bitmap) {
