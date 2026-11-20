@@ -40,3 +40,7 @@ Once the current renderer source is available for fresh inspection, apply owners
 - Difference blend scaled temporary is recycled in a `finally` block, including pixel-read failure paths.
 - Test added for repeated compositing preserving caller-owned source and mask bitmaps and their pixel data.
 - Remaining: output/group/intermediate exception-path ownership across every branch; run tests only after feature pass.
+
+
+## Mask allocation guard
+LayerMaskProcessor now checks source/mask/combined dimensions using Long pixel-count calculations and rejects work above 24 MP before large pixel-array allocations. Source-level change only; tests/build remain pending.
