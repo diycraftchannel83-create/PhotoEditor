@@ -67,4 +67,13 @@ class ProjectStoreTest {
         assertNull(store.loadEditableProject(folder))
         store.deleteProject(folder.name)
     }
+    @Test fun projectLifecycleRejectsTraversalIdentifiersAndFolders() {
+        val context=org.robolectric.RuntimeEnvironment.getApplication()
+        val store=ProjectStore(context)
+        assertFalse(store.deleteProject("../outside"))
+        val outside=java.io.File(context.filesDir,"not-a-project").apply{mkdirs()}
+        assertFalse(store.renameProject(outside,"bad rename"))
+        assertNull(store.duplicateProject(outside))
+        outside.deleteRecursively()
+    }
 }
