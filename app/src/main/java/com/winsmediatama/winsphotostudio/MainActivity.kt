@@ -136,7 +136,7 @@ private fun WinsPhotoApp() {
     var exportStatus by remember { mutableStateOf<String?>(null) }
     var beforeAfterBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var beforeAfterLoading by remember { mutableStateOf(false) }
-    var beforeAfterError by remember { mutableStateOf<String?>(null)
+    var beforeAfterError by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     LaunchedEffect(bitmap) { beforeAfterBitmap?.takeUnless{it.isRecycled}?.recycle();beforeAfterBitmap=null;beforeAfterLoading=false;beforeAfterError=null }
     val context = androidx.compose.ui.platform.LocalContext.current
