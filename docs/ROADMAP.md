@@ -199,3 +199,7 @@
 ## Selection crop integration
 - [x] Selection crop bounding box converted to normalized replayable Transform operation and committed through operation stack
 - [x] Replay regression test authored for normalized crop transform (build/test verification deferred)
+
+## History integration update
+- [x] Operation Stack Apply now adds a main-editor history snapshot and descriptive action label for Add/Remove/Edit or multi-operation changes (source implementation; verification deferred)
+- [ ] Merge parameter-level undo/redo inside Operation Stack into global editor history timeline
