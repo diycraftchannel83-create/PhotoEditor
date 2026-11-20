@@ -81,3 +81,8 @@ LayerMaskProcessor now checks source/mask/combined dimensions using Long pixel-c
 
 ### Named operation-state implementation
 - Persistent named operation stacks are now exposed through the Operation Stack panel, with save/restore/delete and per-layer app-private storage. Bounds and persistence tests were authored but not executed.
+
+### Latest compositor and persistence pass
+- Editor history limit aligned to 8 snapshots for Undo and Redo.
+- Project save/lifecycle hardening: save bounds, cleanup of partial folder on failure, canonical folder validation, safe traversal-ID deletion.
+- Failure-injection coverage still needed; tests are authored only, and verification remains deferred.
