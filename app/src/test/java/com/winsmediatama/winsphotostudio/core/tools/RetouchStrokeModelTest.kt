@@ -2,7 +2,12 @@ package com.winsmediatama.winsphotostudio.core.tools
 
 import org.junit.Assert.*
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk=[28])
 class RetouchStrokeModelTest {
     @Test fun strokeRoundTripsThroughJsonCodec() {
         val original = listOf(
