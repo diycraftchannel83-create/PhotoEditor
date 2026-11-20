@@ -56,3 +56,9 @@ LayerMaskProcessor now checks source/mask/combined dimensions using Long pixel-c
 - Child intermediate bitmap is recycled in `finally`; output bitmap is recycled on exceptions.
 - Regression tests cover oversize rejection and depth rejection; not run.
 - Remaining exception ownership audit: LayerCompositeRenderer mask/clip/group branches.
+
+## LayerCompositeRenderer ownership registry
+- Uses identity-based tracking for renderer-created replay/mask/clip/opacity/group intermediates.
+- Tracked intermediates are disposed in outer `finally`, even when an operation throws.
+- Output is recycled on failure and transferred to caller on success.
+- Still open: allocations created inside a processor before it returns, failure injection coverage, and verification.
