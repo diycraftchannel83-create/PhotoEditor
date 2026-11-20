@@ -219,3 +219,5 @@
 - [x] Protect Difference blend scaled temporary cleanup with `finally`.
 - [x] Add regression test for caller-owned source/mask bitmap survival across repeated renders.
 - [ ] Audit exception cleanup of output, group and intermediate bitmaps; verification deferred.
+
+- [x] LayerMaskProcessor now validates source, mask and combined-mask pixel counts against 24 MP before pixel-array allocations (verification deferred).
