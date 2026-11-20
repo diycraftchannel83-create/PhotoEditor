@@ -449,3 +449,15 @@ Normal-size PNG export can replay supported pointwise adjustment operations from
 
 - Configured Robolectric tests to use native graphics (`graphicsMode=NATIVE`) at the pinned Android API 28. The prior report showed widespread Canvas/bitmap compositing tests returning transparent black; native graphics is now the test environment hypothesis to validate against CI.
 - This environment change is diagnostic and does not alter production rendering code. Verification remains pending.
+
+
+## Compose preview bitmap lifetime crash fix — 20 November 2026
+
+- [x] Stop recycling Crop/Transform, Levels and Adjust preview bitmaps immediately when preview state changes; Compose may still be drawing the prior frame.
+- [x] Retain tool-owned preview bitmap copies for the screen lifetime and release them when the tool screen is disposed; render scheduler is closed on disposal.
+- [x] Apply the same ownership strategy to the Operation Stack preview.
+- [ ] Audit remaining preview screens (Curves, HSL, LUT, Filters, Effects, Perspective, Retouch, Canvas Size, Background tools and AI preview) for early recycling and shared/caller-owned bitmap mistakes.
+- [ ] Add focused lifecycle regression coverage and verify crash-free navigation, slider updates and apply/cancel on-device.
+- [ ] Run unit tests/CI and inspect failures; source changes are not yet build verified.
+
+**Root cause addressed:** `produceState` previously recycled the previous preview as soon as new render parameters arrived. Compose can still hold the previous `BitmapPainter`/`ImageBitmap` in a recorded draw pass, causing `Canvas: trying to use a recycled bitmap`. The fix deliberately defers preview release until the composable screen is disposed. This is a targeted safety fix, not proof all bitmap ownership paths are correct.
