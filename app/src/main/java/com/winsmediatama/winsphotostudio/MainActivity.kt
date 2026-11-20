@@ -223,11 +223,13 @@ private fun WinsPhotoApp() {
             val ok=withContext(Dispatchers.IO) { runCatching { context.contentResolver.openOutputStream(uri)?.use { stream ->
                 val (resized,nativeReplay)=buildExportBitmap(currentBitmap)
                 nativeReplayUsed=nativeReplay
-                val flattened=flattenForJpeg(resized,exportBackground)
-                val compressed=flattened.compress(Bitmap.CompressFormat.JPEG,exportQuality.toInt(),stream)
-                flattened.recycle()
-                if(resized!==currentBitmap)resized.recycle()
-                compressed
+                try {
+                    val flattened=flattenForJpeg(resized,exportBackground)
+                    try { flattened.compress(Bitmap.CompressFormat.JPEG,exportQuality.toInt(),stream) }
+                    finally { if(!flattened.isRecycled)flattened.recycle() }
+                } finally {
+                    if(resized!==currentBitmap&&!resized.isRecycled)resized.recycle()
+                }
             } ?: false }.getOrDefault(false) }
             exportStatus=if(ok) (if(exportOriginalDimensions&&nativeReplayUsed) "JPEG exported using native source replay" else if(exportOriginalDimensions) "JPEG exported at source dimensions (preview resampled fallback)" else "JPEG exported successfully") else "Export failed"
         }
@@ -239,9 +241,8 @@ private fun WinsPhotoApp() {
             val ok=withContext(Dispatchers.IO) { runCatching {
                 val (resized,nativeReplay)=buildExportBitmap(currentBitmap)
                 nativeReplayUsed=nativeReplay
-                val result=context.contentResolver.openOutputStream(uri)?.use { resized.compress(Bitmap.CompressFormat.PNG,100,it) } ?: false
-                if(resized!==currentBitmap)resized.recycle()
-                result
+                try { context.contentResolver.openOutputStream(uri)?.use { resized.compress(Bitmap.CompressFormat.PNG,100,it) } ?: false }
+                finally { if(resized!==currentBitmap&&!resized.isRecycled)resized.recycle() }
             }.getOrDefault(false) }
             exportStatus=if(ok) (if(exportOriginalDimensions&&nativeReplayUsed) "PNG exported using native source replay" else if(exportOriginalDimensions) "PNG exported at source dimensions (preview resampled fallback)" else "PNG exported successfully") else "Export failed"
         }
