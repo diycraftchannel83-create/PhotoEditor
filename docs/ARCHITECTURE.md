@@ -117,3 +117,6 @@ A branch-specific bitmap ownership/recycling checklist is tracked in `docs/COMPO
 
 ### Before/after render lifecycle
 - Baseline preview is rendered on demand on IO, uses a captured layer snapshot, rejects stale results when the active canvas/source layer changes, and surfaces render failure feedback. Editor actions are gated while comparison is active.
+
+
+- Export metadata policy: edited JPEG/PNG are generated from bitmap content and source EXIF/location metadata is not copied; the export dialog communicates this privacy behavior.
