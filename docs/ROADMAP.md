@@ -13,7 +13,8 @@
 - [x] Difference blend for flat streaming paths: explicit alpha-aware row compositor for ordinary flat stacks and operation replay; groups/clipping Difference excluded (test authored, not run)
 - [x] Deterministic layer render-cache key: SHA-256 key includes canvas, layer flags, opacity/blend/group, bitmap/mask/original generation IDs and operation payloads; invalidation tests authored (not run)
 - [x] Integrate deterministic layer-stack key into `BitmapRenderScheduler.requestLayerStackComposite` with caller-owned bitmap copies and generation-ID invalidation (test authored, not run)
-- [ ] Wire cached composite requests into MainActivity layer preview/apply lifecycle and add dirty-region invalidation
+- [x] Route MainActivity layer-stack composite refreshes through scheduler cache; cache capped at 32 MiB
+- [ ] Add dirty-region invalidation and reduce full-stack re-render work
 - [x] Android Kotlin/Compose scaffold, SAF import/export, offline-first foundation
 - [x] CI workflow configured
 - [x] Source dependency/license inventory documented (resolved transitive licenses and vulnerability scan remain release audit items)
