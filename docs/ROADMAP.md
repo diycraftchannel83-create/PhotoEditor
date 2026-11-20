@@ -200,7 +200,7 @@
 - [x] Layer-preserving undo/redo history and History panel
 - [x] Mask/group/lock/clipping models, processors and persistence
 - [x] Selection, retouch, effect, LUT, perspective, canvas-size, background replacement and recovery feature batches added
-- [ ] **No build, CI, lint or test execution during this feature pass by request.**
+- [x] **No build, CI, lint or test execution during this feature pass by request.**
 - [x] Unsaved editor state guard added to Back, Replace/import and opening saved projects; Save routes to Project manager and the action must be repeated after save; Discard executes the pending action; Cancel aborts (implementation committed, verification deferred).
 - [ ] Final source-level integration audit remains before verification.
 
