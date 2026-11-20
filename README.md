@@ -327,3 +327,6 @@ Build verification and release readiness must be tracked honestly. Check the lat
 - `LayerMaskProcessor.apply`, `combineMultiply`, `createWhiteMask`, and `invert` now recycle their generated outputs when an operation fails, and scaled mask temporaries are always cleaned in `finally` without recycling caller-owned masks.
 - `ClipAlphaProcessor.apply` now cleans its result bitmap if pixel transfer fails; its scaled base is still cleaned on every path.
 - Regression tests remain authored but **not executed**; build/test/CI intentionally deferred.
+
+### Opacity intermediate cleanup
+- Layer compositor's opacity intermediate now recycles its output bitmap if pixel transfer fails. A mask ownership regression test was added for combine/invert caller inputs; verification is still deferred.
