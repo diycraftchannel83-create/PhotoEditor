@@ -275,7 +275,7 @@ class NonDestructiveEditStack(
                     "backgroundReplace" -> { val op=EditOperation.BackgroundReplace(id,enabled,item.optString("mode","gradient"),item.optInt("startColor",0xFF77D7C0.toInt()),item.optInt("endColor",0xFF102A43.toInt()),item.optString("photoPngBase64",""));if(op.valid())ops+=op }
                     "canvasSize" -> { val anchor=runCatching{CanvasAnchor.valueOf(item.optString("anchor","CENTER"))}.getOrDefault(CanvasAnchor.CENTER);val op=EditOperation.CanvasSize(id,enabled,item.optInt("width",0),item.optInt("height",0),anchor,item.optInt("backgroundColor",android.graphics.Color.TRANSPARENT));if(op.valid())ops+=op }
                     "perspective" -> { val q=PerspectiveQuad(item.optDouble("tlx",0.0).toFloat() to item.optDouble("tly",0.0).toFloat(),item.optDouble("trx",1.0).toFloat() to item.optDouble("tryy",0.0).toFloat(),item.optDouble("brx",1.0).toFloat() to item.optDouble("bry",1.0).toFloat(),item.optDouble("blx",0.0).toFloat() to item.optDouble("bly",1.0).toFloat());val op=EditOperation.Perspective(id,enabled,q,item.optInt("outputWidth",0),item.optInt("outputHeight",0));if(op.valid())ops+=op }
-                    "retouch" -> { val op=EditOperation.Retouch(id,enabled,RetouchStrokeCodec.decode(item.optString("strokes","[]")),item.optDouble("strength",1.0).toFloat(),item.optDouble("offsetX",0.0).toFloat(),item.optDouble("offsetY",0.0).toFloat());if(op.valid())ops+=op }
+                    "selectionMask" -> { val op=EditOperation.SelectionMask(id,enabled,item.optString("maskBase64",""),item.optInt("maskWidth",0),item.optInt("maskHeight",0));if(op.valid())ops+=op }\n                    "retouch" -> { val op=EditOperation.Retouch(id,enabled,RetouchStrokeCodec.decode(item.optString("strokes","[]")),item.optDouble("strength",1.0).toFloat(),item.optDouble("offsetX",0.0).toFloat(),item.optDouble("offsetY",0.0).toFloat());if(op.valid())ops+=op }
                     "transform" -> { val op=EditOperation.Transform(id,enabled,item.optDouble("left",0.0).toFloat(),item.optDouble("top",0.0).toFloat(),item.optDouble("right",1.0).toFloat(),item.optDouble("bottom",1.0).toFloat(),item.optDouble("rotationDegrees",0.0).toFloat(),item.optBoolean("flipHorizontal",false),item.optBoolean("flipVertical",false),item.optInt("outputWidth",0),item.optInt("outputHeight",0));if(op.valid())ops+=op }
                 }
             }
@@ -291,6 +291,13 @@ class NonDestructiveEditStack(
             return Bitmap.createBitmap(bitmap,left,top,right-left,bottom-top)
         }
     }
+}
+
+private fun applySelectionMask(source:Bitmap,operation:EditOperation.SelectionMask):Bitmap {
+    require(operation.valid()){"Invalid selection-mask operation"}
+    val bytes=Base64.decode(operation.maskBase64,Base64.DEFAULT)
+    val mask=android.graphics.BitmapFactory.decodeByteArray(bytes,0,bytes.size)?:error("Selection mask decode failed")
+    return try {com.winsmediatama.winsphotostudio.core.editor.LayerMaskProcessor.apply(source,mask)} finally {mask.recycle()}
 }
 
 private fun hslJson(v:HslAdjustments):JSONObject {
