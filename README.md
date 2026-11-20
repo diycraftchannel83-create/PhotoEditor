@@ -45,7 +45,7 @@ The roadmap below is the source of truth for continuing development. Implementat
 
 ## Roadmap — Photoshop Mini
 
-> **Continuation rule:** Work in small feature batches. Before coding, inspect the current implementation and roadmap. Preserve existing behavior, avoid duplicate files/classes, and integrate new tools into the shared editor workflow. Commit directly to `main` only when requested/approved. After each batch, update this README and the detailed `docs/ROADMAP.md`. Keep build/test status factual.
+> **Continuation rule:** Work in small feature batches. Before coding, inspect the current implementation and roadmap. Preserve existing behavior, avoid duplicate files/classes, and integrate new tools into the shared editor workflow. Commit directly to `main` only when requested/approved. After each batch, update this README and the detailed `docs/ROADMAP.md`. Keep build/test status factual. Roadmap checkmarks indicate implementation only; build, tests, CI, device and production validation remain open unless explicitly evidenced.
 
 ### Phase 0 — Engineering foundation & verification
 - [x] Android Kotlin/Compose project scaffold
@@ -86,9 +86,9 @@ The roadmap below is the source of truth for continuing development. Implementat
 - [ ] Parameter-level operation history
 - [x] History panel restore and redo support
 - [x] Persistent named operation states (save/restore/delete in Operation Stack panel)
-- [ ] Define rendering pipeline and cache invalidation strategy
+- [x] Define rendering pipeline and cache invalidation strategy (scheduler, deterministic cache key, targeted invalidation; dirty-region incremental rendering still pending)
 - [ ] Ensure original imported asset remains untouched throughout editing
-- [ ] Add tests for operation serialization, ordering and replay
+- [x] Add tests for operation serialization, ordering and replay (tests authored; execution deferred)
 
 ### Phase 4 — Layers, masks & compositing
 - [x] Photo and transparent bitmap layers
@@ -146,13 +146,13 @@ The roadmap below is the source of truth for continuing development. Implementat
 
 ### Phase 8 — Filters & effects
 - [x] Initial filter presets
-- [ ] Filter strength and parameter editing
-- [ ] LUT import/support (e.g. cube format after compatibility review)
-- [ ] Gaussian blur and other blur types
-- [ ] Motion blur
-- [ ] Glow, vignette, grain and chromatic effects
+- [x] Filter strength and parameter editing (implementation present; verification pending)
+- [x] LUT import/support (.cube 1D/3D; compatibility and verification pending)
+- [x] Gaussian blur and other blur types (processor/UI and replay foundations; verification pending)
+- [x] Motion blur (processor/UI and replay foundations; verification pending)
+- [ ] Glow and chromatic effects; [x] vignette/grain (implemented; tiled replay excludes coordinate-dependent effects)
 - [ ] Distortion/warp tools
-- [ ] Effect layers and non-destructive effect stack
+- [x] Non-destructive effect operation stack (standalone effect layers remain future work)
 - [ ] Preview thumbnails and effect performance testing
 
 ### Phase 9 — AI & background tools
@@ -182,7 +182,7 @@ The roadmap below is the source of truth for continuing development. Implementat
 ### Phase 11 — High-resolution rendering, performance & export
 - [x] Retained original-source cache and native source-layer replay export foundation (24 MP guard; fallback for destructive/non-replayable edits)
 - [x] Native source-dimension JPEG/PNG export replay for retained imported source layer (fallback resampling remains)
-- [ ] Memory-aware tile/region rendering for large images
+- [x] Tile/region foundations, halo-aware tile processing, tiled replay and streaming PNG paths for eligible stacks (full-resolution region/tile editing remains incomplete)
 - [ ] Background processing and progress reporting
 - [ ] Cancellation and safe failure handling
 - [ ] Export PNG/JPEG quality, transparency and color options
