@@ -467,6 +467,28 @@ object TiledLayerCompositeRenderer {
         tiles.forEach { if (!it.bitmap.isRecycled) it.bitmap.recycle() }
     }
 
+    private fun drawDifferenceRow(target:Bitmap,source:Bitmap,opacity:Float) {
+        require(target.width==source.width&&target.height==source.height)
+        val w=target.width;val h=target.height
+        val base=IntArray(w*h);target.getPixels(base,0,w,0,0,w,h)
+        val src=IntArray(w*h);source.getPixels(src,0,w,0,0,w,h)
+        val op=(opacity.coerceIn(0f,1f)*255).toInt()
+        for(i in base.indices){
+            val d=base[i];val s=src[i]
+            val da=d ushr 24
+            val sa=(s ushr 24)*op/255
+            val outA=sa+da*(255-sa)/255
+            if(outA<=0){base[i]=0;continue}
+            val dr=(d shr 16)and 255;val dg=(d shr 8)and 255;val db=d and 255
+            val sr=(s shr 16)and 255;val sg=(s shr 8)and 255;val sb=s and 255
+            val r=(dr*(255-sa)+kotlin.math.abs(dr-sr)*sa)/255
+            val g=(dg*(255-sa)+kotlin.math.abs(dg-sg)*sa)/255
+            val b=(db*(255-sa)+kotlin.math.abs(db-sb)*sa)/255
+            base[i]=(outA shl 24)or(r shl 16)or(g shl 8)or b
+        }
+        target.setPixels(base,0,w,0,0,w,h)
+    }
+
     private fun extractAlignedRegion(source: Bitmap, rect: Rect): Bitmap {
         val output = Bitmap.createBitmap(rect.width(), rect.height(), Bitmap.Config.ARGB_8888)
         try {
