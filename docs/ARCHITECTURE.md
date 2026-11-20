@@ -71,3 +71,9 @@ A branch-specific bitmap ownership/recycling checklist is tracked in `docs/COMPO
 **Layer tree safeguards:** LayerTreeRenderer now enforces a 24 MP canvas budget and a nesting depth limit of 32. Each rendered child is disposed in `finally`; output is recycled if a branch fails. Regression tests are authored but unexecuted.
 
 **Compositor exception cleanup:** LayerCompositeRenderer now maintains an identity-based registry of generated replay, mask, clipping, opacity and group bitmaps. The registry disposes intermediates in `finally`; the output bitmap is recycled when rendering throws. This is source-level only. Processor-internal exception paths and failure-injection verification remain open.
+
+
+### Bitmap processor exception ownership
+- Mask processing outputs are now protected by `try/catch` cleanup, including multiply-combined masks; internally scaled masks use `finally` cleanup and caller inputs are preserved.
+- Clip-alpha output cleanup is guarded against setPixels failures.
+- Tests are not run pending the user's instruction to defer verification.
