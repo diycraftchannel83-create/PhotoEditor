@@ -33,12 +33,13 @@ fun LevelsScreen(source: Bitmap, onCancel:()->Unit, onApply:(Bitmap,LevelsValues
     var blue by remember { mutableStateOf(LevelsChannel()) }
     val values=LevelsValues(composite,red,green,blue)
     val renderScheduler=remember{BitmapRenderScheduler(0L,"WinsPhoto-LevelsPreview")}
-    DisposableEffect(renderScheduler){onDispose{renderScheduler.close()}}
+    val previewBitmaps=remember{mutableListOf<Bitmap>()}
+    DisposableEffect(renderScheduler){onDispose{renderScheduler.close();previewBitmaps.toList().forEach{if(!it.isRecycled)it.recycle()};previewBitmaps.clear()}}
     val preview by produceState<Bitmap?>(null,source,values,renderScheduler) {
-        value?.takeIf{it!==source&&!it.isRecycled}?.recycle();value=null
+        value=null
         val key="levels:"+System.identityHashCode(source)+":"+source.width+"x"+source.height+":"+values.hashCode()
         var request:Future<Bitmap>?=null
-        try{value=withContext(Dispatchers.IO){request=renderScheduler.request(key){signal->signal.throwIfCanceled();LevelsProcessor.apply(source,values,signal).also{signal.throwIfCanceled()}};request!!.get(60,TimeUnit.SECONDS)}}
+        try{value=withContext(Dispatchers.IO){request=renderScheduler.request(key){signal->signal.throwIfCanceled();LevelsProcessor.apply(source,values,signal).also{signal.throwIfCanceled()}};request!!.get(60,TimeUnit.SECONDS)}?.also{previewBitmaps.add(it)}}
         catch(cancelled:CancellationException){request?.cancel(true);throw cancelled}
         catch(_:Exception){request?.cancel(true);value=null}
     }
@@ -51,7 +52,6 @@ fun LevelsScreen(source: Bitmap, onCancel:()->Unit, onApply:(Bitmap,LevelsValues
         }
     }
     val channel=when(target) { LevelsTarget.RGB->composite; LevelsTarget.RED->red; LevelsTarget.GREEN->green; LevelsTarget.BLUE->blue }
-    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==source}?.recycle()}}
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
             Text("Levels",Modifier.weight(1f),color=Color.White)
