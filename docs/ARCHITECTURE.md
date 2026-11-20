@@ -106,3 +106,7 @@ A branch-specific bitmap ownership/recycling checklist is tracked in `docs/COMPO
 
 ### Background removal processors
 - AI person segmentation and color-key processors now bound output to 24 MP, preserve source alpha by multiplying it with generated mask alpha, and recycle output bitmaps on pixel-transfer exceptions. Quality/performance verification remains pending.
+
+
+### Export lifecycle safety
+- JPEG/PNG export intermediates and JPEG flatten bitmap cleanup are guarded with `finally`/failure cleanup. Layer-fit and flatten operations enforce the 24 MP safety bound. Source-level changes only.
