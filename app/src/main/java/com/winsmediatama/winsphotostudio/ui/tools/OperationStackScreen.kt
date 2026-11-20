@@ -26,6 +26,8 @@ import com.winsmediatama.winsphotostudio.core.adjustments.HslAdjustments
 import com.winsmediatama.winsphotostudio.core.adjustments.HslColorRange
 import com.winsmediatama.winsphotostudio.core.adjustments.HslRangeAdjustment
 import com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectKind
+import com.winsmediatama.winsphotostudio.core.tools.CanvasAnchor
+import androidx.compose.ui.graphics.toArgb
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -50,7 +52,7 @@ fun OperationStackScreen(layer:EditorLayer,onCancel:()->Unit,onApply:(EditorLaye
                     Checkbox(checked=op.enabled,onCheckedChange={v->operations=operations.toMutableList().also{it[index]=toggle(it[index],v)}})
                     Text(op.label,Modifier.weight(1f),color=Color.White)
                     if(op is EditOperation.BasicAdjust)TextButton(onClick={editingBasicId=op.id}){Text("Edit")}
-                    if(op is EditOperation.Levels || op is EditOperation.Curves || op is EditOperation.Hsl || op is EditOperation.Effect)TextButton(onClick={editingOperationId=op.id}){Text("Edit")}
+                    if(op !is EditOperation.BasicAdjust)TextButton(onClick={editingOperationId=op.id}){Text("Edit")}
                     TextButton(enabled=index>0,onClick={operations=operations.toMutableList().also{val item=it.removeAt(index);it.add(index-1,item)}}){Text("Up")}
                     TextButton(enabled=index<operations.lastIndex,onClick={operations=operations.toMutableList().also{val item=it.removeAt(index);it.add(index+1,item)}}){Text("Down")}
                     TextButton(onClick={operations=operations.filterIndexed{i,_->i!=index}}){Text("Remove")}
@@ -106,6 +108,13 @@ private fun OperationParameterDialog(operation:EditOperation,onDismiss:()->Unit,
         is EditOperation.Curves -> CurvesEditDialog(operation,onDismiss,onSave)
         is EditOperation.Hsl -> HslEditDialog(operation,onDismiss,onSave)
         is EditOperation.Effect -> EffectEditDialog(operation,onDismiss,onSave)
+        is EditOperation.Crop -> CropEditDialog(operation,onDismiss,onSave)
+        is EditOperation.Transform -> TransformEditDialog(operation,onDismiss,onSave)
+        is EditOperation.CanvasSize -> CanvasSizeEditDialog(operation,onDismiss,onSave)
+        is EditOperation.Perspective -> PerspectiveEditDialog(operation,onDismiss,onSave)
+        is EditOperation.BackgroundReplace -> BackgroundReplaceEditDialog(operation,onDismiss,onSave)
+        is EditOperation.Retouch -> RetouchEditDialog(operation,onDismiss,onSave)
+        is EditOperation.Lut -> LutEditDialog(operation,onDismiss,onSave)
         else -> Unit
     }
 }
@@ -162,6 +171,75 @@ private fun EffectEditDialog(operation:EditOperation.Effect,onDismiss:()->Unit,o
         BasicSlider("Strength",settings.strength,0f..1f){settings=settings.copy(strength=it)}
         if(settings.kind==PhotoEffectKind.MOTION)BasicSlider("Angle",settings.angleDegrees,0f..360f){settings=settings.copy(angleDegrees=it)}
     }},confirmButton={Button(onClick={onSave(operation.copy(settings=settings))}){Text("Update")}},dismissButton={TextButton(onClick=onDismiss){Text("Cancel")}})
+}
+
+
+@Composable
+private fun CropEditDialog(operation:EditOperation.Crop,onDismiss:()->Unit,onSave:(EditOperation)->Unit){
+ var l by remember(operation.id){mutableFloatStateOf(operation.left)};var t by remember(operation.id){mutableFloatStateOf(operation.top)}
+ var r by remember(operation.id){mutableFloatStateOf(operation.right)};var b by remember(operation.id){mutableFloatStateOf(operation.bottom)}
+ AlertDialog(onDismissRequest=onDismiss,title={Text("Edit Crop")},text={Column(Modifier.heightIn(max=420.dp).verticalScroll(rememberScrollState())){
+ BasicSlider("Left",l,0f..(r-.01f).coerceAtLeast(0f)){l=it};BasicSlider("Top",t,0f..(b-.01f).coerceAtLeast(0f)){t=it}
+ BasicSlider("Right",r,(l+.01f).coerceAtMost(.99f)..1f){r=it};BasicSlider("Bottom",b,(t+.01f).coerceAtMost(.99f)..1f){b=it}
+ }},confirmButton={Button(onClick={onSave(operation.copy(left=l,top=t,right=r,bottom=b))}){Text("Update")}},dismissButton={TextButton(onClick=onDismiss){Text("Cancel")}})
+}
+@Composable
+private fun TransformEditDialog(operation:EditOperation.Transform,onDismiss:()->Unit,onSave:(EditOperation)->Unit){
+ var l by remember(operation.id){mutableFloatStateOf(operation.left)};var t by remember(operation.id){mutableFloatStateOf(operation.top)}
+ var r by remember(operation.id){mutableFloatStateOf(operation.right)};var b by remember(operation.id){mutableFloatStateOf(operation.bottom)}
+ var rotation by remember(operation.id){mutableFloatStateOf(operation.rotationDegrees)}
+ var fh by remember(operation.id){mutableStateOf(operation.flipHorizontal)};var fv by remember(operation.id){mutableStateOf(operation.flipVertical)}
+ AlertDialog(onDismissRequest=onDismiss,title={Text("Edit Crop / Transform")},text={Column(Modifier.heightIn(max=470.dp).verticalScroll(rememberScrollState())){
+ BasicSlider("Left",l,0f..(r-.01f).coerceAtLeast(0f)){l=it};BasicSlider("Top",t,0f..(b-.01f).coerceAtLeast(0f)){t=it}
+ BasicSlider("Right",r,(l+.01f).coerceAtMost(.99f)..1f){r=it};BasicSlider("Bottom",b,(t+.01f).coerceAtMost(.99f)..1f){b=it}
+ BasicSlider("Rotation",rotation,-180f..180f){rotation=it}
+ Row(verticalAlignment=Alignment.CenterVertically){Checkbox(fh,{fh=it});Text("Flip horizontal",color=Color.White)}
+ Row(verticalAlignment=Alignment.CenterVertically){Checkbox(fv,{fv=it});Text("Flip vertical",color=Color.White)}
+ }},confirmButton={Button(onClick={onSave(operation.copy(left=l,top=t,right=r,bottom=b,rotationDegrees=rotation,flipHorizontal=fh,flipVertical=fv))}){Text("Update")}},dismissButton={TextButton(onClick=onDismiss){Text("Cancel")}})
+}
+@Composable
+private fun CanvasSizeEditDialog(operation:EditOperation.CanvasSize,onDismiss:()->Unit,onSave:(EditOperation)->Unit){
+ var w by remember(operation.id){mutableFloatStateOf(operation.width.toFloat())};var h by remember(operation.id){mutableFloatStateOf(operation.height.toFloat())};var anchor by remember(operation.id){mutableStateOf(operation.anchor)}
+ AlertDialog(onDismissRequest=onDismiss,title={Text("Edit Canvas Size")},text={Column(Modifier.heightIn(max=450.dp).verticalScroll(rememberScrollState())){
+ BasicSlider("Width",w,1f..16384f){w=it};BasicSlider("Height",h,1f..16384f){h=it}
+ Text("Anchor",color=Color.White);CanvasAnchor.entries.forEach{a->FilterChip(selected=anchor==a,onClick={anchor=a},label={Text(a.name.replace("_"," "))})}
+ Text("Background color retained: "+operation.backgroundColor,color=Color.LightGray)
+ }},confirmButton={Button(onClick={onSave(operation.copy(width=w.toInt().coerceAtLeast(1),height=h.toInt().coerceAtLeast(1),anchor=anchor))}){Text("Update")}},dismissButton={TextButton(onClick=onDismiss){Text("Cancel")}})
+}
+@Composable
+private fun PerspectiveEditDialog(operation:EditOperation.Perspective,onDismiss:()->Unit,onSave:(EditOperation)->Unit){
+ var q by remember(operation.id){mutableStateOf(operation.quad)};var ow by remember(operation.id){mutableFloatStateOf(operation.outputWidth.toFloat())};var oh by remember(operation.id){mutableFloatStateOf(operation.outputHeight.toFloat())}
+ AlertDialog(onDismissRequest=onDismiss,title={Text("Edit Perspective")},text={Column(Modifier.heightIn(max=470.dp).verticalScroll(rememberScrollState())){
+ BasicSlider("Top-left X",q.topLeft.first,0f..1f){q=q.copy(topLeft=it to q.topLeft.second)};BasicSlider("Top-left Y",q.topLeft.second,0f..1f){q=q.copy(topLeft=q.topLeft.first to it)}
+ BasicSlider("Top-right X",q.topRight.first,0f..1f){q=q.copy(topRight=it to q.topRight.second)};BasicSlider("Top-right Y",q.topRight.second,0f..1f){q=q.copy(topRight=q.topRight.first to it)}
+ BasicSlider("Bottom-right X",q.bottomRight.first,0f..1f){q=q.copy(bottomRight=it to q.bottomRight.second)};BasicSlider("Bottom-right Y",q.bottomRight.second,0f..1f){q=q.copy(bottomRight=q.bottomRight.first to it)}
+ BasicSlider("Bottom-left X",q.bottomLeft.first,0f..1f){q=q.copy(bottomLeft=it to q.bottomLeft.second)};BasicSlider("Bottom-left Y",q.bottomLeft.second,0f..1f){q=q.copy(bottomLeft=q.bottomLeft.first to it)}
+ BasicSlider("Output width (0=source)",ow,0f..8192f){ow=it};BasicSlider("Output height (0=source)",oh,0f..8192f){oh=it}
+ }},confirmButton={Button(onClick={onSave(operation.copy(quad=q,outputWidth=ow.toInt(),outputHeight=oh.toInt()))}){Text("Update")}},dismissButton={TextButton(onClick=onDismiss){Text("Cancel")}})
+}
+@Composable
+private fun BackgroundReplaceEditDialog(operation:EditOperation.BackgroundReplace,onDismiss:()->Unit,onSave:(EditOperation)->Unit){
+ var mode by remember(operation.id){mutableStateOf(operation.mode)};var start by remember(operation.id){mutableStateOf(Color(operation.startColor))};var end by remember(operation.id){mutableStateOf(Color(operation.endColor))}
+ AlertDialog(onDismissRequest=onDismiss,title={Text("Edit Background Replace")},text={Column(Modifier.heightIn(max=380.dp).verticalScroll(rememberScrollState())){
+ listOf("solid","gradient","photo").forEach{FilterChip(selected=mode==it,onClick={mode=it},label={Text(it.uppercase())})}
+ Text("Stored background colors retained; photo background remains unchanged.",color=Color.LightGray)
+ BasicSlider("Start color alpha",start.alpha,0f..1f){start=start.copy(alpha=it)};BasicSlider("End color alpha",end.alpha,0f..1f){end=end.copy(alpha=it)}
+ }},confirmButton={Button(onClick={onSave(operation.copy(mode=mode,startColor=start.toArgb(),endColor=end.toArgb()))}){Text("Update")}},dismissButton={TextButton(onClick=onDismiss){Text("Cancel")}})
+}
+@Composable
+private fun RetouchEditDialog(operation:EditOperation.Retouch,onDismiss:()->Unit,onSave:(EditOperation)->Unit){
+ var strength by remember(operation.id){mutableFloatStateOf(operation.strength)};var x by remember(operation.id){mutableFloatStateOf(operation.offsetX)};var y by remember(operation.id){mutableFloatStateOf(operation.offsetY)}
+ AlertDialog(onDismissRequest=onDismiss,title={Text("Edit Retouch")},text={Column(Modifier.heightIn(max=420.dp).verticalScroll(rememberScrollState())){
+ Text(operation.strokes.size.toString()+" saved strokes retained",color=Color.LightGray);BasicSlider("Strength",strength,0f..1f){strength=it}
+ BasicSlider("Offset X",x,-10000f..10000f){x=it};BasicSlider("Offset Y",y,-10000f..10000f){y=it}
+ }},confirmButton={Button(onClick={onSave(operation.copy(strength=strength,offsetX=x,offsetY=y))}){Text("Update")}},dismissButton={TextButton(onClick=onDismiss){Text("Cancel")}})
+}
+@Composable
+private fun LutEditDialog(operation:EditOperation.Lut,onDismiss:()->Unit,onSave:(EditOperation)->Unit){
+ var cube by remember(operation.id){mutableStateOf(operation.cubeText)}
+ AlertDialog(onDismissRequest=onDismiss,title={Text("Edit LUT")},text={Column(Modifier.heightIn(max=420.dp)){
+ Text("Retained .cube text (max 2 MB)",color=Color.LightGray);OutlinedTextField(value=cube,onValueChange={if(it.length<=2_000_000)cube=it},modifier=Modifier.fillMaxWidth().height(320.dp),maxLines=30)
+ }},confirmButton={Button(enabled=runCatching{com.winsmediatama.winsphotostudio.core.adjustments.CubeLut.parse(cube)}.isSuccess,onClick={onSave(operation.copy(cubeText=cube))}){Text("Update")}},dismissButton={TextButton(onClick=onDismiss){Text("Cancel")}})
 }
 
 private fun toggle(op:EditOperation,enabled:Boolean):EditOperation=when(op){
