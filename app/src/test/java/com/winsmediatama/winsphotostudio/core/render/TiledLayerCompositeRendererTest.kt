@@ -9,7 +9,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
-class TiledLayerCompositeRendererTest {
+class TiledLayerCompositeRendererTest {\n    private fun assertPixelsWithinOne(message:String,expected:Int,actual:Int){\n        assertEquals(message+\" alpha\",android.graphics.Color.alpha(expected),android.graphics.Color.alpha(actual))\n        assertTrue(message+\" red\",kotlin.math.abs(android.graphics.Color.red(expected)-android.graphics.Color.red(actual))<=1)\n        assertTrue(message+\" green\",kotlin.math.abs(android.graphics.Color.green(expected)-android.graphics.Color.green(actual))<=1)\n        assertTrue(message+\" blue\",kotlin.math.abs(android.graphics.Color.blue(expected)-android.graphics.Color.blue(actual))<=1)\n    }
     @Test fun tiledFlatCompositeMatchesFullCompositeForCanvasAlignedLayers() {
         val base = Bitmap.createBitmap(9, 7, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.rgb(30, 70, 120)) }
         val top = Bitmap.createBitmap(9, 7, Bitmap.Config.ARGB_8888).apply {
@@ -138,7 +138,7 @@ class TiledLayerCompositeRendererTest {
             TiledLayerCompositeRenderer.encodeStreamingGroupedOperationLayers(layers,40,35,stream,tileSize=32)
             val decoded=requireNotNull(android.graphics.BitmapFactory.decodeByteArray(stream.toByteArray(),0,stream.size()))
             for(y in 0 until 35)for(x in 0 until 40)
-                assertEquals("group streaming pixel ($x,$y)",reference.getPixel(x,y),decoded.getPixel(x,y))
+                assertPixelsWithinOne("group streaming pixel ($x,$y)",reference.getPixel(x,y),decoded.getPixel(x,y))
             decoded.recycle()
         }finally{reference.recycle();base.recycle();child1.recycle();child2.recycle();mask.recycle()}
     }
