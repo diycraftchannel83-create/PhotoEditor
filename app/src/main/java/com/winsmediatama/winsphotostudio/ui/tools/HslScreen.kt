@@ -20,15 +20,25 @@ import com.winsmediatama.winsphotostudio.core.adjustments.HslRangeAdjustment
 import com.winsmediatama.winsphotostudio.core.adjustments.HslProcessor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CancellationException
+import com.winsmediatama.winsphotostudio.core.render.BitmapRenderScheduler
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 
 @Composable
 fun HslScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,HslAdjustments)->Unit) {
     var selected by remember { mutableStateOf(HslColorRange.RED) }
     var ranges by remember { mutableStateOf(HslAdjustments()) }
     val current=ranges.ranges[selected] ?: HslRangeAdjustment()
-    val preview by produceState<Bitmap?>(null,source,ranges) {
-        value?.takeIf{it!==source}?.recycle();value=null
-        value=withContext(Dispatchers.IO){HslProcessor.apply(source,ranges)}
+    val renderScheduler=remember{BitmapRenderScheduler(48L*1024L*1024L,"WinsPhoto-HslPreview")}
+    DisposableEffect(renderScheduler){onDispose{renderScheduler.close()}}
+    val preview by produceState<Bitmap?>(null,source,ranges,renderScheduler) {
+        value?.takeIf{it!==source&&!it.isRecycled}?.recycle();value=null
+        val key="hsl:"+System.identityHashCode(source)+":"+source.width+"x"+source.height+":"+ranges.hashCode()
+        var request:Future<Bitmap>?=null
+        try{value=withContext(Dispatchers.IO){request=renderScheduler.request(key){signal->signal.throwIfCanceled();HslProcessor.apply(source,ranges).also{signal.throwIfCanceled()}};request!!.get(60,TimeUnit.SECONDS)}}
+        catch(cancelled:CancellationException){request?.cancel(true);throw cancelled}
+        catch(_:Exception){request?.cancel(true);value=null}
     }
     fun update(value:HslRangeAdjustment){ranges=HslAdjustments(ranges.ranges.toMutableMap().also{it[selected]=value})}
     androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==source}?.recycle()}}
