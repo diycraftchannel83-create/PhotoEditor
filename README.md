@@ -402,3 +402,8 @@ A bounded tiled compositor is available for canvas-aligned flat bitmap layers, i
 ## PNG export integration
 
 Normal-size PNG export now attempts streaming tile compositing for supported flat, canvas-aligned layer stacks. Unsupported groups, clipping or operation-bearing layers fall back to the existing composite export. Source-dimension/native replay export remains on its existing path. This implementation is committed but not build/device verified.
+
+
+## Scanline streaming PNG
+
+Supported normal-size flat layer stacks now export by composing horizontal segments per scanline and encoding directly to PNG; temporary segment bitmaps are recycled immediately, without retaining a complete tile grid or flattened canvas. Operation stacks/groups/clipping and source-resolution replay remain outside this path. Not build-verified yet.
