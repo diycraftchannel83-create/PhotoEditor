@@ -233,3 +233,9 @@
 - [x] Child intermediate disposal and output exception cleanup use `finally`/catch paths.
 - [x] Regression tests for oversize and excessive nesting authored; verification deferred.
 - [ ] Continue exception cleanup audit in LayerCompositeRenderer, especially mask/clip/group paths.
+
+## Layer compositor exception cleanup
+- [x] Renderer-owned intermediate bitmap identity registry tracks replay/mask/clip/opacity/group allocations.
+- [x] Outer `finally` disposes tracked intermediates on success and failure; output is recycled on exception.
+- [ ] Inspect processor-internal allocation exception cleanup and add failure-injection tests.
+- [ ] Build/test/CI remain deferred.
