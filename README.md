@@ -443,3 +443,9 @@ Normal-size PNG export can replay supported pointwise adjustment operations from
 
 - Updated the streaming PNG regression test to compare alpha exactly and RGB within a small ±2 tolerance. This accounts for premultiplied-alpha bitmap conversion rounding across Android bitmap read/write and PNG decode, while still catching material color corruption.
 - This is a test expectation adjustment based on the observed pixel difference; CI verification is pending.
+
+
+## Robolectric pixel-test graphics configuration — 20 November 2026
+
+- Configured Robolectric tests to use native graphics (`graphicsMode=NATIVE`) at the pinned Android API 28. The prior report showed widespread Canvas/bitmap compositing tests returning transparent black; native graphics is now the test environment hypothesis to validate against CI.
+- This environment change is diagnostic and does not alter production rendering code. Verification remains pending.
