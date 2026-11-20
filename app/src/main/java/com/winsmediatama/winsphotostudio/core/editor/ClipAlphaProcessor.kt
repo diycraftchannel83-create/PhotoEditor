@@ -23,8 +23,13 @@ object ClipAlphaProcessor {
             val a=(current[i] ushr 24)*(alpha[i] ushr 24)/255
             current[i]=(a shl 24) or (current[i] and 0x00FFFFFF)
         }
-        return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply {
-            setPixels(current,0,w,0,0,w,h)
+        val output=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888)
+        try {
+            output.setPixels(current,0,w,0,0,w,h)
+            return output
+        } catch(error:Throwable) {
+            if(!output.isRecycled)output.recycle()
+            throw error
         }
     }
 }
