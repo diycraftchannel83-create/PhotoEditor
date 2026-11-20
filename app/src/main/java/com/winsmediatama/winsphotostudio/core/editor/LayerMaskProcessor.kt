@@ -49,9 +49,10 @@ object LayerMaskProcessor {
             val ap=IntArray(w*h);val bp=IntArray(w*h)
             a.getPixels(ap,0,w,0,0,w,h);b.getPixels(bp,0,w,0,0,w,h)
             val out=IntArray(w*h){i->val av=ap[i] and 255;val bv=bp[i] and 255;val v=av*bv/255;Color.argb(255,v,v,v)}
-            result=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888)
-            result.setPixels(out,0,w,0,0,w,h)
-            return result
+            val created=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888)
+            result=created
+            created.setPixels(out,0,w,0,0,w,h)
+            return created
         } catch(error:Throwable) {
             result?.takeUnless{it.isRecycled}?.recycle()
             throw error
