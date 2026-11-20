@@ -67,6 +67,7 @@ import com.winsmediatama.winsphotostudio.core.export.FullResolutionExport
 import com.winsmediatama.winsphotostudio.core.export.NativeSourceLayerExport
 import com.winsmediatama.winsphotostudio.core.importer.PreviewImageDecoder
 import com.winsmediatama.winsphotostudio.core.importer.OriginalSourceCache
+import com.winsmediatama.winsphotostudio.core.importer.RegionPreviewAssembler
 import java.io.File
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
@@ -322,6 +323,7 @@ private fun WinsPhotoApp() {
                     .cache(context.contentResolver,selected,"active-source")
             }.getOrNull()
             val preview=runCatching { PreviewImageDecoder.decode(context.contentResolver,selected) }.getOrNull()
+                ?: runCatching { RegionPreviewAssembler.decode(context.contentResolver,selected) }.getOrNull()
             Pair(cacheResult,preview)
         }
         val cachedSource=importResult.first
