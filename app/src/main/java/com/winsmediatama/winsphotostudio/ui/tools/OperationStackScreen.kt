@@ -56,7 +56,7 @@ fun OperationStackScreen(layer:EditorLayer,onCancel:()->Unit,onApply:(EditorLaye
                     Checkbox(checked=op.enabled,onCheckedChange={v->changeOperations(operations.toMutableList().also{it[index]=toggle(it[index],v)})})
                     Text(op.label,color=Color.White)
                     if(op is EditOperation.BasicAdjust)TextButton(onClick={editingBasicId=op.id}){Text("Edit")}
-                    if(op !is EditOperation.BasicAdjust && op !is EditOperation.SelectionMask)TextButton(onClick={editingOperationId=op.id}){Text("Edit")}
+                    if(op !is EditOperation.BasicAdjust)TextButton(onClick={editingOperationId=op.id}){Text("Edit")}
                     TextButton(enabled=index>0,onClick={changeOperations(operations.toMutableList().also{val item=it.removeAt(index);it.add(index-1,item)})}){Text("Up")}
                     TextButton(enabled=index<operations.lastIndex,onClick={changeOperations(operations.toMutableList().also{val item=it.removeAt(index);it.add(index+1,item)})}){Text("Down")}
                     TextButton(onClick={changeOperations(operations.filterIndexed{i,_->i!=index})}){Text("Remove")}
