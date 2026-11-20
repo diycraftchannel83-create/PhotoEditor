@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit
 fun AdjustmentScreen(source: Bitmap, onCancel: () -> Unit, onApply: (Bitmap,BasicAdjustmentValues) -> Unit) {
     var values by remember { mutableStateOf(BasicAdjustmentValues()) }
     var resetKey by remember { mutableIntStateOf(0) }
-    val renderScheduler = remember { BitmapRenderScheduler(maxCacheBytes = 48L * 1024L * 1024L, threadName = "WinsPhoto-AdjustPreview") }
+    val renderScheduler = remember { BitmapRenderScheduler(maxCacheBytes = 0L, threadName = "WinsPhoto-AdjustPreview") }
     androidx.compose.runtime.DisposableEffect(renderScheduler) {
         onDispose { renderScheduler.close() }
     }
