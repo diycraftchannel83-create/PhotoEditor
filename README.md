@@ -339,3 +339,9 @@ Build verification and release readiness must be tracked honestly. Check the lat
 
 ### Persistent named operation states
 - Added per-layer named operation state storage with validated JSON replay, path-safe layer IDs, SHA-256 file names, 50-state cap and save/restore/delete controls in the Operation Stack panel. Added persistence/bounds regression tests (not run).
+
+### Latest safety and roadmap continuation
+- Main editor Undo/Redo snapshot histories are now consistently capped at 8 entries in both directions.
+- Project lifecycle APIs reject traversal IDs/out-of-root folders; editable-project save validates layer count/canvas/name limits and cleans partial project folders on failure.
+- Project and recovery corruption/schema/traversal regression tests were authored but not run.
+- Source dependency inventory is in `docs/DEPENDENCIES.md`; it is not a resolved SBOM or legal scan.
