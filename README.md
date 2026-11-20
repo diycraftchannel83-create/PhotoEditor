@@ -422,3 +422,11 @@ Normal-size PNG export can replay supported pointwise adjustment operations from
 
 - A full GitHub Actions validation run has been requested by this documentation update: unit tests, Android lint, debug APK, unsigned release APK and unsigned release AAB.
 - Results and downloadable artifacts must be checked from the Actions run before declaring the build successful. This status note does not itself imply a passing build.
+
+
+## CI compile-error repair — 20 November 2026
+
+- Fixed tiled renderer imports: `BitmapTilePlanner` is in the render package, not importer; corrected the references in tile processor, halo processor, tiled compositor and tiled replay.
+- Added the missing `ClipAlphaProcessor` editor-package import in the tiled compositor.
+- Passed the cancellation signal to grouped compositor alpha-opacity processing.
+- These are source fixes for errors reported by CI. A new build is required to confirm further compile issues are resolved.
