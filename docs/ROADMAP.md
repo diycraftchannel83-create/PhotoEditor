@@ -324,3 +324,13 @@ This section records source changes committed to `main` after inspecting the lat
 - [ ] Run Android unit tests, lint, debug APK, release APK and unsigned AAB verification after the feature pass is explicitly complete.
 - [ ] Perform device-level interaction, large-image, memory, export and project round-trip testing.
 - [ ] Complete remaining roadmap phases: full adjustment layer architecture, tiled renderer/cache/cancellation, advanced brush/font/shape tools, AI object segmentation/removal, global recovery/history merge, localization/accessibility/tablet support, dependency/SBOM/license/CVE review, privacy/offline audit and production release validation.
+
+## Integrated source repair follow-up — 20 November 2026
+
+Additional corrections after inspecting the CI job log and current source:
+
+- [x] Correct the `EffectProcessor` package declaration to match `core.adjustments` and unblock the existing `EffectSettings` / `EffectsScreen` imports.
+- [x] Normalize ARGB alpha-bit masks to signed `Int` masks in CubeLut, EffectProcessor, LayerMaskProcessor, RetouchProcessors and RetouchRenderer.
+- [x] Consolidate EffectsScreen preview disposal and ensure it never recycles the caller-owned source bitmap.
+- [ ] Confirm a successful CI run on the exact latest `main` commit. Previous runs were superseded/cancelled or used earlier commit snapshots.
+- [ ] Resolve any further compiler errors, test failures and lint diagnostics surfaced by the current run.
