@@ -56,15 +56,22 @@ fun BackgroundRemoveScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->Uni
 }
 
 private fun removeColorBackground(source:Bitmap,sample:Color,tolerance:Float,feather:Float):Bitmap {
+    require(source.width>0&&source.height>0&&source.width.toLong()*source.height<=24_000_000L){"Color-key output exceeds 24 MP safety limit"}
     val out=source.copy(Bitmap.Config.ARGB_8888,true)
-    val pixels=IntArray(source.width*source.height);out.getPixels(pixels,0,source.width,0,0,source.width,source.height)
-    val sr=sample.red*255f;val sg=sample.green*255f;val sb=sample.blue*255f
-    for(i in pixels.indices) {
-        val p=pixels[i];val r=((p shr 16)and 255).toFloat();val g=((p shr 8)and 255).toFloat();val b=(p and 255).toFloat()
-        val d=sqrt((r-sr)*(r-sr)+(g-sg)*(g-sg)+(b-sb)*(b-sb))
-        val alpha=if(feather<=0f)if(d<=tolerance)0f else 1f else ((d-tolerance)/feather).coerceIn(0f,1f)
-        pixels[i]=(alpha*255f).toInt().shl(24) or (p and 0x00FFFFFF)
+    try {
+        val pixels=IntArray(source.width*source.height);out.getPixels(pixels,0,source.width,0,0,source.width,source.height)
+        val sr=sample.red*255f;val sg=sample.green*255f;val sb=sample.blue*255f
+        for(i in pixels.indices) {
+            val p=pixels[i];val r=((p shr 16)and 255).toFloat();val g=((p shr 8)and 255).toFloat();val b=(p and 255).toFloat()
+            val d=sqrt((r-sr)*(r-sr)+(g-sg)*(g-sg)+(b-sb)*(b-sb))
+            val maskAlpha=if(feather<=0f)if(d<=tolerance)0f else 1f else ((d-tolerance)/feather).coerceIn(0f,1f)
+            val alpha=((p ushr 24)*maskAlpha).toInt().coerceIn(0,255)
+            pixels[i]=(alpha shl 24) or (p and 0x00FFFFFF)
+        }
+        out.setPixels(pixels,0,source.width,0,0,source.width,source.height)
+        return out
+    } catch(error:Throwable) {
+        if(!out.isRecycled)out.recycle()
+        throw error
     }
-    out.setPixels(pixels,0,source.width,0,0,source.width,source.height)
-    return out
 }
