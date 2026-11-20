@@ -33,7 +33,7 @@ object RetouchRenderer {
                         val healing=((rr/count).toInt() shl 16) or ((gg/count).toInt() shl 8) or (bb/count).toInt()
                         for(y in (cy-radius).coerceAtLeast(0)..(cy+radius).coerceAtMost(h-1))for(x in (cx-radius).coerceAtLeast(0)..(cx+radius).coerceAtMost(w-1)){
                             val i=y*w+x;val d=kotlin.math.sqrt(((x-cx)*(x-cx)+(y-cy)*(y-cy)).toFloat())
-                            if(d<=radius){val t=strength*(1f-d/radius).coerceIn(0f,1f);result[i]=blend(result[i],(result[i] and 0xFF000000)or healing,t)}
+                            if(d<=radius){val t=strength*(1f-d/radius).coerceIn(0f,1f);result[i]=blend(result[i],(result[i] and -0x1000000) or healing,t)}
                         }
                     }
                 }
