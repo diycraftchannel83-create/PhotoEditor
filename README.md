@@ -437,3 +437,9 @@ Normal-size PNG export can replay supported pointwise adjustment operations from
 - Replaced platform `Matrix.setPolyToPoly` dependence with a local 8-parameter homography solver using pivoted Gaussian elimination. This addresses the reported Robolectric perspective-transform failure while retaining the perspective warp matrix approach.
 - Degenerate point configurations now fail with an explicit `Perspective points are degenerate` message.
 - Unit-test verification remains pending; APK/AAB builds remain paused until the unit-test suite stabilizes.
+
+
+## PNG round-trip regression update — 20 November 2026
+
+- Updated the streaming PNG regression test to compare alpha exactly and RGB within a small ±2 tolerance. This accounts for premultiplied-alpha bitmap conversion rounding across Android bitmap read/write and PNG decode, while still catching material color corruption.
+- This is a test expectation adjustment based on the observed pixel difference; CI verification is pending.
