@@ -45,4 +45,12 @@ class HslProcessorTest {
         assertTrue(AndroidColor.red(adjusted) > AndroidColor.green(adjusted))
         assertEquals(AndroidColor.RED, source.getPixel(0, 0))
     }
+    @Test
+    fun canceledRenderAbortsAndPreservesOriginalPixels() {
+        val source=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
+        source.setPixel(0,0,AndroidColor.BLUE)
+        val cancellation=android.os.CancellationSignal().apply{cancel()}
+        org.junit.Assert.assertThrows(android.os.OperationCanceledException::class.java){HslProcessor.apply(source,HslAdjustments(),cancellation)}
+        assertEquals(AndroidColor.BLUE,source.getPixel(0,0))
+    }
 }
