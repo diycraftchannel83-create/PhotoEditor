@@ -6,6 +6,8 @@ import android.graphics.Bitmap
 object LayerMaskProcessor {
     fun apply(source: Bitmap, mask: Bitmap): Bitmap {
         require(source.width > 0 && source.height > 0 && mask.width > 0 && mask.height > 0)
+        require(source.width.toLong()*source.height.toLong()<=24_000_000L) { "Mask source exceeds 24 MP safety limit" }
+        require(mask.width.toLong()*mask.height.toLong()<=24_000_000L) { "Mask exceeds 24 MP safety limit" }
         val output=Bitmap.createBitmap(source.width,source.height,Bitmap.Config.ARGB_8888)
         val sourcePixels=IntArray(source.width*source.height)
         source.getPixels(sourcePixels,0,source.width,0,0,source.width,source.height)
@@ -29,6 +31,8 @@ object LayerMaskProcessor {
     /** Multiplies two reveal masks; white keeps and black removes. */
     fun combineMultiply(first:Bitmap,second:Bitmap):Bitmap {
         val w=first.width;val h=first.height
+        require(w.toLong()*h.toLong()<=24_000_000L) { "Combined mask exceeds 24 MP safety limit" }
+        require(second.width.toLong()*second.height.toLong()<=24_000_000L) { "Input mask exceeds 24 MP safety limit" }
         val a=Bitmap.createScaledBitmap(first,w,h,true)
         val b=Bitmap.createScaledBitmap(second,w,h,true)
         val ap=IntArray(w*h);val bp=IntArray(w*h);a.getPixels(ap,0,w,0,0,w,h);b.getPixels(bp,0,w,0,0,w,h)
