@@ -188,6 +188,18 @@ DOMAIN_MAX 1 1 1
         val oversized=EditOperation.SelectionMask(maskBase64="AA",maskWidth=16384,maskHeight=16384)
         assertFalse(oversized.valid())
     }
+    @Test fun pairedSelectionCutAndCopyMasksReconstructOriginal() {
+        val source=Bitmap.createBitmap(2,1,Bitmap.Config.ARGB_8888).apply{setPixel(0,0,Color.RED);setPixel(1,0,Color.BLUE)}
+        val mask=Bitmap.createBitmap(2,1,Bitmap.Config.ARGB_8888).apply{setPixel(0,0,Color.WHITE);setPixel(1,0,Color.BLACK)}
+        val keep=EditOperation.SelectionMask.fromBitmap(mask)
+        val cut=keep.copy(invertSelection=true)
+        val cutBitmap=NonDestructiveEditStack(source,listOf(cut)).render()
+        val selectedBitmap=NonDestructiveEditStack(source,listOf(keep)).render()
+        val composite=Bitmap.createBitmap(2,1,Bitmap.Config.ARGB_8888)
+        val canvas=android.graphics.Canvas(composite);canvas.drawBitmap(cutBitmap,0f,0f,null);canvas.drawBitmap(selectedBitmap,0f,0f,null)
+        assertEquals(Color.RED,composite.getPixel(0,0));assertEquals(Color.BLUE,composite.getPixel(1,0))
+        composite.recycle();cutBitmap.recycle();selectedBitmap.recycle();mask.recycle();source.recycle()
+    }
     @Test fun stackSupportsInsertAndReorder() {
         val src=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
         val first=EditOperation.BasicAdjust(values=BasicAdjustmentValues(brightness=.1f))
