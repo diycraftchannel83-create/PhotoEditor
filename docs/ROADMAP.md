@@ -20,7 +20,7 @@
 - [x] Canvas-size processor and independent canvas-size UI with anchors/background
 - [x] Canvas Size tool integrated as replayable operation (width/height, anchor and background serialized; test authored, verification deferred)
 - [x] Background replacement integrated as replayable operation (solid/gradient/photo mode and colors serialized; photo background PNG encoded into bounded project payload; test authored, verification deferred)
-- [ ] Full crop/transform correctness and undo regression tests (test files authored; verification pending)
+- [ ] Full crop/transform correctness and undo regression tests (authored tests, verification pending) (test files authored; verification pending)
 - [x] Source-level repair of Text & Shapes multiline and line-spacing declarations (build deferred)
 - [x] Align non-destructive Transform replay with TransformProcessor API (build deferred)
 - [x] Disk-backed original source cache foundation (copy original without decoding, transactional cache replacement, cache status surfaced; regression tests authored)
@@ -174,7 +174,7 @@
 
 ## Phase 12 — UX, accessibility and localization
 - [x] Categorized tool navigation (Canvas/Color/Layers/Design/AI); responsive panels and touch target audit remain
-- [ ] Before/after, tool reset, consistent apply/cancel, progress/error states
+- [ ] Tool reset and consistent apply/cancel/progress/error states; [x] before/after comparison (source implementation; verification pending)
 - [ ] Accessibility labels, focus order, contrast and scalable text
 - [ ] Indonesian and English localization; audit all UI strings
 - [ ] Tablet/landscape layout and external keyboard support
