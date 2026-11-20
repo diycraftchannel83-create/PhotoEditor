@@ -141,7 +141,7 @@
 - [x] Background replacement UI: solid, gradient and photo
 - [ ] Edge/hair refinement and subject-selection integration
 - [ ] General-object segmentation, object removal and upscaling feasibility/size evaluation
-- [ ] AI job progress, cancel, capability and error UX audit
+- [ ] AI job progress, cancel, capability and error UX audit (progress spinner, cancel action and error display exist for person segmentation; broader audit remains)
 
 ## Phase 10 — Project, autosave and recovery
 - [x] Project save/open for editable bitmap layer stacks
@@ -278,3 +278,9 @@
 ### Project/recovery migration coverage
 - [x] Added authored regression tests for schema-one legacy snapshot project loading and legacy recovery metadata defaults; tests remain unexecuted.
 - [x] Added project/recovery corruption, unsupported-schema and path-traversal tests; verification deferred.
+
+
+### Background removal safety
+- [x] AI segmentation and color-key output enforce 24 MP limits and recycle generated output on pixel-transfer failure.
+- [x] Both mask workflows now multiply generated alpha with existing source alpha, preserving transparent source pixels.
+- [ ] Edge/hair quality and object segmentation remain feature/verification tasks.
