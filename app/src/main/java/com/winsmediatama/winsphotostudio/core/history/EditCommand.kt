@@ -9,6 +9,8 @@ interface EditCommand {
 
 /** Bounded command history avoids storing full-resolution bitmap snapshots per operation. */
 class CommandHistory(private val maxEntries: Int = 100) {
+    init { require(maxEntries > 0) { "History capacity must be positive" } }
+
     private val undoStack = ArrayDeque<EditCommand>()
     private val redoStack = ArrayDeque<EditCommand>()
 
@@ -17,6 +19,7 @@ class CommandHistory(private val maxEntries: Int = 100) {
     val undoLabel: String? get() = undoStack.lastOrNull()?.label
     val redoLabel: String? get() = redoStack.lastOrNull()?.label
 
+    /** Failed apply leaves both stacks unchanged. */
     fun execute(command: EditCommand) {
         command.apply()
         undoStack.addLast(command)
@@ -24,16 +27,21 @@ class CommandHistory(private val maxEntries: Int = 100) {
         redoStack.clear()
     }
 
+    /** Keep the command on its original stack until its reverse action succeeds. */
     fun undo() {
-        val command = undoStack.removeLastOrNull() ?: return
+        val command = undoStack.lastOrNull() ?: return
         command.undo()
+        undoStack.removeLast()
         redoStack.addLast(command)
     }
 
+    /** Keep redo entry until apply succeeds, avoiding history loss on exceptions. */
     fun redo() {
-        val command = redoStack.removeLastOrNull() ?: return
+        val command = redoStack.lastOrNull() ?: return
         command.apply()
+        redoStack.removeLast()
         undoStack.addLast(command)
+        while (undoStack.size > maxEntries) undoStack.removeFirst()
     }
 
     fun clear() { undoStack.clear(); redoStack.clear() }
