@@ -43,6 +43,7 @@ object TiledPngEncoder {
         height: Int,
         output: OutputStream,
         cancellation: CancellationSignal? = null,
+        cancelCheck: (() -> Unit)? = null,
         rowProvider: (Int, IntArray) -> Unit
     ) {
         require(width in 1..MAX_DIMENSION && height in 1..MAX_DIMENSION) { "PNG dimensions exceed supported bounds" }
@@ -54,6 +55,7 @@ object TiledPngEncoder {
         try {
             for (y in 0 until height) {
                 cancellation?.throwIfCanceled()
+                cancelCheck?.invoke()
                 rowProvider(y, pixels)
                 row[0] = 0
                 var cursor = 1
@@ -66,6 +68,7 @@ object TiledPngEncoder {
                 deflater.setInput(row)
                 while (!deflater.needsInput()) {
                     cancellation?.throwIfCanceled()
+                    cancelCheck?.invoke()
                     val count = deflater.deflate(compressed)
                     if (count > 0) writeChunk(output, "IDAT", compressed.copyOf(count))
                     else if (!deflater.needsInput()) throw IllegalStateException("PNG deflater made no progress")
@@ -74,6 +77,7 @@ object TiledPngEncoder {
             deflater.finish()
             while (!deflater.finished()) {
                 cancellation?.throwIfCanceled()
+                cancelCheck?.invoke()
                 val count = deflater.deflate(compressed)
                 if (count > 0) writeChunk(output, "IDAT", compressed.copyOf(count))
                 else if (!deflater.finished()) throw IllegalStateException("PNG deflater made no progress during finish")
