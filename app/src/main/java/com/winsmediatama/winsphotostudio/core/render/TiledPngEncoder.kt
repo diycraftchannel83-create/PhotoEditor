@@ -16,6 +16,17 @@ object TiledPngEncoder {
     private const val MAX_DIMENSION = 100_000
     private const val DEFLATE_BUFFER = 32 * 1024
 
+    fun encodeOperationTiles(
+        tiles: List<TiledOperationReplayProcessor.OutputTile>,
+        width: Int,
+        height: Int,
+        output: OutputStream,
+        cancellation: CancellationSignal? = null
+    ) = encode(
+        tiles.map { BitmapTileProcessor.ProcessedTile(Rect(it.rect), it.bitmap) },
+        width, height, output, cancellation
+    )
+
     fun encodeCompositeTiles(
         tiles: List<TiledLayerCompositeRenderer.CompositeTile>,
         width: Int,
