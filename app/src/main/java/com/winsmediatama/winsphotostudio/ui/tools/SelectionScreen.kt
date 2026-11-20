@@ -120,7 +120,7 @@ fun SelectionScreen(source:Bitmap,onCancel:()->Unit,onApply:(SelectionOutput)->U
         }
         Row(Modifier.fillMaxWidth().padding(horizontal=8.dp).horizontalScroll(androidx.compose.foundation.rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(4.dp)){
             listOf("Free" to 0f,"1:1" to 1f,"4:3" to 4f/3f,"16:9" to 16f/9f,"3:2" to 1.5f).forEach{(label,ratio)->
-                FilterChip(selected=false,onClick={shape=SelectionShape.RECTANGLE;polygonPoints=emptyList();rect=if(ratio==0f)Rect(.1f,.1f,.9f,.9f)else{val rw=if(ratio>source.width.toFloat()/source.height)0.9f else 0.9f*ratio/(source.width.toFloat()/source.height);val rh=rw/(source.width.toFloat()/source.height);Rect((1-rw)/2,(1-rh)/2,(1+rw)/2,(1+rh)/2)}},label={Text(label)})
+                FilterChip(selected=false,onClick={shape=SelectionShape.RECTANGLE;polygonPoints=emptyList();rect=if(ratio==0f)Rect(.1f,.1f,.9f,.9f)else{val sourceAspect=source.width.toFloat()/source.height;val rw:Float;val rh:Float;if(ratio>=sourceAspect){rw=.9f;rh=rw*sourceAspect/ratio}else{rh=.9f;rw=rh*ratio/sourceAspect};Rect((1-rw)/2,(1-rh)/2,(1+rw)/2,(1+rh)/2)}},label={Text(label)})
             }
             FilterChip(selected=false,onClick={rect=Rect(0f,0f,1f,1f);polygonPoints=emptyList()},label={Text("Select all")})
             FilterChip(selected=false,onClick={polygonPoints=emptyList();rect=Rect(.1f,.1f,.9f,.9f);loadedMask?.recycle();loadedMask=null},label={Text("Clear")})
