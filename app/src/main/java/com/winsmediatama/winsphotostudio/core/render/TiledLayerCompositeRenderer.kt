@@ -185,6 +185,109 @@ object TiledLayerCompositeRenderer {
         } finally { releaseBand() }
     }
 
+    /**
+     * Group-aware streaming compositor. Groups are contiguous in the layer list (the editor's
+     * flattened tree representation). Group opacity/blend is applied once to the group result,
+     * while child masks, opacity, blend modes and operation replay are applied internally.
+     * Clipping and Difference remain unsupported to preserve explicit parity boundaries.
+     */
+    fun encodeStreamingGroupedOperationLayers(
+        layers: List<EditorLayer>,
+        width: Int,
+        height: Int,
+        output: java.io.OutputStream,
+        tileSize: Int = 256,
+        cancellation: CancellationSignal? = null,
+        cancelCheck: (() -> Unit)? = null
+    ) {
+        require(width > 0 && height > 0 && tileSize in 32..2048 && layers.isNotEmpty())
+        require(layers.none { it.clipToBelow }) { "Grouped streaming currently rejects clipping" }
+        require(layers.none { it.blendMode == EditorBlendMode.DIFFERENCE || it.groupBlendMode == EditorBlendMode.DIFFERENCE }) {
+            "Difference blend is not yet supported by grouped streaming"
+        }
+        require(layers.all { it.bitmap.width == width && it.bitmap.height == height }) {
+            "Grouped streaming requires canvas-aligned layers"
+        }
+        require(layers.all { it.mask == null || (it.mask.width == width && it.mask.height == height) }) {
+            "Grouped streaming requires canvas-aligned masks"
+        }
+        require(layers.filter { it.visible }.all { TiledOperationReplayProcessor.supportsHalo(it.operations) }) {
+            "Unsupported operation stack in grouped streaming"
+        }
+        val visibleCount=layers.count { it.visible && !it.bitmap.isRecycled }.coerceAtLeast(1)
+        val bandHeight=minOf(tileSize,(4_000_000L/(width.toLong()*visibleCount)).coerceAtLeast(1L).toInt())
+        var currentBand=-1
+        val replayBand=mutableMapOf<String,Bitmap>()
+        fun clearBand(){ replayBand.values.forEach{if(!it.isRecycled)it.recycle()};replayBand.clear() }
+        fun drawLayer(canvas:Canvas,layer:EditorLayer,y:Int,left:Int,segmentWidth:Int,bandTop:Int){
+            if(!layer.visible||layer.bitmap.isRecycled)return
+            val replayed=requireNotNull(replayBand[layer.id])
+            val rowBitmap=Bitmap.createBitmap(replayed,left,y-bandTop,segmentWidth,1)
+            var masked:Bitmap?=null
+            try{
+                masked=layer.mask?.let{mask->
+                    val maskRow=Bitmap.createBitmap(mask,left,y,segmentWidth,1)
+                    try{LayerMaskProcessor.apply(rowBitmap,maskRow)}finally{maskRow.recycle()}
+                }
+                val paint=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply{
+                    alpha=(layer.opacity.coerceIn(0f,1f)*255).toInt()
+                    xfermode=blendMode(layer.blendMode)
+                }
+                canvas.drawBitmap(masked?:rowBitmap,0f,0f,paint);paint.xfermode=null
+            }finally{
+                masked?.let{if(!it.isRecycled)it.recycle()}
+                if(!rowBitmap.isRecycled)rowBitmap.recycle()
+            }
+        }
+        try{
+            TiledPngEncoder.encodeRows(width,height,output,cancellation,cancelCheck){y,row->
+                val bandTop=(y/bandHeight)*bandHeight
+                if(bandTop!=currentBand){
+                    clearBand();currentBand=bandTop
+                    val bandBottom=minOf(height,bandTop+bandHeight)
+                    layers.filter{it.visible&&!it.bitmap.isRecycled}.forEach{layer->
+                        cancellation?.throwIfCanceled();cancelCheck?.invoke()
+                        replayBand[layer.id]=TiledOperationReplayProcessor.renderHaloTile(
+                            layer.bitmap,Rect(0,bandTop,width,bandBottom),layer.operations,cancellation
+                        ).bitmap
+                    }
+                }
+                var left=0
+                while(left<width){
+                    cancellation?.throwIfCanceled();cancelCheck?.invoke()
+                    val sw=minOf(tileSize,width-left)
+                    val composite=Bitmap.createBitmap(sw,1,Bitmap.Config.ARGB_8888)
+                    try{
+                        val outer=Canvas(composite)
+                        var index=0
+                        while(index<layers.size){
+                            val layer=layers[index]
+                            if(layer.groupId.isNullOrBlank()){
+                                drawLayer(outer,layer,y,left,sw,bandTop);index++;continue
+                            }
+                            val groupId=layer.groupId
+                            val children=mutableListOf<EditorLayer>()
+                            while(index<layers.size&&layers[index].groupId==groupId){children+=layers[index];index++}
+                            val groupBitmap=Bitmap.createBitmap(sw,1,Bitmap.Config.ARGB_8888)
+                            try{
+                                val groupCanvas=Canvas(groupBitmap)
+                                children.forEach{child->drawLayer(groupCanvas,child,y,left,sw,bandTop)}
+                                val groupOpacity=(children.firstOrNull()?.groupOpacity?:1f).coerceIn(0f,1f)
+                                val groupMode=children.firstOrNull()?.groupBlendMode?:EditorBlendMode.NORMAL
+                                val paint=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply{
+                                    alpha=(groupOpacity*255).toInt();xfermode=blendMode(groupMode)
+                                }
+                                outer.drawBitmap(groupBitmap,0f,0f,paint);paint.xfermode=null
+                            }finally{if(!groupBitmap.isRecycled)groupBitmap.recycle()}
+                        }
+                        composite.getPixels(row,left,width,0,0,sw,1)
+                    }finally{if(!composite.isRecycled)composite.recycle()}
+                    left+=sw
+                }
+            }
+        }finally{clearBand()}
+    }
+
     fun renderTiles(
         layers: List<EditorLayer>,
         width: Int,
