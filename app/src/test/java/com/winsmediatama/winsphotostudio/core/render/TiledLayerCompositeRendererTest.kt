@@ -58,6 +58,20 @@ class TiledLayerCompositeRendererTest {
         decoded.recycle(); reference.recycle(); base.recycle(); overlay.recycle()
     }
 
+    @Test fun streamingScanlineEncoderHonorsCancellationCallback() {
+        val bitmap = Bitmap.createBitmap(3, 3, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.WHITE) }
+        val layers = listOf(EditorLayer(name = "Layer", bitmap = bitmap))
+        val stream = java.io.ByteArrayOutputStream()
+        var rows = 0
+        try {
+            TiledLayerCompositeRenderer.encodeStreamingPng(layers, 3, 3, stream, tileWidth = 2, cancelCheck = {
+                if (rows >= 1) throw kotlinx.coroutines.CancellationException("test cancellation")
+            })
+        } catch (_: kotlinx.coroutines.CancellationException) {
+            assertEquals(1, rows)
+        } finally { bitmap.recycle() }
+    }
+
     @Test fun partialLayerBoundsAreTransparentOutsideSource() {
         val small = Bitmap.createBitmap(2, 2, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.RED) }
         val tiles = TiledLayerCompositeRenderer.renderTiles(listOf(EditorLayer(name = "Small", bitmap = small)), 4, 4, tileSize = 3)
