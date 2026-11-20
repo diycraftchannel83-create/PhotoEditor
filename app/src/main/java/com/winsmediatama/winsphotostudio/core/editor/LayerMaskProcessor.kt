@@ -76,7 +76,7 @@ object LayerMaskProcessor {
         try {
             val pixels=IntArray(mask.width*mask.height)
             mask.getPixels(pixels,0,mask.width,0,0,mask.width,mask.height)
-            for(i in pixels.indices){val p=pixels[i];pixels[i]=(p and 0xFF000000) or ((255-(p shr 16 and 255)) shl 16) or ((255-(p shr 8 and 255)) shl 8) or (255-(p and 255))}
+            for(i in pixels.indices){val p=pixels[i];pixels[i]=(p and -0x1000000) or ((255-(p shr 16 and 255)) shl 16) or ((255-(p shr 8 and 255)) shl 8) or (255-(p and 255))}
             result.setPixels(pixels,0,mask.width,0,0,mask.width,mask.height)
             return result
         } catch(error:Throwable) {
