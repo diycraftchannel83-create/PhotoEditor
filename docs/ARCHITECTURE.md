@@ -124,3 +124,9 @@ A branch-specific bitmap ownership/recycling checklist is tracked in `docs/COMPO
 
 ### Project duplication transaction
 - Duplicating a project now validates its canonical source directory, bounds the requested name and removes the destination if copying/manifest update fails. Source implementation only.
+
+
+
+## 20 November 2026 — source repair note
+
+A source-only integration repair pass corrected the Selection action dispatcher (Copy Layer, Mask, Cut, Cut-to-Layer and Crop), LUT/effect numeric expressions, Difference compositor target-bitmap access, project asset decoder import and bounds check, selection neighbour/feather expressions, retouch pixel packing, Brush/Gradient/Effects preview cleanup, Operation Stack Compose annotations and EffectProcessor package namespace. These edits have been pushed to `main`. No claim of successful compilation or tests is made here. The existing GitHub Actions workflow is push-triggered and may cancel superseded commits; verify the exact latest commit when the run settles. Remaining architecture and release limitations listed above are unchanged.
