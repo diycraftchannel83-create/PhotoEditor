@@ -45,6 +45,22 @@ class LayerCompositeRendererTest {
         assertEquals(127,Color.alpha(result.getPixel(0,0)))
         assertEquals(255,Color.blue(result.getPixel(0,0)))
     }
+    @Test fun compositingDoesNotRecycleCallerOwnedLayerOrMaskBitmaps() {
+        val source=Bitmap.createBitmap(2,1,Bitmap.Config.ARGB_8888).apply{setPixel(0,0,Color.RED);setPixel(1,0,Color.BLUE)}
+        val mask=Bitmap.createBitmap(2,1,Bitmap.Config.ARGB_8888).apply{setPixel(0,0,Color.WHITE);setPixel(1,0,Color.BLACK)}
+        val layer=EditorLayer(name="Masked source",bitmap=source,mask=mask)
+        repeat(2){
+            val composite=LayerCompositeRenderer.render(listOf(layer),2,1)
+            assertEquals(Color.RED,composite.getPixel(0,0))
+            assertEquals(0,Color.alpha(composite.getPixel(1,0)))
+            composite.recycle()
+            assertFalse("source bitmap must remain caller-owned",source.isRecycled)
+            assertFalse("mask bitmap must remain caller-owned",mask.isRecycled)
+            assertEquals(Color.RED,source.getPixel(0,0))
+            assertEquals(Color.WHITE,mask.getPixel(0,0))
+        }
+    }
+
     @Test fun oversizedCanvasFailsBeforeBitmapAllocation() {
         val failure=runCatching{LayerCompositeRenderer.render(emptyList(),6000,5000)}.exceptionOrNull()
         assertNotNull(failure)
