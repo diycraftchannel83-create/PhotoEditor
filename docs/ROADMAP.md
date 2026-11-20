@@ -213,3 +213,9 @@
 - [x] Add explicit bitmap ownership/recycling checklist and branch audit matrix (`docs/COMPOSITOR_AUDIT.md`).
 - [ ] Inspect current compositor source branch-by-branch and apply fixes (source fetch/search unavailable in this continuation; avoid ungrounded code changes).
 - [ ] Add success/exception/aliasing regression tests and verify later.
+
+
+## Compositor lifecycle continuation
+- [x] Protect Difference blend scaled temporary cleanup with `finally`.
+- [x] Add regression test for caller-owned source/mask bitmap survival across repeated renders.
+- [ ] Audit exception cleanup of output, group and intermediate bitmaps; verification deferred.
