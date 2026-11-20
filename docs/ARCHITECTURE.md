@@ -55,3 +55,7 @@ No build, CI, lint or tests were run during this feature pass, by request. New t
 Operation Stack Apply now records a main-editor history snapshot with descriptive labels derived from operation diffs (Add/Remove/Edit or stack summary). Screen-local undo/redo remains separate until the global history timeline is unified; verification deferred.
 
 **Compositor allocation safety:** `LayerCompositeRenderer` enforces a 24 MP output limit before allocating the output bitmap. A regression test covers rejection above the limit; verification is deferred. Temporary bitmap ownership/lifecycle audit remains open.
+
+
+## Compositor ownership audit
+A branch-specific bitmap ownership/recycling checklist is tracked in `docs/COMPOSITOR_AUDIT.md`. It documents expected ownership rules and regression scenarios, but is not a completed source audit. Source fetch/search limitations prevented safe code modifications in this continuation. Verification remains deferred.
