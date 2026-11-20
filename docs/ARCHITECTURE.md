@@ -138,3 +138,8 @@ A branch-specific bitmap ownership/recycling checklist is tracked in `docs/COMPO
 ## 20 November 2026 — source repair note
 
 A source-only integration repair pass corrected the Selection action dispatcher (Copy Layer, Mask, Cut, Cut-to-Layer and Crop), LUT/effect numeric expressions, Difference compositor target-bitmap access, project asset decoder import and bounds check, selection neighbour/feather expressions, retouch pixel packing, Brush/Gradient/Effects preview cleanup, Operation Stack Compose annotations and EffectProcessor package namespace. These edits have been pushed to `main`. No claim of successful compilation or tests is made here. The existing GitHub Actions workflow is push-triggered and may cancel superseded commits; verify the exact latest commit when the run settles. Remaining architecture and release limitations listed above are unchanged.
+
+
+### Tiled flat-layer compositor
+
+`TiledLayerCompositeRenderer` supports bounded tile output for canvas-aligned, flat bitmap stacks, applying layer visibility, opacity, masks and supported blend modes per tile. It deliberately rejects grouped, clipped and operation-bearing layers instead of silently ignoring semantics. Stitching remains subject to the 24 MP safety ceiling; tile-list output itself can be consumed without flattening. Export integration, layer scaling semantics, full operation replay and blend parity remain pending.
