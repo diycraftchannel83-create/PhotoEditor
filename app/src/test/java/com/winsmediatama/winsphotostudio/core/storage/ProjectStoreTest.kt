@@ -42,4 +42,29 @@ class ProjectStoreTest {
         assertNotNull(copy);assertEquals("Renamed Copy",store.projectName(copy!!))
         assertTrue(store.deleteProject(copy.name));assertTrue(store.deleteProject(folder.name))
     }
+    @Test fun corruptedManifestAndUnsupportedSchemaFailSafely() {
+        val context=org.robolectric.RuntimeEnvironment.getApplication()
+        val store=ProjectStore(context)
+        val bitmap=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
+        val folder=store.saveLayerProject(listOf(EditorLayer(name="safe",bitmap=bitmap)),null,1,1,"Corruption")
+        val manifest=java.io.File(folder,"project.json")
+        manifest.writeText("{broken json")
+        assertNull(store.loadEditableProject(folder))
+        manifest.writeText(org.json.JSONObject().put("schemaVersion",99).put("name","future").toString())
+        assertNull(store.loadEditableProject(folder))
+        store.deleteProject(folder.name)
+    }
+
+    @Test fun editableLoaderRejectsTraversalAssetPath() {
+        val context=org.robolectric.RuntimeEnvironment.getApplication()
+        val store=ProjectStore(context)
+        val bitmap=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
+        val folder=store.saveLayerProject(listOf(EditorLayer(name="safe",bitmap=bitmap)),null,1,1,"Traversal")
+        val manifest=org.json.JSONObject(java.io.File(folder,"project.json").readText())
+        val layers=manifest.getJSONArray("layers")
+        layers.getJSONObject(0).put("asset","../outside.png")
+        java.io.File(folder,"project.json").writeText(manifest.toString())
+        assertNull(store.loadEditableProject(folder))
+        store.deleteProject(folder.name)
+    }
 }
