@@ -14,21 +14,24 @@ object LayerCompositeRenderer {
         val w=width.coerceAtLeast(1);val h=height.coerceAtLeast(1)
         require(w.toLong()*h.toLong()<=24_000_000L){"Composite exceeds 24 MP safety limit (${w}x${h})"}
         val output=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888)
+        val owned=java.util.Collections.newSetFromMap(java.util.IdentityHashMap<Bitmap,Boolean>())
+        fun own(bitmap:Bitmap):Bitmap { if(bitmap!==output)owned.add(bitmap);return bitmap }
         val canvas=Canvas(output);val dest=Rect(0,0,w,h)
         var index=0
         var previousAlpha:Bitmap?=null
         var previousOwned=false
+        try {
         while(index<layers.size){
             val layer=layers[index]
             if(layer.groupId.isNullOrBlank()){
                 if(layer.visible&&!layer.bitmap.isRecycled){
                     val replayable=LayerOperationRenderer.isReplayable(layer)
-                    val replayBitmap=if(replayable)LayerOperationRenderer.render(layer)else layer.bitmap
-                    val masked=layer.mask?.takeUnless{it.isRecycled}?.let{LayerMaskProcessor.apply(replayBitmap,it)}
+                    val replayBitmap=if(replayable)own(LayerOperationRenderer.render(layer))else layer.bitmap
+                    val masked=layer.mask?.takeUnless{it.isRecycled}?.let{own(LayerMaskProcessor.apply(replayBitmap,it))}
                     val base=masked?:replayBitmap
-                    val clipped=if(layer.clipToBelow&&previousAlpha!=null)ClipAlphaProcessor.apply(base,previousAlpha!!)else base
+                    val clipped=if(layer.clipToBelow&&previousAlpha!=null)own(ClipAlphaProcessor.apply(base,previousAlpha!!))else base
                     drawPrepared(canvas,clipped,dest,layer.opacity,layer.blendMode)
-                    val alphaSource=if(layer.opacity<1f)applyAlphaOpacity(clipped,layer.opacity)else clipped
+                    val alphaSource=if(layer.opacity<1f)own(applyAlphaOpacity(clipped,layer.opacity))else clipped
                     val nextOwned=alphaSource!==layer.bitmap
                     if(previousOwned&&previousAlpha!==alphaSource)previousAlpha?.takeUnless{it.isRecycled}?.recycle()
                     previousAlpha=alphaSource;previousOwned=nextOwned
@@ -42,17 +45,17 @@ object LayerCompositeRenderer {
             val groupId=layer.groupId
             val group=mutableListOf<EditorLayer>()
             while(index<layers.size&&layers[index].groupId==groupId){group+=layers[index];index++}
-            val groupBitmap=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888)
+            val groupBitmap=own(Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888))
             val groupCanvas=Canvas(groupBitmap)
             var groupPrevious:Bitmap?=null;var groupPreviousOwned=false
             group.filter{it.visible&&!it.bitmap.isRecycled}.forEach{child->
                 val replayable=LayerOperationRenderer.isReplayable(child)
-                val replayBitmap=if(replayable)LayerOperationRenderer.render(child)else child.bitmap
-                val masked=child.mask?.takeUnless{it.isRecycled}?.let{LayerMaskProcessor.apply(replayBitmap,it)}
+                val replayBitmap=if(replayable)own(LayerOperationRenderer.render(child))else child.bitmap
+                val masked=child.mask?.takeUnless{it.isRecycled}?.let{own(LayerMaskProcessor.apply(replayBitmap,it))}
                 val base=masked?:replayBitmap
-                val clipped=if(child.clipToBelow&&groupPrevious!=null)ClipAlphaProcessor.apply(base,groupPrevious!!)else base
+                val clipped=if(child.clipToBelow&&groupPrevious!=null)own(ClipAlphaProcessor.apply(base,groupPrevious!!))else base
                 drawPrepared(groupCanvas,clipped,dest,child.opacity,child.blendMode)
-                val alphaSource=if(child.opacity<1f)applyAlphaOpacity(clipped,child.opacity)else clipped
+                val alphaSource=if(child.opacity<1f)own(applyAlphaOpacity(clipped,child.opacity))else clipped
                 val nextOwned=alphaSource!==child.bitmap
                 if(groupPreviousOwned&&groupPrevious!==alphaSource)groupPrevious?.takeUnless{it.isRecycled}?.recycle()
                 groupPrevious=alphaSource;groupPreviousOwned=nextOwned
@@ -62,8 +65,8 @@ object LayerCompositeRenderer {
             }
             if(groupPreviousOwned)groupPrevious?.takeUnless{it.isRecycled}?.recycle()
             val groupOpacity=(group.firstOrNull()?.groupOpacity?:1f).coerceIn(0f,1f)
-            val clippedGroup=if(layer.clipToBelow&&previousAlpha!=null)ClipAlphaProcessor.apply(groupBitmap,previousAlpha!!)else groupBitmap
-            val groupAlphaSource=if(groupOpacity<1f)applyAlphaOpacity(clippedGroup,groupOpacity)else clippedGroup
+            val clippedGroup=if(layer.clipToBelow&&previousAlpha!=null)own(ClipAlphaProcessor.apply(groupBitmap,previousAlpha!!))else groupBitmap
+            val groupAlphaSource=if(groupOpacity<1f)own(applyAlphaOpacity(clippedGroup,groupOpacity))else clippedGroup
             drawPrepared(canvas,groupAlphaSource,dest,1f,layer.groupBlendMode?:EditorBlendMode.NORMAL)
             val nextOwned=true
             if(previousOwned&&previousAlpha!==groupAlphaSource)previousAlpha?.takeUnless{it.isRecycled}?.recycle()
@@ -73,6 +76,13 @@ object LayerCompositeRenderer {
         }
         if(previousOwned)previousAlpha?.takeUnless{it.isRecycled}?.recycle()
         return output
+        } catch(error:Throwable) {
+            if(!output.isRecycled)output.recycle()
+            throw error
+        } finally {
+            owned.forEach { bitmap -> if(!bitmap.isRecycled)bitmap.recycle() }
+            owned.clear()
+        }
     }
     private fun applyAlphaOpacity(source:Bitmap,opacity:Float):Bitmap {
         val w=source.width;val h=source.height;val pixels=IntArray(w*h);source.getPixels(pixels,0,w,0,0,w,h)
