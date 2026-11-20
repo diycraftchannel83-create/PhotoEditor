@@ -17,6 +17,26 @@ import java.util.concurrent.atomic.AtomicBoolean
 @Config(sdk=[28])
 class BitmapRenderSchedulerTest {
     @Test
+    fun layerStackCompositeRequestUsesDeterministicCacheAndCallerCopies() {
+        val bitmap=Bitmap.createBitmap(6,4,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.BLUE)}
+        val scheduler=BitmapRenderScheduler(maxCacheBytes=4096)
+        try{
+            val layers=listOf(EditorLayer(id="cache-layer",name="Layer",bitmap=bitmap))
+            val first=scheduler.requestLayerStackComposite(layers,6,4).get(3,TimeUnit.SECONDS)
+            val second=scheduler.requestLayerStackComposite(layers,6,4).get(3,TimeUnit.SECONDS)
+            assertNotSame(first,second)
+            assertEquals(Color.BLUE,first.getPixel(0,0))
+            assertEquals(1,scheduler.cacheEntryCount())
+            first.recycle();second.recycle()
+            bitmap.setPixel(0,0,Color.RED)
+            val updated=scheduler.requestLayerStackComposite(layers,6,4).get(3,TimeUnit.SECONDS)
+            assertEquals(Color.RED,updated.getPixel(0,0))
+            assertEquals(2,scheduler.cacheEntryCount())
+            updated.recycle()
+        }finally{scheduler.close();bitmap.recycle()}
+    }
+
+    @Test
     fun cacheHitReturnsIndependentCallerOwnedBitmap() {
         val scheduler=BitmapRenderScheduler(maxCacheBytes=1024L)
         try {
