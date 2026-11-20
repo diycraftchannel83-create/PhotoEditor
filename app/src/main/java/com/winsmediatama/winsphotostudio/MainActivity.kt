@@ -85,6 +85,8 @@ private val StudioAccent = Color(0xFF77D7C0)
 private data class EditorSnapshot(val layers:List<EditorLayer>,val selectedLayerId:String?,val canvas:Bitmap,val label:String)
 private const val MAX_HISTORY_STATES=8
 
+private enum class PendingEditorAction { BACK_TO_HOME, IMPORT_ANOTHER, OPEN_PROJECT }
+
 @Composable
 private fun WinsPhotoApp() {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
@@ -135,8 +137,20 @@ private fun WinsPhotoApp() {
     val context = androidx.compose.ui.platform.LocalContext.current
     var editHistory by remember { mutableStateOf<List<EditorSnapshot>>(emptyList()) }
     var redoHistory by remember { mutableStateOf<List<EditorSnapshot>>(emptyList()) }
-    fun recordUndo(canvas:Bitmap,label:String){editHistory=(editHistory+EditorSnapshot(layers.toList(),selectedLayerId,canvas,label)).takeLast(MAX_HISTORY_STATES);redoHistory=emptyList()}
-    fun restoreSnapshot(snapshot:EditorSnapshot){layers=snapshot.layers;selectedLayerId=snapshot.selectedLayerId;bitmap=snapshot.canvas}
+    var editorDirty by remember { mutableStateOf(false) }
+    var pendingEditorAction by remember { mutableStateOf<PendingEditorAction?>(null) }
+    var pendingProjectToOpen by remember { mutableStateOf<com.winsmediatama.winsphotostudio.core.storage.LoadedStudioProject?>(null) }
+    fun recordUndo(canvas:Bitmap,label:String){editHistory=(editHistory+EditorSnapshot(layers.toList(),selectedLayerId,canvas,label)).takeLast(MAX_HISTORY_STATES);redoHistory=emptyList();editorDirty=true}
+    fun restoreSnapshot(snapshot:EditorSnapshot){layers=snapshot.layers;selectedLayerId=snapshot.selectedLayerId;bitmap=snapshot.canvas;editorDirty=true}
+    fun executePendingEditorAction(action:PendingEditorAction?,project:com.winsmediatama.winsphotostudio.core.storage.LoadedStudioProject?=null){
+        pendingEditorAction=null;pendingProjectToOpen=null
+        when(action){
+            PendingEditorAction.BACK_TO_HOME->{bitmap=null;imageUri=null;editHistory=emptyList();redoHistory=emptyList();layers=emptyList();selectedLayerId=null;editorDirty=false;scope.launch(Dispatchers.IO){RecoveryStore(context).clear()}}
+            PendingEditorAction.IMPORT_ANOTHER->{imagePicker.launch(arrayOf("image/*"))}
+            PendingEditorAction.OPEN_PROJECT->{if(project!=null)scope.launch{val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(project.layers,project.canvasWidth,project.canvasHeight)};bitmap=composite;layers=project.layers;selectedLayerId=project.selectedLayerId?:project.layers.lastOrNull()?.id;editHistory=emptyList();redoHistory=emptyList();editorDirty=false}}
+            null->Unit
+        }
+    }
     var recoveryCandidate by remember { mutableStateOf<RecoveryStore.Recovered?>(null) }
     fun commitEdit(edited:Bitmap,previousComposite:Bitmap,flatten:Boolean=false) {
         val selected=layers.firstOrNull{it.id==selectedLayerId}
@@ -247,7 +261,7 @@ private fun WinsPhotoApp() {
         }
     }
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) { imageUri = uri; loading = true; error = null; editHistory=emptyList();redoHistory=emptyList() }
+        if (uri != null) { imageUri = uri; loading = true; error = null; editHistory=emptyList();redoHistory=emptyList();editorDirty=false }
     }
     LaunchedEffect(Unit) {
         recoveryCandidate=withContext(Dispatchers.IO){RecoveryStore(context).recover()}
@@ -273,6 +287,7 @@ private fun WinsPhotoApp() {
         originalSourceCached=cachedSource!=null
         originalSourceBytes=cachedSource?.byteCount?:0L
         bitmap=decodedInfo?.bitmap
+        editorDirty=false
         sourceWidth=cachedSource?.width?:decodedInfo?.sourceWidth?:0
         sourceHeight=cachedSource?.height?:decodedInfo?.sourceHeight?:0
         sourcePreviewWidth=decodedInfo?.bitmap?.width?:0
@@ -376,10 +391,8 @@ private fun WinsPhotoApp() {
                 layers=layers,
                 selectedLayerId=selectedLayerId,
                 onCancel={projectsOpen=false},
-                onOpen={loadedProject -> projectsOpen=false;scope.launch {
-                    val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(loadedProject.layers,loadedProject.canvasWidth,loadedProject.canvasHeight)}
-                    bitmap=composite;layers=loadedProject.layers;selectedLayerId=loadedProject.selectedLayerId ?: loadedProject.layers.lastOrNull()?.id;editHistory=emptyList();redoHistory=emptyList()
-                }}
+                onSaved={editorDirty=false},
+                onOpen={loadedProject -> projectsOpen=false;if(editorDirty){pendingEditorAction=PendingEditorAction.OPEN_PROJECT;pendingProjectToOpen=loadedProject}else executePendingEditorAction(PendingEditorAction.OPEN_PROJECT,loadedProject)}
             )
             else if (layersOpen) LayersScreen(
                 layers=layers,
@@ -416,8 +429,8 @@ private fun WinsPhotoApp() {
             else if(historyOpen) HistoryPanel(history=editHistory,onCancel={historyOpen=false},onRestore={index->val target=editHistory[index];restoreSnapshot(target);editHistory=editHistory.take(index);redoHistory=emptyList();historyOpen=false})
             else EditorPreviewScreen(
                 current,
-                onBack = { bitmap = null; imageUri = null; editHistory = emptyList();redoHistory=emptyList();layers=emptyList();selectedLayerId=null;scope.launch(Dispatchers.IO){RecoveryStore(context).clear()} },
-                onImportAnother = { imagePicker.launch(arrayOf("image/*")) },
+                onBack = { if(editorDirty){pendingEditorAction=PendingEditorAction.BACK_TO_HOME}else executePendingEditorAction(PendingEditorAction.BACK_TO_HOME) },
+                onImportAnother = { if(editorDirty){pendingEditorAction=PendingEditorAction.IMPORT_ANOTHER}else executePendingEditorAction(PendingEditorAction.IMPORT_ANOTHER) },
                 onCropTransform = { cropTransformOpen = true },
                 onAdjustments = { adjustmentOpen = true },
                 onLevels = { levelsOpen = true },
@@ -444,6 +457,16 @@ private fun WinsPhotoApp() {
                 onUndo = { if (editHistory.isNotEmpty() && bitmap!=null) { redoHistory=(redoHistory+EditorSnapshot(layers.toList(),selectedLayerId,bitmap!!,"Redo state")).takeLast(30);val previous=editHistory.last();restoreSnapshot(previous);editHistory=editHistory.dropLast(1) } },
                 onRedo = { if (redoHistory.isNotEmpty() && bitmap!=null) { editHistory=(editHistory+EditorSnapshot(layers.toList(),selectedLayerId,bitmap!!,"Undo state")).takeLast(30);val next=redoHistory.last();restoreSnapshot(next);redoHistory=redoHistory.dropLast(1) } },
                 canUndo = editHistory.isNotEmpty(), canRedo = redoHistory.isNotEmpty(), undoLabel=editHistory.lastOrNull()?.label, redoLabel=redoHistory.lastOrNull()?.label, canOperations=layers.firstOrNull{it.id==selectedLayerId}?.operations?.isNotEmpty()==true
+            )
+            if(pendingEditorAction!=null) AlertDialog(
+                onDismissRequest={pendingEditorAction=null;pendingProjectToOpen=null},
+                title={Text("Unsaved changes")},
+                text={Text("Your current project has unsaved changes. Save it before continuing, discard changes, or cancel this action.")},
+                confirmButton={TextButton(onClick={pendingEditorAction=null;pendingProjectToOpen=null;projectsOpen=true}){Text("Save")}},
+                dismissButton={Row {
+                    TextButton(onClick={val action=pendingEditorAction;val project=pendingProjectToOpen;executePendingEditorAction(action,project)}){Text("Discard")}
+                    TextButton(onClick={pendingEditorAction=null;pendingProjectToOpen=null}){Text("Cancel")}
+                }}
             )
             if(exportDialogOpen) AlertDialog(
                 onDismissRequest={exportDialogOpen=false},
