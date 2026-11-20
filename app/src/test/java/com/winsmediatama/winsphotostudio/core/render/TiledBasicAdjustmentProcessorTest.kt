@@ -3,7 +3,7 @@ package com.winsmediatama.winsphotostudio.core.render
 import android.graphics.Bitmap
 import android.graphics.Color
 import com.winsmediatama.winsphotostudio.core.adjustments.BasicAdjustmentProcessor
-import com.winsmediatama.winsphotudio.core.adjustments.BasicAdjustmentValues
+import com.winsmediatama.winsphotostudio.core.adjustments.BasicAdjustmentValues
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
