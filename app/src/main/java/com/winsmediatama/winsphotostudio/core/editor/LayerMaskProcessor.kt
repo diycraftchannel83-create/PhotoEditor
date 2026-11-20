@@ -40,8 +40,13 @@ object LayerMaskProcessor {
         val out=IntArray(w*h){i->val av=ap[i] and 255;val bv=bp[i] and 255;val v=av*bv/255;android.graphics.Color.argb(255,v,v,v)}
         return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(out,0,w,0,0,w,h)}
     }
-    fun createWhiteMask(width:Int,height:Int):Bitmap=Bitmap.createBitmap(width.coerceAtLeast(1),height.coerceAtLeast(1),Bitmap.Config.ARGB_8888).apply{eraseColor(android.graphics.Color.WHITE)}
+    fun createWhiteMask(width:Int,height:Int):Bitmap {
+        val w=width.coerceAtLeast(1);val h=height.coerceAtLeast(1)
+        require(w.toLong()*h.toLong()<=24_000_000L) { "White mask exceeds 24 MP safety limit" }
+        return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{eraseColor(android.graphics.Color.WHITE)}
+    }
     fun invert(mask:Bitmap):Bitmap {
+        require(mask.width.toLong()*mask.height.toLong()<=24_000_000L) { "Mask inversion exceeds 24 MP safety limit" }
         val result=Bitmap.createBitmap(mask.width,mask.height,Bitmap.Config.ARGB_8888)
         val pixels=IntArray(mask.width*mask.height);mask.getPixels(pixels,0,mask.width,0,0,mask.width,mask.height)
         for(i in pixels.indices){val p=pixels[i];pixels[i]=(p and 0xFF000000) or ((255-(p shr 16 and 255)) shl 16) or ((255-(p shr 8 and 255)) shl 8) or (255-(p and 255))}
