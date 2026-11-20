@@ -34,7 +34,7 @@ fun EffectsScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,PhotoEffectSet
             PhotoEffectKind.GRAIN->EffectProcessor.grain(source,strength,seed=101)
         }}
     }
-    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeUnless{it.isRecycled}?.recycle()}}
+    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeUnless{it===source||it.isRecycled}?.recycle()}}
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically){
             Text("Effects",Modifier.weight(1f),color=Color.White)
