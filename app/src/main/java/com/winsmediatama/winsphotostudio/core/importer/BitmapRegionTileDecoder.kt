@@ -52,8 +52,13 @@ class BitmapRegionTileDecoder private constructor(
             inPreferredConfig=Bitmap.Config.ARGB_8888
         }
         val bitmap=decoder.decodeRegion(region,options)?:throw IllegalStateException("Region decoder returned null")
-        cancellation?.throwIfCanceled()
-        return bitmap
+        try {
+            cancellation?.throwIfCanceled()
+            return bitmap
+        } catch(error:Throwable) {
+            if(!bitmap.isRecycled)bitmap.recycle()
+            throw error
+        }
     }
 
     override fun close() { if(!decoder.isRecycled)decoder.recycle() }
