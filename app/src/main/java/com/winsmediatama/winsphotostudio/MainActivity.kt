@@ -8,6 +8,7 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
+import android.os.CancellationSignal
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -73,7 +74,9 @@ import com.winsmediatama.winsphotostudio.core.importer.OriginalSourceCache
 import com.winsmediatama.winsphotostudio.core.importer.RegionPreviewAssembler
 import java.io.File
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
@@ -252,6 +255,8 @@ private fun WinsPhotoApp() {
     val jpegExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/jpeg")) { uri ->
         val currentBitmap=bitmap
         if(uri!=null && currentBitmap!=null) scope.launch {
+            val exportCancellation=CancellationSignal()
+            currentCoroutineContext()[kotlinx.coroutines.Job]?.invokeOnCompletion { cause -> if(cause is CancellationException) exportCancellation.cancel() }
             var nativeReplayUsed=false
             val ok=withContext(Dispatchers.IO) { runCatching { context.contentResolver.openOutputStream(uri)?.use { stream ->
                 val (resized,nativeReplay)=buildExportBitmap(currentBitmap)
@@ -281,7 +286,7 @@ private fun WinsPhotoApp() {
                             currentLayers.all { it.bitmap.width == currentBitmap.width && it.bitmap.height == currentBitmap.height && (it.mask == null || (it.mask.width == currentBitmap.width && it.mask.height == currentBitmap.height)) }
                         if(supportsStreaming) {
                             TiledLayerCompositeRenderer.encodeStreamingPng(
-                                currentLayers,currentBitmap.width,currentBitmap.height,stream,tileWidth=512
+                                currentLayers,currentBitmap.width,currentBitmap.height,stream,tileWidth=512,cancellation=exportCancellation
                             )
                             tiledExportUsed=true
                             true
