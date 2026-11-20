@@ -32,7 +32,8 @@ object BitmapHaloTileProcessor {
         val cores = BitmapTilePlanner.plan(source.width, source.height, tileSize)
         val results = mutableListOf<HaloTile>()
         try {
-            cores.forEach { core ->
+            cores.forEach { tile ->
+                val core = tile.sourceRect
                 cancellation?.throwIfCanceled()
                 val expanded = Rect(
                     (core.left - halo).coerceAtLeast(0),
