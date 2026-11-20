@@ -54,7 +54,14 @@ class LayerTreeRendererTest {
         output.recycle();source.recycle();blackMask.recycle()
     }
 
-    @Test fun preCancelledLayerTreeRenderStopsBeforeAllocatingOutput() {\n        val signal=CancellationSignal().apply{cancel()}\n        assertThrows(android.os.OperationCanceledException::class.java) {\n            LayerTreeRenderer.render(emptyList(),2,2,signal)\n        }\n    }\n\n    @Test fun rejectsOversizedLayerTreeCanvasBeforeAllocation() {
+    @Test fun preCancelledLayerTreeRenderStopsBeforeAllocatingOutput() {
+        val signal=CancellationSignal().apply{cancel()}
+        assertThrows(android.os.OperationCanceledException::class.java) {
+            LayerTreeRenderer.render(emptyList(),2,2,signal)
+        }
+    }
+
+    @Test fun rejectsOversizedLayerTreeCanvasBeforeAllocation() {
         val error=assertThrows(IllegalArgumentException::class.java) {
             LayerTreeRenderer.render(emptyList(),6000,5000)
         }
