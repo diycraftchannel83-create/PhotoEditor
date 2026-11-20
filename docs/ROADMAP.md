@@ -572,3 +572,6 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Keep existing PNG export path as fallback for unsupported layer stacks and keep source-dimension/native replay branch unchanged.
 - [ ] Native full-resolution source export remains limited to the existing renderer; large-source region/tile replay is not yet integrated.
 - [ ] Build, tests, UI/device verification remain deferred.
+
+
+- [x] Optimize PNG coverage validation and row lookup using vertical-boundary sweeps and an active tile row; avoid repeatedly scanning every tile for every image scanline on large dimensions.
