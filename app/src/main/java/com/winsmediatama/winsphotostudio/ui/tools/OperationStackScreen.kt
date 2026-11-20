@@ -36,7 +36,7 @@ import kotlinx.coroutines.withContext
 fun OperationStackScreen(layer:EditorLayer,onCancel:()->Unit,onApply:(EditorLayer)->Unit) {
     val original=layer.originalBitmap?:layer.bitmap
     var operations by remember(layer.id,layer.operations){mutableStateOf(layer.operations)}
-    var editingBasicId by remember { mutableStateOf<String?>(null) }
+    var editingBasicId by remember { mutableStateOf<String?>(null) }\n    var undoOperations by remember(layer.id){mutableStateOf<List<List<EditOperation>>>(emptyList())}\n    var redoOperations by remember(layer.id){mutableStateOf<List<List<EditOperation>>>(emptyList())}\n    fun changeOperations(next:List<EditOperation>){undoOperations=(undoOperations+listOf(operations)).takeLast(8);redoOperations=emptyList();operations=next}
     var editingOperationId by remember { mutableStateOf<String?>(null) }
     val preview by produceState<Bitmap?>(null,original,operations){
         value?.takeIf{it!==original}?.recycle();value=null
@@ -44,19 +44,19 @@ fun OperationStackScreen(layer:EditorLayer,onCancel:()->Unit,onApply:(EditorLaye
     }
     androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==original}?.recycle()}}
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))){
-        Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(10.dp),verticalAlignment=Alignment.CenterVertically){Text("Non-destructive stack",Modifier.weight(1f),color=Color.White);TextButton(onClick=onCancel){Text("Cancel")};Button(enabled=preview!=null,onClick={preview?.let{onApply(layer.copy(bitmap=it.copy(Bitmap.Config.ARGB_8888,true),originalBitmap=original,operations=operations))}}){Text("Apply")}}
+        Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(10.dp),verticalAlignment=Alignment.CenterVertically){Text("Non-destructive stack",Modifier.weight(1f),color=Color.White);TextButton(enabled=undoOperations.isNotEmpty(),onClick={val previous=undoOperations.last();redoOperations=(redoOperations+listOf(operations)).takeLast(8);undoOperations=undoOperations.dropLast(1);operations=previous}){Text("Undo")};TextButton(enabled=redoOperations.isNotEmpty(),onClick={val next=redoOperations.last();undoOperations=(undoOperations+listOf(operations)).takeLast(8);redoOperations=redoOperations.dropLast(1);operations=next}){Text("Redo")};TextButton(onClick=onCancel){Text("Cancel")};Button(enabled=preview!=null,onClick={preview?.let{onApply(layer.copy(bitmap=it.copy(Bitmap.Config.ARGB_8888,true),originalBitmap=original,operations=operations))}}){Text("Apply")}}
         Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D)),contentAlignment=Alignment.Center){preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize().padding(8.dp),contentScale=ContentScale.Fit)}?:CircularProgressIndicator()}
-        Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(8.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)){Text("Original source retained",color=Color.LightGray,modifier=Modifier.weight(1f));TextButton(onClick={operations=emptyList()}){Text("Reset")}}
+        Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(8.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)){Text("Original source retained",color=Color.LightGray,modifier=Modifier.weight(1f));TextButton(onClick={changeOperations(emptyList())}){Text("Reset")}}
         LazyColumn(Modifier.weight(1f),contentPadding=PaddingValues(8.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
             itemsIndexed(operations,key={_,op->op.id}){index,op->
                 Card(colors=CardDefaults.cardColors(containerColor=Color(0xFF20242A))){Row(Modifier.fillMaxWidth().padding(8.dp),verticalAlignment=Alignment.CenterVertically){
-                    Checkbox(checked=op.enabled,onCheckedChange={v->operations=operations.toMutableList().also{it[index]=toggle(it[index],v)}})
+                    Checkbox(checked=op.enabled,onCheckedChange={v->changeOperations(operations.toMutableList().also{it[index]=toggle(it[index],v)})})
                     Text(op.label,color=Color.White)
                     if(op is EditOperation.BasicAdjust)TextButton(onClick={editingBasicId=op.id}){Text("Edit")}
                     if(op !is EditOperation.BasicAdjust && op !is EditOperation.SelectionMask)TextButton(onClick={editingOperationId=op.id}){Text("Edit")}
-                    TextButton(enabled=index>0,onClick={operations=operations.toMutableList().also{val item=it.removeAt(index);it.add(index-1,item)}}){Text("Up")}
-                    TextButton(enabled=index<operations.lastIndex,onClick={operations=operations.toMutableList().also{val item=it.removeAt(index);it.add(index+1,item)}}){Text("Down")}
-                    TextButton(onClick={operations=operations.filterIndexed{i,_->i!=index}}){Text("Remove")}
+                    TextButton(enabled=index>0,onClick={changeOperations(operations.toMutableList().also{val item=it.removeAt(index);it.add(index-1,item)})}){Text("Up")}
+                    TextButton(enabled=index<operations.lastIndex,onClick={changeOperations(operations.toMutableList().also{val item=it.removeAt(index);it.add(index+1,item)})}){Text("Down")}
+                    TextButton(onClick={changeOperations(operations.filterIndexed{i,_->i!=index})}){Text("Remove")}
                 }}
             }
         }
@@ -64,12 +64,12 @@ fun OperationStackScreen(layer:EditorLayer,onCancel:()->Unit,onApply:(EditorLaye
     }
     editingOperationId?.let { id ->
         val op=operations.firstOrNull{it.id==id}
-        if(op==null)editingOperationId=null else OperationParameterDialog(op,onDismiss={editingOperationId=null},onSave={updated->operations=operations.map{if(it.id==id)updated else it};editingOperationId=null})
+        if(op==null)editingOperationId=null else OperationParameterDialog(op,onDismiss={editingOperationId=null},onSave={updated->changeOperations(operations.map{if(it.id==id)updated else it});editingOperationId=null})
     }
     editingBasicId?.let { id ->
         val current=operations.firstOrNull{it.id==id} as? EditOperation.BasicAdjust
         if(current==null) editingBasicId=null else BasicAdjustEditDialog(current,onDismiss={editingBasicId=null},onSave={values->
-            operations=operations.map{if(it.id==id)current.copy(values=values) else it};editingBasicId=null
+            changeOperations(operations.map{if(it.id==id)current.copy(values=values) else it});editingBasicId=null
         })
     }
 }
