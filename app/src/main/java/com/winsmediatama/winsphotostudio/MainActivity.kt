@@ -537,6 +537,7 @@ private fun WinsPhotoApp() {
                         }
                     }
                     Text("Current canvas: ${bitmap?.width} × ${bitmap?.height}px",style=MaterialTheme.typography.bodySmall)
+                    Text("Privacy: edited exports do not copy source EXIF or location metadata.",style=MaterialTheme.typography.labelSmall,color=Color.LightGray)
                     if(sourceWidth>0&&sourceHeight>0) {
                         Text(if(originalSourceCached) "Original source retained on disk (${originalSourceBytes/1024} KB)" else "Original source cache unavailable; preview remains editable",style=MaterialTheme.typography.labelSmall,color=if(originalSourceCached)Color(0xFF77D7C0) else Color(0xFFFFC107))
                     }
