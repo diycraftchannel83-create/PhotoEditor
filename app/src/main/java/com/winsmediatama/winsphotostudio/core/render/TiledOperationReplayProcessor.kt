@@ -25,7 +25,10 @@ object TiledOperationReplayProcessor {
         var radius = 0
         operations.filter { it.enabled }.forEach { operation ->
             when (operation) {
-                is EditOperation.BasicAdjust -> {\n                    if (operation.values.clarity != 0f) return null\n                    if (operation.values.sharpen > 0f) radius += 1\n                }
+                is EditOperation.BasicAdjust -> {
+                    if (operation.values.clarity != 0f) return null
+                    if (operation.values.sharpen > 0f) radius += 1
+                }
                 is EditOperation.Effect -> when (operation.settings.kind) {
                     PhotoEffectKind.BLUR -> radius += (operation.settings.strength * 24).toInt().coerceIn(0,24)
                     PhotoEffectKind.MOTION -> radius += if (operation.settings.strength <= 0f) 0 else (operation.settings.strength * 24).toInt().coerceIn(1,24)
