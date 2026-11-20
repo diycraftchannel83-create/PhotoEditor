@@ -20,6 +20,66 @@ import com.winsmediatama.winsphotostudio.core.importer.BitmapTilePlanner
 object TiledLayerCompositeRenderer {
     data class CompositeTile(val rect: Rect, val bitmap: Bitmap)
 
+    /**
+     * Composite and encode one scanline at a time. Only one horizontal tile (plus its masked
+     * temporary) is allocated per layer at a time, so output memory does not scale with canvas area.
+     * This is the preferred PNG path for supported flat bitmap stacks.
+     */
+    fun encodeStreamingPng(
+        layers: List<EditorLayer>,
+        width: Int,
+        height: Int,
+        output: java.io.OutputStream,
+        tileWidth: Int = 512,
+        cancellation: CancellationSignal? = null
+    ) {
+        require(width > 0 && height > 0 && tileWidth > 0)
+        require(layers.isNotEmpty())
+        require(layers.none { it.groupId != null || it.clipToBelow }) {
+            "Streaming compositor currently supports flat layers without clipping"
+        }
+        require(layers.none { it.operations.isNotEmpty() }) {
+            "Streaming compositor currently supports layers without operation stacks"
+        }
+        TiledPngEncoder.encodeRows(width, height, output, cancellation) { y, rowPixels ->
+            var left = 0
+            while (left < width) {
+                cancellation?.throwIfCanceled()
+                val segmentWidth = (width - left).coerceAtMost(tileWidth)
+                val segmentRect = Rect(left, y, left + segmentWidth, y + 1)
+                val composite = Bitmap.createBitmap(segmentWidth, 1, Bitmap.Config.ARGB_8888)
+                try {
+                    val canvas = Canvas(composite)
+                    layers.filter { it.visible && !it.bitmap.isRecycled }.forEach { layer ->
+                        cancellation?.throwIfCanceled()
+                        val cropped = extractAlignedRegion(layer.bitmap, segmentRect)
+                        var masked: Bitmap? = null
+                        try {
+                            masked = layer.mask?.takeUnless { it.isRecycled }?.let { mask ->
+                                val maskRow = extractAlignedRegion(mask, segmentRect)
+                                try { LayerMaskProcessor.apply(cropped, maskRow) }
+                                finally { if (!maskRow.isRecycled) maskRow.recycle() }
+                            }
+                            val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+                                alpha = (layer.opacity.coerceIn(0f, 1f) * 255).toInt()
+                                xfermode = blendMode(layer.blendMode)
+                            }
+                            canvas.drawBitmap(masked ?: cropped, 0f, 0f, paint)
+                            paint.xfermode = null
+                        } finally {
+                            masked?.let { if (!it.isRecycled) it.recycle() }
+                            if (!cropped.isRecycled) cropped.recycle()
+                        }
+                    }
+                    composite.getPixels(rowPixels, left, width, 0, 0, segmentWidth, 1)
+                } finally {
+                    if (!composite.isRecycled) composite.recycle()
+                }
+                left += segmentWidth
+            }
+        }
+    }
+
     fun renderTiles(
         layers: List<EditorLayer>,
         width: Int,
