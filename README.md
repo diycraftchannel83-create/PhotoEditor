@@ -350,3 +350,6 @@ Build verification and release readiness must be tracked honestly. Check the lat
 - Project lifecycle APIs reject traversal IDs/out-of-root folders; editable-project save validates layer count/canvas/name limits and cleans partial project folders on failure.
 - Project and recovery corruption/schema/traversal regression tests were authored but not run.
 - Source dependency inventory is in `docs/DEPENDENCIES.md`; it is not a resolved SBOM or legal scan.
+
+
+- Editor toolbar tools are categorized as Canvas, Color, Layers, Design and AI, with horizontally scrollable groups; comprehensive localization/accessibility and responsive layout verification remain pending.
