@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Rect
 import android.os.CancellationSignal
-import com.winsmediatama.winsphotostudio.core.importer.BitmapTilePlanner
 
 /**
  * Halo/overlap-aware tile processor for neighborhood-dependent operations (blur, edge filters, etc.).
