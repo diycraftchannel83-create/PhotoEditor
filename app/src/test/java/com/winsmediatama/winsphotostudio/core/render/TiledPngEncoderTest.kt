@@ -25,7 +25,7 @@ class TiledPngEncoderTest {
         TiledPngEncoder.encode(tiles, 5, 4, stream)
         val encoded = stream.toByteArray()
         assertTrue(encoded.size > 32)
-        val decoded = BitmapFactory.decodeByteArray(encoded, 0, encoded.size)
+        val decoded = requireNotNull(BitmapFactory.decodeByteArray(encoded, 0, encoded.size))
         assertEquals(5, decoded.width); assertEquals(4, decoded.height)
         for (y in 0 until 4) for (x in 0 until 5) assertEquals(source.getPixel(x,y), decoded.getPixel(x,y))
         decoded.recycle(); BitmapTileProcessor.recycleTiles(tiles); source.recycle()
