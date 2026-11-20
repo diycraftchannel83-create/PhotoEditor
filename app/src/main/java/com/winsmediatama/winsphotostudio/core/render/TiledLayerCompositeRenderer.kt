@@ -8,6 +8,7 @@ import android.os.CancellationSignal
 import com.winsmediatama.winsphotostudio.core.editor.EditorBlendMode
 import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
 import com.winsmediatama.winsphotostudio.core.editor.LayerMaskProcessor
+import com.winsmediatama.winsphotostudio.core.editor.ClipAlphaProcessor
 
 /**
  * Bounded-memory tile compositor for simple bitmap-layer stacks.
