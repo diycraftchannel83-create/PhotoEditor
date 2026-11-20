@@ -533,3 +533,13 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Add equivalence regression test comparing tiled output with whole-image Basic Adjust, including sharpen at tile boundaries (test authored; execution deferred).
 - [ ] Connect tile-list outputs to editor preview/full-resolution export consumers; current `flatten` helper remains subject to the 24 MP output ceiling.
 - [ ] CI/test verification and large-image profiling remain deferred.
+
+
+## Tiled flat-layer compositor — 20 November 2026
+
+- [x] Add `TiledLayerCompositeRenderer.renderTiles` for bounded-memory compositing of canvas-aligned flat bitmap layers, including visibility, opacity, blend mode and layer masks.
+- [x] Add bounded stitch helper and tile ownership cleanup.
+- [x] Reject groups, clipping-to-below and operation stacks explicitly to prevent silent visual mismatches while those cases are not tiled/replayed.
+- [x] Add tests comparing tiled output against the existing full compositor for flat aligned layers and transparent out-of-bounds source regions (authored; not executed).
+- [ ] Integrate into export and expand to replayable operations, groups, clipping, scaled layer geometry and difference blend parity.
+- [ ] Build/test/device verification remains deferred.
