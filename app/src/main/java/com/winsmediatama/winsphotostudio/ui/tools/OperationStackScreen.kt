@@ -4,6 +4,8 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
@@ -60,7 +62,7 @@ fun OperationStackScreen(layer:EditorLayer,onCancel:()->Unit,onApply:(EditorLaye
 private fun BasicAdjustEditDialog(operation:EditOperation.BasicAdjust,onDismiss:()->Unit,onSave:(BasicAdjustmentValues)->Unit){
     var values by remember(operation.id){mutableStateOf(operation.values)}
     AlertDialog(onDismissRequest=onDismiss,title={Text("Edit Basic Adjust")},text={
-        Column(Modifier.heightIn(max=480.dp).verticalScrollCompat(),verticalArrangement=Arrangement.spacedBy(4.dp)){
+        Column(Modifier.heightIn(max=480.dp).fillMaxWidth().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(4.dp)){
             BasicSlider("Brightness",values.brightness,-1f..1f){values=values.copy(brightness=it)}
             BasicSlider("Contrast",values.contrast,-1f..1f){values=values.copy(contrast=it)}
             BasicSlider("Exposure",values.exposure,-5f..5f){values=values.copy(exposure=it)}
