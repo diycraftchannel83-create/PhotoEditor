@@ -95,3 +95,7 @@ A branch-specific bitmap ownership/recycling checklist is tracked in `docs/COMPO
 - Editable project creation enforces 1–100 layers, 24 MP canvas, and project-name length limits; partial project folders are deleted if save fails.
 - Project rename/duplicate/delete lifecycle APIs validate project folders/IDs against app-private canonical root.
 - Corrupt manifests, unsupported schemas, and asset traversal tests are authored but not executed.
+
+
+### Tool navigation structure
+- The main editor tool strip is grouped into Canvas, Color, Layers, Design and AI categories, retaining horizontal scrolling. This is a navigation foundation, not a complete responsive/accessibility audit.
