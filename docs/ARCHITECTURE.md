@@ -143,3 +143,8 @@ A source-only integration repair pass corrected the Selection action dispatcher 
 ### Tiled flat-layer compositor
 
 `TiledLayerCompositeRenderer` supports bounded tile output for canvas-aligned, flat bitmap stacks, applying layer visibility, opacity, masks and supported blend modes per tile. It deliberately rejects grouped, clipped and operation-bearing layers instead of silently ignoring semantics. Stitching remains subject to the 24 MP safety ceiling; tile-list output itself can be consumed without flattening. Export integration, layer scaling semantics, full operation replay and blend parity remain pending.
+
+
+### Scanline PNG stream
+
+The normal-size PNG export can use `TiledLayerCompositeRenderer.encodeStreamingPng` for flat canvas-aligned bitmap layers without operation stacks or clipping/groups. It composes horizontal segments for each scanline and passes pixels to `TiledPngEncoder.encodeRows`, which writes IDAT chunks incrementally. Segment bitmaps are recycled immediately; output memory is bounded by row buffers and one temporary segment. Unsupported layer semantics use the existing preview-compress fallback. This path is not yet native-source-resolution replay.
