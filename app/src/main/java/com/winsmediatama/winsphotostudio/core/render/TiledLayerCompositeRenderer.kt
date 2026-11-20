@@ -92,6 +92,98 @@ object TiledLayerCompositeRenderer {
         }
     }
 
+    /**
+     * Streaming multi-layer PNG compositor with per-layer non-destructive replay.
+     * Keeps one horizontal tile band per visible layer at a time, then releases it.
+     * Flat canvas-aligned layers, masks, opacity and blend modes are supported; groups,
+     * clipping and coordinate-dependent effects are deliberately rejected.
+     */
+    fun encodeStreamingOperationLayers(
+        layers: List<EditorLayer>,
+        width: Int,
+        height: Int,
+        output: java.io.OutputStream,
+        tileSize: Int = 256,
+        cancellation: CancellationSignal? = null,
+        cancelCheck: (() -> Unit)? = null
+    ) {
+        require(width > 0 && height > 0 && tileSize in 32..2048)
+        require(layers.isNotEmpty())
+        require(layers.none { it.groupId != null || it.clipToBelow }) {
+            "Streaming operation compositor does not support groups or clipping"
+        }
+        require(layers.none { it.blendMode == EditorBlendMode.DIFFERENCE }) {
+            "Difference blend is not supported by this streaming path"
+        }
+        require(layers.all { it.bitmap.width == width && it.bitmap.height == height }) {
+            "Layer bitmaps must match canvas dimensions"
+        }
+        require(layers.all { it.mask == null || (it.mask.width == width && it.mask.height == height) }) {
+            "Layer masks must match canvas dimensions"
+        }
+        require(layers.filter { it.visible }.all { TiledOperationReplayProcessor.supportsHalo(it.operations) }) {
+            "One or more layers contain unsupported operation stacks"
+        }
+        var activeBandTop = -1
+        val activeTiles = mutableMapOf<String, TiledOperationReplayProcessor.OutputTile>()
+        fun releaseBand() {
+            activeTiles.values.forEach { if (!it.bitmap.isRecycled) it.bitmap.recycle() }
+            activeTiles.clear()
+        }
+        try {
+            TiledPngEncoder.encodeRows(width, height, output, cancellation, cancelCheck) { y, row ->
+                val bandTop = (y / tileSize) * tileSize
+                if (bandTop != activeBandTop) {
+                    releaseBand()
+                    activeBandTop = bandTop
+                    val bandBottom = minOf(height, bandTop + tileSize)
+                    layers.filter { it.visible && !it.bitmap.isRecycled }.forEach { layer ->
+                        cancellation?.throwIfCanceled(); cancelCheck?.invoke()
+                        val replayed = TiledOperationReplayProcessor.renderHaloTile(
+                            layer.bitmap, Rect(0, bandTop, width, bandBottom), layer.operations, cancellation
+                        )
+                        activeTiles[layer.id] = replayed
+                    }
+                }
+                var x = 0
+                var left = 0
+                while (left < width) {
+                    cancellation?.throwIfCanceled(); cancelCheck?.invoke()
+                    val tileWidth = minOf(tileSize, width - left)
+                    val tileRect = Rect(left, bandTop, left + tileWidth, minOf(height, bandTop + tileSize))
+                    val composite = Bitmap.createBitmap(tileWidth, 1, Bitmap.Config.ARGB_8888)
+                    try {
+                        val canvas = Canvas(composite)
+                        layers.filter { it.visible && !it.bitmap.isRecycled }.forEach { layer ->
+                            val replayed = requireNotNull(activeTiles[layer.id]).bitmap
+                            val tilePixels = Bitmap.createBitmap(replayed, left, y - bandTop, tileWidth, 1)
+                            var masked: Bitmap? = null
+                            try {
+                                masked = layer.mask?.let { mask ->
+                                    val maskRow = Bitmap.createBitmap(mask, left, y, tileWidth, 1)
+                                    try { LayerMaskProcessor.apply(tilePixels, maskRow) } finally { maskRow.recycle() }
+                                }
+                                val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+                                    alpha = (layer.opacity.coerceIn(0f, 1f) * 255).toInt()
+                                    xfermode = blendMode(layer.blendMode)
+                                }
+                                canvas.drawBitmap(masked ?: tilePixels, 0f, 0f, paint)
+                                paint.xfermode = null
+                            } finally {
+                                masked?.let { if (!it.isRecycled) it.recycle() }
+                                if (!tilePixels.isRecycled) tilePixels.recycle()
+                            }
+                        }
+                        composite.getPixels(row, left, width, 0, 0, tileWidth, 1)
+                    } finally { if (!composite.isRecycled) composite.recycle() }
+                    left += tileWidth
+                    x += tileWidth
+                }
+                require(x == width)
+            }
+        } finally { releaseBand() }
+    }
+
     fun renderTiles(
         layers: List<EditorLayer>,
         width: Int,
