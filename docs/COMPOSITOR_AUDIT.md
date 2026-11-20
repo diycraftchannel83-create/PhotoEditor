@@ -75,3 +75,6 @@ LayerMaskProcessor now checks source/mask/combined dimensions using Long pixel-c
 
 ### Command history resilience
 - Undo/redo stack transitions now occur after successful command execution; failed actions leave history recoverable. Capacity validation and failure regression tests added; no verification run.
+
+### Recovery safety audit updates
+- Recovery snapshot and manifest replacement now have rollback paths; snapshot size guard and successive-save tests were added. Restored session state is considered unsaved so the user is prompted before navigation away. Tests/build remain unexecuted.
