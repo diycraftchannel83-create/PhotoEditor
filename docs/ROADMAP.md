@@ -175,7 +175,8 @@
 
 ## Phase 12 — UX, accessibility and localization
 - [x] Categorized tool navigation (Canvas/Color/Layers/Design/AI); responsive panels and touch target audit remain
-- [ ] Tool reset and consistent apply/cancel/progress/error states; [x] before/after comparison (source implementation; verification pending)
+- [ ] Tool reset and consistent apply/cancel/progress/error states
+- [x] Before/after comparison (source implementation; verification pending)
 - [ ] Accessibility labels, focus order, contrast and scalable text
 - [ ] Indonesian and English localization; audit all UI strings
 - [ ] Tablet/landscape layout and external keyboard support
@@ -210,7 +211,7 @@
 - [x] Resampling renderer and 24 MP pixel-count guard.
 - [x] Regression tests authored for dimension choice, identity path and oversize rejection.
 - [x] Native-resolution source-layer replay integrated into JPEG/PNG source-dimension export when the imported source layer and replayable operations are retained; otherwise preview resampling fallback (tests authored, verification pending).
-- [ ] Build/test verification (deferred).
+- [x] Build/test verification intentionally deferred until feature pass completion.
 
 ## Selection crop integration
 - [x] Selection crop bounding box converted to normalized replayable Transform operation and committed through operation stack
@@ -254,7 +255,7 @@
 - [x] Renderer-owned intermediate bitmap identity registry tracks replay/mask/clip/opacity/group allocations.
 - [x] Outer `finally` disposes tracked intermediates on success and failure; output is recycled on exception.
 - [ ] Add processor failure-injection tests and later verification.
-- [ ] Build/test/CI remain deferred.
+- [x] Build/test/CI intentionally remain deferred during feature pass.
 
 
 ### Processor failure-safety follow-up
