@@ -21,19 +21,45 @@ import com.winsmediatama.winsphotostudio.core.adjustments.ImageHistogram
 import com.winsmediatama.winsphotostudio.core.adjustments.BasicAdjustmentValues
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CancellationException
+import com.winsmediatama.winsphotostudio.core.render.BitmapRenderScheduler
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 
 @Composable
 fun AdjustmentScreen(source: Bitmap, onCancel: () -> Unit, onApply: (Bitmap,BasicAdjustmentValues) -> Unit) {
     var values by remember { mutableStateOf(BasicAdjustmentValues()) }
     var resetKey by remember { mutableIntStateOf(0) }
+    val renderScheduler = remember { BitmapRenderScheduler(maxCacheBytes = 48L * 1024L * 1024L, threadName = "WinsPhoto-AdjustPreview") }
+    androidx.compose.runtime.DisposableEffect(renderScheduler) {
+        onDispose { renderScheduler.close() }
+    }
     val histogram by produceState<ImageHistogram?>(initialValue=null, source) {
         value = withContext(Dispatchers.Default) { ImageHistogram.from(source) }
     }
-    val preview by produceState<Bitmap?>(initialValue=null, source, values, resetKey) {
+    val preview by produceState<Bitmap?>(initialValue=null, source, values, resetKey, renderScheduler) {
         val previousPreview=value
         value = null
-        previousPreview?.takeIf { it !== source }?.recycle()
-        value = withContext(Dispatchers.IO) { BasicAdjustmentProcessor.apply(source, values) }
+        previousPreview?.takeIf { it !== source && !it.isRecycled }?.recycle()
+        val cacheKey = "adjust:" + System.identityHashCode(source) + ":" + source.width + "x" + source.height + ":" + values.hashCode() + ":" + resetKey
+        var request: Future<Bitmap>? = null
+        try {
+            value = withContext(Dispatchers.IO) {
+                request = renderScheduler.request(cacheKey) { cancellation ->
+                    cancellation.throwIfCanceled()
+                    val result = BasicAdjustmentProcessor.apply(source, values)
+                    cancellation.throwIfCanceled()
+                    result
+                }
+                request!!.get(60, TimeUnit.SECONDS)
+            }
+        } catch (cancelled: CancellationException) {
+            request?.cancel(true)
+            throw cancelled
+        } catch (_: Exception) {
+            request?.cancel(true)
+            value = null
+        }
     }
     androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==source}?.recycle()}}
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
