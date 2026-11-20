@@ -330,3 +330,6 @@ Build verification and release readiness must be tracked honestly. Check the lat
 
 ### Opacity intermediate cleanup
 - Layer compositor's opacity intermediate now recycles its output bitmap if pixel transfer fails. A mask ownership regression test was added for combine/invert caller inputs; verification is still deferred.
+
+### Command history failure safety
+- Bounded `CommandHistory` now validates positive capacity and keeps commands on their original stack until undo/redo actions succeed. Regression tests for failing undo/redo and invalid capacities are authored (not run).
