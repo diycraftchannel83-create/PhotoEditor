@@ -76,4 +76,11 @@ class ProjectStoreTest {
         assertNull(store.duplicateProject(outside))
         outside.deleteRecursively()
     }
+    @Test fun projectSaveRejectsOversizedCanvasAndLayerCount() {
+        val context=org.robolectric.RuntimeEnvironment.getApplication()
+        val store=ProjectStore(context)
+        val tiny=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
+        assertTrue(runCatching{store.saveLayerProject(listOf(EditorLayer(name="tiny",bitmap=tiny)),null,6000,5000,"too big")}.exceptionOrNull() is IllegalArgumentException)
+        assertTrue(runCatching{store.saveLayerProject(emptyList(),null,1,1,"empty")}.exceptionOrNull() is IllegalArgumentException)
+    }
 }
