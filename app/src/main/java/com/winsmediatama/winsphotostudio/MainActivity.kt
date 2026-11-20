@@ -74,6 +74,7 @@ import com.winsmediatama.winsphotostudio.core.importer.OriginalSourceCache
 import com.winsmediatama.winsphotostudio.core.importer.RegionPreviewAssembler
 import java.io.File
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
@@ -256,7 +257,7 @@ private fun WinsPhotoApp() {
         val currentBitmap=bitmap
         if(uri!=null && currentBitmap!=null) scope.launch {
             val exportCancellation=CancellationSignal()
-            currentCoroutineContext()[kotlinx.coroutines.Job]?.invokeOnCompletion { cause -> if(cause is CancellationException) exportCancellation.cancel() }
+            currentCoroutineContext()[Job]?.invokeOnCompletion { cause -> if(cause is CancellationException) exportCancellation.cancel() }
             var nativeReplayUsed=false
             val ok=withContext(Dispatchers.IO) { runCatching { context.contentResolver.openOutputStream(uri)?.use { stream ->
                 val (resized,nativeReplay)=buildExportBitmap(currentBitmap)
