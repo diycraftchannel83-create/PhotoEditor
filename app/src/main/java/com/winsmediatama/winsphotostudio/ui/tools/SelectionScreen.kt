@@ -183,9 +183,9 @@ private fun renderSelection(source:Bitmap,selection:Rect,shape:SelectionShape,ac
     if(expandRadius.toInt()!=0){val next=masks.expandContract(processed,expandRadius.toInt());processed.recycle();processed=next}
     if(featherRadius.toInt()>0){val next=masks.feather(processed,featherRadius.toInt());processed.recycle();processed=next}
     if(action==SelectionAction.MASK)return SelectionOutput(applyMask(source,processed),action,processed)
-    if(action==SelectionAction.COPY_LAYER){val output=applyMask(source,processed);processed.recycle();return SelectionOutput(output,action)}
+    if(action==SelectionAction.COPY_LAYER){val output=applyMask(source,processed);return SelectionOutput(output,action,processed)}
     if(action==SelectionAction.CUT){val cut=cutMask(source,processed);processed.recycle();return SelectionOutput(cut,action)}
-    if(action==SelectionAction.CUT_TO_LAYER){val selected=applyMask(source,processed);val cut=cutMask(source,processed);processed.recycle();return SelectionOutput(cut,action,copiedLayerBitmap=selected)}
+    if(action==SelectionAction.CUT_TO_LAYER){val selected=applyMask(source,processed);val cut=cutMask(source,processed);return SelectionOutput(cut,action,processed,copiedLayerBitmap=selected)}
     val pixels=IntArray(source.width*source.height);processed.getPixels(pixels,0,source.width,0,0,source.width,source.height)
     var minX=source.width;var minY=source.height;var maxX=-1;var maxY=-1
     for(y in 0 until source.height)for(x in 0 until source.width)if(android.graphics.Color.red(pixels[y*source.width+x])>0){minX=minOf(minX,x);minY=minOf(minY,y);maxX=maxOf(maxX,x);maxY=maxOf(maxY,y)}
