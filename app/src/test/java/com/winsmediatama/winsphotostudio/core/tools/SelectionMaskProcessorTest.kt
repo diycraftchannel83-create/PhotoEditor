@@ -75,4 +75,15 @@ class SelectionMaskProcessorTest {
         val feathered=SelectionMaskProcessor.feather(m,1)
         assertTrue(Color.red(feathered.getPixel(1,3)) in 1..254)
     }
+    @Test fun canceledMaskOperationsAbortAndLeaveSourceMaskUntouched() {
+        val source=android.graphics.Bitmap.createBitmap(2,2,android.graphics.Bitmap.Config.ARGB_8888);source.eraseColor(Color.RED)
+        val mask=SelectionMaskProcessor.rectangle(2,2,0f,0f,.5f,.5f)
+        val signal=android.os.CancellationSignal().apply{cancel()}
+        assertThrows(android.os.OperationCanceledException::class.java){SelectionMaskProcessor.magicWand(source,0,0,.1f,signal)}
+        assertThrows(android.os.OperationCanceledException::class.java){SelectionMaskProcessor.colorRange(source,Color.RED,.2f,0f,signal)}
+        assertThrows(android.os.OperationCanceledException::class.java){SelectionMaskProcessor.polygon(2,2,listOf(0f to 0f,1f to 0f,1f to 1f),signal)}
+        assertThrows(android.os.OperationCanceledException::class.java){SelectionMaskProcessor.invert(mask,signal)}
+        assertEquals(255,Color.red(mask.getPixel(0,0)))
+        assertEquals(0,Color.red(mask.getPixel(1,1)))
+    }
 }
