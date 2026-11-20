@@ -648,7 +648,7 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
                 }
                 TextButton(onClick={zoom=1f;panX=0f;panY=0f}){Text("Fit")}
                 TextButton(onClick=onUndo,enabled=canUndo&&!beforeAfterVisible){Text(undoLabel?.let{"Undo: $it"}?:"Undo")}
-                TextButton(onClick=onRedo,enabled=canRedo&&!beforeAfterVisible{Text(redoLabel?.let{"Redo: $it"}?:"Redo")}
+                TextButton(onClick=onRedo,enabled=canRedo&&!beforeAfterVisible){Text(redoLabel?.let{"Redo: $it"}?:"Redo")}
                 TextButton(onClick={if(beforeAfterVisible)beforeAfterVisible=false else {onBeforeAfter();beforeAfterVisible=true}},enabled=beforeAfterAvailable){Text(if(beforeAfterVisible)"After" else if(beforeAfterLoading)"Loading…" else "Before/After")}
                 TextButton(onClick=onExport,enabled=!beforeAfterVisible){Text("Export")}
                 TextButton(onClick=onHistory,enabled=!beforeAfterVisible){Text("History")}
