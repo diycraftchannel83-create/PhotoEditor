@@ -397,3 +397,8 @@ Recent source-only integration fixes and the ordered remaining feature plan are 
 ## Tiled compositor foundation
 
 A bounded tiled compositor is available for canvas-aligned flat bitmap layers, including opacity, visibility and masks. It explicitly rejects unsupported group/clipping/operation-stack cases to avoid silently changing image appearance. Export integration and full-resolution operation replay are still roadmap work; verification has not been run.
+
+
+## PNG export integration
+
+Normal-size PNG export now attempts streaming tile compositing for supported flat, canvas-aligned layer stacks. Unsupported groups, clipping or operation-bearing layers fall back to the existing composite export. Source-dimension/native replay export remains on its existing path. This implementation is committed but not build/device verified.
