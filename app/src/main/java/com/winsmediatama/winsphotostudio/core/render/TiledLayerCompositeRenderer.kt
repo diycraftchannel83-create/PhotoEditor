@@ -44,6 +44,12 @@ object TiledLayerCompositeRenderer {
         require(layers.none { it.blendMode == EditorBlendMode.DIFFERENCE }) {
             "Difference blend is not yet supported by scanline streaming"
         }
+        require(layers.all { it.bitmap.width == width && it.bitmap.height == height }) {
+            "Streaming compositor requires canvas-sized layer bitmaps"
+        }
+        require(layers.all { it.mask == null || (it.mask.width == width && it.mask.height == height) }) {
+            "Streaming compositor requires canvas-sized layer masks"
+        }
         TiledPngEncoder.encodeRows(width, height, output, cancellation) { y, rowPixels ->
             var left = 0
             while (left < width) {
