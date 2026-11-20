@@ -411,3 +411,8 @@ Supported normal-size flat layer stacks now export by composing horizontal segme
 Streaming eligibility is intentionally strict: layer/mask bitmaps must be canvas-sized, and Difference blend or operation/group/clipping layers fall back to the prior export path.
 
 Scanline export checks both Android cancellation signals and coroutine cancellation during row composition and PNG compression; regression coverage is authored but not run.
+
+
+### Tiled operation replay
+
+Normal-size PNG export can replay supported pointwise adjustment operations from a retained original bitmap in tiles (Basic Adjust, Levels, Curves, HSL, Effects and LUT), rather than relying on the preview bitmap. This path is currently restricted to one visible full-canvas normal layer with no mask/group/clipping; unsupported operation stacks fall back. Build and tests are not yet run.
