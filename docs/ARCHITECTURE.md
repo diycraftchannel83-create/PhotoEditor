@@ -83,3 +83,6 @@ A branch-specific bitmap ownership/recycling checklist is tracked in `docs/COMPO
 
 ### Command history transactional behavior
 - `CommandHistory` only moves a command after the reverse/apply callback succeeds; failed undo/redo retains the entry on the current stack. Capacity must be positive. This is separate from the editor's bitmap snapshot history.
+
+### Recovery transaction and unsaved-state behavior
+- `RecoveryStore.save` stages new assets and manifest, swaps with backups, and rolls back snapshot/manifest on failed installation; temporary artifacts are cleaned. Recovery canvas size is bounded to 24 MP. Restored sessions are marked dirty and participate in unsaved-change protection.
