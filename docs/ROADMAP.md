@@ -244,3 +244,6 @@
 ### Processor failure-safety follow-up
 - Hardened mask and clip-alpha processors against allocation/pixel-transfer failures, including owned bitmap cleanup and preserving caller-owned mask inputs.
 - Next implementation focus: failure-path tests and renderer/group ownership cases. Build/test/CI remain deferred.
+
+### Opacity intermediate hardening
+- Added exception-safe cleanup for opacity-generated bitmaps and regression coverage that mask combine/invert preserve caller-owned inputs. No build or tests executed.
