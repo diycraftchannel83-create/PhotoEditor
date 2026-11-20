@@ -133,14 +133,34 @@ private fun WinsPhotoApp() {
     var sourceLayerId by remember { mutableStateOf<String?>(null) }
     var sourcePreviewWidth by remember { mutableIntStateOf(0) }
     var sourcePreviewHeight by remember { mutableIntStateOf(0) }
-    var exportStatus by remember { mutableStateOf<String?>(null) }
+    var exportStatus by remember { mutableStateOf<String?>(null)
+    var beforeAfterBitmap by remember { mutableStateOf<Bitmap?>(null)
+    var beforeAfterLoading by remember { mutableStateOf(false) } }
     val scope = rememberCoroutineScope()
+    LaunchedEffect(bitmap) { beforeAfterBitmap?.takeUnless{it.isRecycled}?.recycle();beforeAfterBitmap=null;beforeAfterLoading=false }
     val context = androidx.compose.ui.platform.LocalContext.current
     var editHistory by remember { mutableStateOf<List<EditorSnapshot>>(emptyList()) }
     var redoHistory by remember { mutableStateOf<List<EditorSnapshot>>(emptyList()) }
     var editorDirty by remember { mutableStateOf(false) }
     var pendingEditorAction by remember { mutableStateOf<PendingEditorAction?>(null) }
     var pendingProjectToOpen by remember { mutableStateOf<com.winsmediatama.winsphotostudio.core.storage.LoadedStudioProject?>(null) }
+    fun prepareBeforeAfter() {
+        if(beforeAfterLoading||beforeAfterBitmap!=null)return
+        val current=bitmap?:return
+        val sourceId=sourceLayerId?:return
+        val sourceLayer=layers.firstOrNull{it.id==sourceId}?:return
+        val original=sourceLayer.originalBitmap?:return
+        beforeAfterLoading=true
+        scope.launch {
+            val baseline=runCatching { withContext(Dispatchers.IO) {
+                val baselineLayers=layers.map{layer->if(layer.id==sourceId)layer.copy(bitmap=original,originalBitmap=null,operations=emptyList(),mask=null,clipToBelow=false)else layer}
+                LayerCompositeRenderer.render(baselineLayers,current.width,current.height)
+            } }.getOrNull()
+            beforeAfterBitmap?.takeUnless{it.isRecycled}?.recycle()
+            beforeAfterBitmap=baseline
+            beforeAfterLoading=false
+        }
+    }
     fun operationStackHistoryLabel(before:List<EditOperation>,after:List<EditOperation>):String {
         if(before==after)return "Operation stack unchanged"
         val oldIds=before.map{it.id}.toSet();val newIds=after.map{it.id}.toSet()
@@ -480,6 +500,7 @@ private fun WinsPhotoApp() {
                 onExport = { exportDialogOpen=true },
                 onHistory = { historyOpen=true },
                 onOperations = { operationsOpen=true },
+                onBeforeAfter = { prepareBeforeAfter() }, beforeAfterBitmap=beforeAfterBitmap, beforeAfterLoading=beforeAfterLoading,
                 onUndo = { if (editHistory.isNotEmpty() && bitmap!=null) { redoHistory=(redoHistory+EditorSnapshot(layers.toList(),selectedLayerId,bitmap!!,"Redo state")).takeLast(MAX_HISTORY_STATES);val previous=editHistory.last();restoreSnapshot(previous);editHistory=editHistory.dropLast(1) } },
                 onRedo = { if (redoHistory.isNotEmpty() && bitmap!=null) { editHistory=(editHistory+EditorSnapshot(layers.toList(),selectedLayerId,bitmap!!,"Undo state")).takeLast(MAX_HISTORY_STATES);val next=redoHistory.last();restoreSnapshot(next);redoHistory=redoHistory.dropLast(1) } },
                 canUndo = editHistory.isNotEmpty(), canRedo = redoHistory.isNotEmpty(), undoLabel=editHistory.lastOrNull()?.label, redoLabel=redoHistory.lastOrNull()?.label, canOperations=layers.firstOrNull{it.id==selectedLayerId}?.operations?.isNotEmpty()==true
@@ -602,7 +623,9 @@ private fun HomeScreen(loading: Boolean, error: String?, onImport: () -> Unit) {
 }
 
 @Composable
-private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onLevels: () -> Unit, onCurves: () -> Unit, onLayers: () -> Unit, onProjects: () -> Unit, onBrush: () -> Unit, onSelection: () -> Unit, onTextShape: () -> Unit, onFilters: () -> Unit, onEffects: () -> Unit, onLut: () -> Unit, onCanvasSize: () -> Unit, onBackgroundReplace: () -> Unit, onPerspective: () -> Unit, onHsl: () -> Unit, onGradient: () -> Unit, onRetouch: () -> Unit, onBackgroundRemove: () -> Unit, onAiBackgroundRemove: () -> Unit, onExport: () -> Unit, onHistory:()->Unit, onOperations:()->Unit, onUndo: () -> Unit, onRedo: () -> Unit, canUndo: Boolean, canRedo: Boolean, undoLabel:String?, redoLabel:String?, canOperations:Boolean) {
+private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onLevels: () -> Unit, onCurves: () -> Unit, onLayers: () -> Unit, onProjects: () -> Unit, onBrush: () -> Unit, onSelection: () -> Unit, onTextShape: () -> Unit, onFilters: () -> Unit, onEffects: () -> Unit, onLut: () -> Unit, onCanvasSize: () -> Unit, onBackgroundReplace: () -> Unit, onPerspective: () -> Unit, onHsl: () -> Unit, onGradient: () -> Unit, onRetouch: () -> Unit, onBackgroundRemove: () -> Unit, onAiBackgroundRemove: () -> Unit, onExport: () -> Unit, onHistory:()->Unit, onOperations:()->Unit, onBeforeAfter:()->Unit, beforeAfterBitmap:Bitmap?, beforeAfterLoading:Boolean, onUndo: () -> Unit, onRedo: () -> Unit, canUndo: Boolean, canRedo: Boolean, undoLabel:String?, redoLabel:String?, canOperations:Boolean) {
+    var beforeAfterVisible by remember(bitmap){mutableStateOf(false)}
+    val displayedBitmap=if(beforeAfterVisible&&beforeAfterBitmap!=null)beforeAfterBitmap else bitmap
     var zoom by remember { mutableFloatStateOf(1f) }
     var panX by remember { mutableFloatStateOf(0f) }
     var panY by remember { mutableFloatStateOf(0f) }
@@ -617,13 +640,14 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
                 TextButton(onClick={zoom=1f;panX=0f;panY=0f}){Text("Fit")}
                 TextButton(onClick=onUndo,enabled=canUndo){Text(undoLabel?.let{"Undo: $it"}?:"Undo")}
                 TextButton(onClick=onRedo,enabled=canRedo){Text(redoLabel?.let{"Redo: $it"}?:"Redo")}
+                TextButton(onClick={beforeAfterVisible=!beforeAfterVisible; if(!beforeAfterVisible)onBeforeAfter()},enabled=beforeAfterBitmap!=null||beforeAfterLoading){Text(if(beforeAfterVisible)"After" else if(beforeAfterLoading)"Loading…" else "Before/After")}
                 TextButton(onClick=onExport){Text("Export")}
                 TextButton(onClick=onHistory){Text("History")}
                 TextButton(onClick=onOperations,enabled=canOperations){Text("Ops")}
             }
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal=4.dp),verticalAlignment=Alignment.CenterVertically) {
                 Text("CANVAS",color=StudioAccent,style=MaterialTheme.typography.labelSmall,modifier=Modifier.padding(horizontal=6.dp))
-                TextButton(onClick=onCropTransform){Text("Crop")}
+                TextButton(onClick=onCropTransform,enabled=!beforeAfterVisible){Text("Crop")}
                 TextButton(onClick=onCanvasSize){Text("Canvas")}
                 TextButton(onClick=onPerspective){Text("Perspective")}
                 TextButton(onClick=onImportAnother){Text("Replace")}
@@ -659,7 +683,7 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
                 if (zoom > 1f) { panX += pan.x; panY += pan.y } else { panX = 0f; panY = 0f }
             }
         }, contentAlignment = Alignment.Center) {
-            Image(bitmap.asImageBitmap(), contentDescription = "Imported photo", modifier = Modifier.fillMaxSize().graphicsLayer { scaleX = zoom; scaleY = zoom; translationX = panX; translationY = panY }, contentScale = ContentScale.Fit)
+            Image((displayedBitmap?:bitmap).asImageBitmap(), contentDescription = if(beforeAfterVisible) "Before edit preview" else "Current edited canvas", modifier = Modifier.fillMaxSize().graphicsLayer { scaleX = zoom; scaleY = zoom; translationX = panX; translationY = panY }, contentScale = ContentScale.Fit)
         }
         Column(Modifier.fillMaxWidth().background(StudioSurface).padding(16.dp)) {
             Text("WinsPhoto Studio • Editor", fontWeight = FontWeight.Bold, color = StudioAccent)
