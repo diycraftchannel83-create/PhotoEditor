@@ -1,6 +1,7 @@
 package com.winsmediatama.winsphotostudio.core.render
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -42,8 +43,8 @@ class TiledOperationReplayProcessorTest {
         val reference=NonDestructiveEditStack(source,listOf(operation)).render()
         val bytes=java.io.ByteArrayOutputStream()
         try {
-            TiledPngEncoder.encodeOperationReplayStreaming(source,listOf(operation),bytes,tileSize=5)
-            val decoded=BitmapFactory.decodeByteArray(bytes.toByteArray(),0,bytes.size())
+            TiledPngEncoder.encodeOperationReplayStreaming(source,listOf(operation),bytes,tileSize=32)
+            val decoded=requireNotNull(BitmapFactory.decodeByteArray(bytes.toByteArray(),0,bytes.size()))
             assertEquals(source.width,decoded.width);assertEquals(source.height,decoded.height)
             for(y in 0 until source.height) for(x in 0 until source.width)
                 assertEquals("pixel $x,$y",reference.getPixel(x,y),decoded.getPixel(x,y))
