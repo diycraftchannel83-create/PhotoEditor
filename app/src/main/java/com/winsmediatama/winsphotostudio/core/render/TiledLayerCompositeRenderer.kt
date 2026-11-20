@@ -41,6 +41,9 @@ object TiledLayerCompositeRenderer {
         require(layers.none { it.operations.isNotEmpty() }) {
             "Streaming compositor currently supports layers without operation stacks"
         }
+        require(layers.none { it.blendMode == EditorBlendMode.DIFFERENCE }) {
+            "Difference blend is not yet supported by scanline streaming"
+        }
         TiledPngEncoder.encodeRows(width, height, output, cancellation) { y, rowPixels ->
             var left = 0
             while (left < width) {
