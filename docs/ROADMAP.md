@@ -288,3 +288,7 @@
 
 ### Export bitmap ownership
 - [x] JPEG flatten and JPEG/PNG export intermediate bitmaps now clean up in `finally` paths; flatten and layer-fit allocations enforce 24 MP and recycle outputs on draw failures (source implementation; verification pending).
+
+
+### Before/after comparison
+- [x] Added before/after preview toggle that renders the retained source layer with replayable operations/mask removed, preserves other layers, renders on demand in background, and disables edit/history controls while comparison is active (source implementation; verification pending).
