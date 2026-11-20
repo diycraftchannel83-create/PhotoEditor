@@ -284,3 +284,7 @@
 - [x] AI segmentation and color-key output enforce 24 MP limits and recycle generated output on pixel-transfer failure.
 - [x] Both mask workflows now multiply generated alpha with existing source alpha, preserving transparent source pixels.
 - [ ] Edge/hair quality and object segmentation remain feature/verification tasks.
+
+
+### Export bitmap ownership
+- [x] JPEG flatten and JPEG/PNG export intermediate bitmaps now clean up in `finally` paths; flatten and layer-fit allocations enforce 24 MP and recycle outputs on draw failures (source implementation; verification pending).
