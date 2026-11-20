@@ -20,7 +20,7 @@ class BitmapHaloTileProcessorTest {
         assertEquals(6, tiles.size)
         assertEquals(Rect(0, 0, 256, 256), tiles.first().coreRect)
         assertEquals(Rect(0, 0, 268, 268), tiles.first().expandedRect)
-        assertEquals(Rect(500, 44, 520, 300), tiles.last().expandedRect)
+        assertEquals(Rect(500, 244, 520, 300), tiles.last().expandedRect)
         tiles.forEach { assertEquals(it.coreRect.width(), it.bitmap.width); assertEquals(it.coreRect.height(), it.bitmap.height) }
         BitmapHaloTileProcessor.recycleTiles(tiles)
         source.recycle()
