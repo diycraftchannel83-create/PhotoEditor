@@ -29,7 +29,7 @@ The roadmap below is the source of truth for continuing development. Update chec
 - Retouch: blur, pixelate, clone stamp, spot-heal, dodge/burn and smudge; interpolated strokes, chronological application, soft brush falloff, undo-stroke and clear controls; UI now uses the shared Core normalized stroke model with validation and JSON codec; renderer moved into Core; replayable Retouch operation now stores strokes, strength and clone/smudge offsets in JSON and renders through the shared Core processor; Retouch is now live-integrated through MainActivity as a replayable per-layer operation; verification deferred
 - Color-key background removal with sample, tolerance and feather
 - On-device AI person/background removal using bundled ML Kit Selfie Segmentation
-- Local project save/open/rename/duplicate/delete with editable layer stack, visibility, opacity, blend mode, lock, masks, group metadata, selected layer, original sources and per-layer operation metadata
+- Local project save/open/rename/duplicate/delete with editable layer stack, visibility, opacity, blend mode, lock, masks, group metadata, selected layer, original sources and per-layer operation metadata; unsaved-change guard now protects Back, Replace/import and opening another project (Save routes to Project manager; after saving, repeat the action; verification deferred)
 - JPEG and PNG export; JPEG quality and white/black flattening background
 - Bounded undo/redo state history (8 states, memory-conscious) preserving layer stack, selected layer and canvas; History panel can restore prior states
 - Non-destructive operation stack panel: enable/disable, reorder, remove and reset Basic Adjust, Levels, Curves, HSL, Crop/Transform, Effects, LUT and Retouch operations
@@ -169,7 +169,7 @@ The roadmap below is the source of truth for continuing development. Update chec
 - [ ] Full project migration system
 - [x] Autosave and recovery snapshots
 - [x] Startup session recovery
-- [ ] Unsaved-changes protection (still pending)
+- [x] Basic unsaved-changes protection for Back, Replace/import and opening saved projects; Save opens Project manager, Discard continues, Cancel blocks (implementation committed; build/UI verification pending)
 - [x] Recent projects and project management (open/list/rename/duplicate/delete/save-as flows implemented; verification deferred)
 - [x] Duplicate/save-as/rename/delete project flows (implementation present; verification deferred)
 - [ ] Validate missing/corrupt assets and recover gracefully
