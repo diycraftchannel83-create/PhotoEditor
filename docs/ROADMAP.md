@@ -203,3 +203,7 @@
 ## History integration update
 - [x] Operation Stack Apply now adds a main-editor history snapshot and descriptive action label for Add/Remove/Edit or multi-operation changes (source implementation; verification deferred)
 - [ ] Merge parameter-level undo/redo inside Operation Stack into global editor history timeline
+
+## Compositing safety
+- [x] Layer compositor applies a 24 MP guard before allocating output bitmap; oversized allocation regression test authored (verification deferred)
+- [ ] Audit temporary bitmap ownership/recycling under every blend, mask, clip and group branch
