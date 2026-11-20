@@ -589,3 +589,12 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Restrict streaming export to canvas-sized bitmap layers/masks and explicitly fall back for Difference blend, avoiding incorrect scaling/mask behavior while those semantics are not implemented in scanline mode.
 
 - [x] Propagate cancellation from the export coroutine through per-scanline and per-segment rendering and PNG deflate; add a cancellation regression test (authored, not run).
+
+
+## Tiled replay of pointwise operation stacks
+- [x] Add tile replay for Basic Adjust, Levels, Curves, HSL, Effects and LUT; unsupported geometric/spatial operations are rejected explicitly.
+- [x] Add tile coverage PNG encoder adapter for operation-replay outputs.
+- [x] Integrate normal-size PNG export for a single visible, canvas-sized, normal-blend replayable layer with preserved original source.
+- [x] Author tile-vs-full Basic Adjust parity and unsupported-operation tests (verification deferred).
+- [ ] Extend replay to halo/spatial operations and geometry, multi-layer operation stacks, masks, groups/clipping, and streaming row-by-row operation replay to avoid retaining all operation tiles.
+- [ ] Build/test/CI/device verification deferred.
