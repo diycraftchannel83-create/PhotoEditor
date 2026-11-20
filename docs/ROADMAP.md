@@ -38,7 +38,7 @@
 - [x] In-place parameter editing for Basic Adjust, Levels, Curves, HSL and Effects operation-stack entries (dialogs update same operation ID without changing order; implementation committed, verification deferred)
 - [x] Extend in-place editing to Transform/Crop, Perspective, Canvas Size, Background Replace, Retouch and LUT (source implementation; verification deferred)
 - [ ] Color-management consistency
-- [ ] Live parameter adjustment layers and preview cache
+- [x] Layer-tree adjustment compositor reduces pixel-array memory by processing bounded 128-row strips; supports cancellation at layer/strip boundaries and tests authored (verification deferred)\n- [ ] Live parameter adjustment layers and preview cache
 
 ## Phase 3 — Non-destructive editing foundation
 - [x] Replayable edit-operation model (Basic Adjust, Levels, Curves, HSL, Crop and Transform)
@@ -76,7 +76,7 @@
 - [x] Named operation states save/restore/remove API with regression tests authored (verification pending)
 - [x] Bounded (8 snapshot) undo/redo in the operation-stack screen for parameter edits, enable/disable, reorder, remove and reset; resets when the incoming layer-operation state changes (source implementation; verification deferred)
 - [ ] Parameter-level operation history across the main editor and full editable-state recovery (operation-stack local history and global Apply/Undo are present; unified timeline remains)
-- [ ] True live adjustment layers and render-cache invalidation
+- [ ] True live adjustment layers integrated into editor layer UI, project persistence and render-cache invalidation
 
 ## Phase 4 — Layers, masks and compositing
 - [x] Bitmap/photo/transparent layers
