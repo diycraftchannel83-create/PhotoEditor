@@ -57,7 +57,7 @@ class CommandHistoryTest {
     }
 
     @Test fun historyRejectsNonPositiveCapacity() {
-        assertThrows(IllegalArgumentException::class.java){CommandHistory(0)}
-        assertThrows(IllegalArgumentException::class.java){CommandHistory(-1)}
+        assertTrue(runCatching{CommandHistory(0)}.exceptionOrNull() is IllegalArgumentException)
+        assertTrue(runCatching{CommandHistory(-1)}.exceptionOrNull() is IllegalArgumentException)
     }
 }
