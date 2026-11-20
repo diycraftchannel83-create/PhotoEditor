@@ -608,3 +608,11 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Author tile-vs-full Basic Adjust parity and unsupported-operation tests (verification deferred).
 - [ ] Extend replay to halo/spatial operations and geometry, multi-layer operation stacks, masks, groups/clipping, and streaming row-by-row operation replay to avoid retaining all operation tiles.
 - [ ] Build/test/CI/device verification deferred.
+
+
+## Dirty-region rendering foundation — 20 November 2026
+- [x] Add half-open dirty rectangle geometry with intersection, union, canvas-clamped halo expansion and area.
+- [x] Add accumulator to merge nearby invalidations, and collapse to full-canvas when fragmentation or dirty-area threshold is exceeded.
+- [x] Add regression tests for halo clamp, coalescing, full-canvas threshold, fragmentation limit and reset (authored; execution deferred).
+- [ ] Connect dirty regions to layer-edit mutations and scheduler cache invalidation; current preview composite requests still render full canvas.
+- [ ] Implement incremental region compositor with strict eligibility and full-render fallback; build/test/device verification remains deferred.
