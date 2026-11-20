@@ -29,8 +29,8 @@ object TiledPngEncoder {
         cancelCheck: (() -> Unit)? = null
     ) {
         require(tileSize in 32..2048)
-        require(TiledOperationReplayProcessor.supports(operations)) {
-            "Operation stack contains spatial/geometric operations not supported by streamed replay"
+        require(TiledOperationReplayProcessor.supportsHalo(operations)) {
+            "Operation stack contains unsupported geometry or coordinate-dependent effects"
         }
         var bandTop = -1
         var bandTiles = mutableListOf<TiledOperationReplayProcessor.OutputTile>()
@@ -50,7 +50,7 @@ object TiledPngEncoder {
                         cancellation?.throwIfCanceled()
                         cancelCheck?.invoke()
                         val right = minOf(source.width, left + tileSize)
-                        bandTiles += TiledOperationReplayProcessor.renderTile(
+                        bandTiles += TiledOperationReplayProcessor.renderHaloTile(
                             source, Rect(left, bandTop, right, bottom), operations, cancellation
                         )
                         left = right
