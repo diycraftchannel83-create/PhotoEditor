@@ -300,3 +300,7 @@
 
 ### Export metadata policy
 - [x] Edited JPEG/PNG exports are generated from bitmap content without copying source EXIF/location metadata; export UI states this policy. Dimension/metadata tests remain pending.
+
+
+### Project duplication safety
+- [x] Project duplication now validates source folder and name bounds and removes partial destination folders on failure; regression test authored (verification pending).
