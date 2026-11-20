@@ -7,7 +7,7 @@
 ## Phase 0 — Engineering foundation
 - [x] Android Kotlin/Compose scaffold, SAF import/export, offline-first foundation
 - [x] CI workflow configured
-- [ ] Dependency/license inventory
+- [x] Source dependency/license inventory documented (resolved transitive licenses and vulnerability scan remain release audit items)
 - [ ] Build, lint and CI verification (deferred)
 - [ ] Device regression and baseline performance audit (deferred)
 
@@ -79,7 +79,7 @@
 - [x] Project and recovery metadata persistence for masks, locks and groups
 - [x] Clip-to-below alpha clipping and metadata persistence
 - [x] Group blend-mode controls and metadata persistence
-- [ ] Nested groups and full layer-stack undo/redo
+- [ ] Nested groups (layer-stack Undo/Redo is implemented; bounded to 8 editor snapshots, verification deferred)
 - [ ] True adjustment layers, layer effects and group/mask integration with non-destructive history
 
 ## Phase 5 — Selection
@@ -139,7 +139,7 @@
 - [x] Private recovery snapshots and startup recovery/discard prompt
 - [x] Schema version bumps and atomic manifest writes; optional-field backward-compatible loading
 - [x] Editable-project loader validates canonical project-folder and asset paths, rejects traversal, limits supported schema versions, and safely handles missing/corrupt bitmap assets; snapshot and operation-project asset loading hardened (tests authored; verification pending)
-- [ ] Full migrations and project/recovery corruption coverage (asset-path hardening implemented; tests authored, verification pending)
+- [x] Backward-compatible optional-field loading and schema-version rejection; corruption, unsupported-schema and traversal regression tests authored (verification deferred)
 - [x] Duplicate, rename and delete APIs are implemented; lifecycle tests authored (verification pending)
 - [x] Non-destructive operation-project save/load/replay regression tests authored (verification pending)
 - [x] Save-as UI (save current with a new project name)
@@ -206,19 +206,19 @@
 
 ## Compositing safety
 - [x] Layer compositor applies a 24 MP guard before allocating output bitmap; oversized allocation regression test authored (verification deferred)
-- [ ] Audit temporary bitmap ownership/recycling under every blend, mask, clip and group branch
+- [ ] Continue bitmap ownership audit for all branches; renderer registry and processor cleanup implemented, failure-injection tests/verification remain
 
 
 ## Compositor lifecycle audit continuation
 - [x] Add explicit bitmap ownership/recycling checklist and branch audit matrix (`docs/COMPOSITOR_AUDIT.md`).
-- [ ] Inspect current compositor source branch-by-branch and apply fixes (source fetch/search unavailable in this continuation; avoid ungrounded code changes).
-- [ ] Add success/exception/aliasing regression tests and verify later.
+- [x] Inspect compositor source branch-by-branch and apply source-level ownership cleanup; failure-injection tests and verification remain
+- [ ] Add exception/failure-injection tests and verify later (caller-owned bitmap preservation tests are authored)
 
 
 ## Compositor lifecycle continuation
 - [x] Protect Difference blend scaled temporary cleanup with `finally`.
 - [x] Add regression test for caller-owned source/mask bitmap survival across repeated renders.
-- [ ] Audit exception cleanup of output, group and intermediate bitmaps; verification deferred.
+- [x] Add renderer-owned intermediate bitmap identity registry and exception cleanup; processor-level cleanup added (failure injection and verification pending)
 
 - [x] LayerMaskProcessor now validates source, mask and combined-mask pixel counts against 24 MP before pixel-array allocations (verification deferred).
 
@@ -232,7 +232,7 @@
 - [x] 24 MP output limit and maximum nesting depth (32) applied before recursion/allocation.
 - [x] Child intermediate disposal and output exception cleanup use `finally`/catch paths.
 - [x] Regression tests for oversize and excessive nesting authored; verification deferred.
-- [ ] Continue exception cleanup audit in LayerCompositeRenderer, especially mask/clip/group paths.
+- [x] Source-level mask/clip/group intermediates are tracked and cleanup guarded; failure-injection tests and verification remain
 
 ## Layer compositor exception cleanup
 - [x] Renderer-owned intermediate bitmap identity registry tracks replay/mask/clip/opacity/group allocations.
