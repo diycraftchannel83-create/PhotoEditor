@@ -158,7 +158,8 @@ sealed interface EditOperation {
         override val enabled:Boolean=true,
         val maskBase64:String,
         val maskWidth:Int,
-        val maskHeight:Int
+        val maskHeight:Int,
+        val invertSelection:Boolean=false
     ):EditOperation {
         override val label=if(invertSelection)"Selection cut" else "Selection mask"
         fun valid():Boolean {
