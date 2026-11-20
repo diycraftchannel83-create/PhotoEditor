@@ -51,3 +51,5 @@ JPEG/PNG export uses Android document destinations. JPEG can flatten transparenc
 No build, CI, lint or tests were run during this feature pass, by request. New tests were authored but are pending execution. Source-level audit is ongoing.
 
 **Selection Crop integration:** the selection mask's non-zero bounding rectangle is normalized into an `EditOperation.Transform` and committed via `commitOperation` (flattened canvas output but replayable operation/source retained). A replay regression test was authored; verification is deferred.
+
+Operation Stack Apply now records a main-editor history snapshot with descriptive labels derived from operation diffs (Add/Remove/Edit or stack summary). Screen-local undo/redo remains separate until the global history timeline is unified; verification deferred.
