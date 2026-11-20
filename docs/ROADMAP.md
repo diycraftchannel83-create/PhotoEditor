@@ -431,3 +431,10 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Investigated the queued scheduler test CI failures: both Robolectric test sources were missing the JUnit `RunWith` import.
 - [x] Added the missing imports in NativeSourceLayerExportTest and FullResolutionEditReplayTest.
 - [ ] Re-run CI and inspect test results; build verification remains pending.
+
+
+## Continuation — additional preview tools use the scheduler
+- [x] Effects screen preview now runs through the serialized scheduler with parameterized keys and cancellation on preview lifecycle changes.
+- [x] Filter screen preview now runs through the scheduler; removed duplicate preview disposal effect and guards recycling.
+- [ ] Verify CI compilation and tests for scheduler-integrated screens (pending).
+- [ ] Continue applying scheduler/cancellation to preview tools with expensive operations; add processor-level cancellation checkpoints where supported.
