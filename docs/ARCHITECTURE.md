@@ -110,3 +110,6 @@ A branch-specific bitmap ownership/recycling checklist is tracked in `docs/COMPO
 
 ### Export lifecycle safety
 - JPEG/PNG export intermediates and JPEG flatten bitmap cleanup are guarded with `finally`/failure cleanup. Layer-fit and flatten operations enforce the 24 MP safety bound. Source-level changes only.
+
+
+- Before/after comparison is implemented using the retained original source layer; comparison composite renders on demand and editor tools/history are gated while viewing the baseline (verification pending).
