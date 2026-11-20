@@ -160,6 +160,21 @@ DOMAIN_MAX 1 1 1
         assertTrue(restored.operations.all{!it.enabled})
         source.recycle()
     }
+    @Test fun selectionMaskOperationReplaysSerializesAndToggles() {
+        val source=Bitmap.createBitmap(2,1,Bitmap.Config.ARGB_8888).apply{setPixel(0,0,Color.RED);setPixel(1,0,Color.RED)}
+        val mask=Bitmap.createBitmap(2,1,Bitmap.Config.ARGB_8888).apply{setPixel(0,0,Color.WHITE);setPixel(1,0,Color.BLACK)}
+        val op=EditOperation.SelectionMask.fromBitmap(mask)
+        val stack=NonDestructiveEditStack(source).apply{append(op)}
+        val output=stack.render()
+        assertEquals(255,Color.alpha(output.getPixel(0,0)))
+        assertEquals(0,Color.alpha(output.getPixel(1,0)))
+        val restored=NonDestructiveEditStack.fromJson(source,stack.toJson())
+        assertEquals(stack.toJson().toString(),restored.toJson().toString())
+        assertTrue(restored.toggle(op.id,false))
+        val disabled=restored.render()
+        assertEquals(255,Color.alpha(disabled.getPixel(1,0)))
+        output.recycle();disabled.recycle();mask.recycle();source.recycle()
+    }
     @Test fun stackSupportsInsertAndReorder() {
         val src=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
         val first=EditOperation.BasicAdjust(values=BasicAdjustmentValues(brightness=.1f))
