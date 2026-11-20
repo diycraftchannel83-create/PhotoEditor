@@ -107,7 +107,7 @@ object EffectProcessor {
             val rr=((p shr 16 and 255)*factor).toInt().coerceIn(0,255)
             val gg=((p shr 8 and 255)*factor).toInt().coerceIn(0,255)
             val bb=((p and 255)*factor).toInt().coerceIn(0,255)
-            pixels[i]=(p and 0xFF000000) or (rr shl 16) or (gg shl 8) or bb
+            pixels[i]=(p and -0x1000000) or (rr shl 16) or (gg shl 8) or bb
         }
         return create(w,h,pixels)
     }
@@ -123,7 +123,7 @@ object EffectProcessor {
             val rr=((p shr 16 and 255)+noise).coerceIn(0,255)
             val gg=((p shr 8 and 255)+noise).coerceIn(0,255)
             val bb=((p and 255)+noise).coerceIn(0,255)
-            pixels[i]=(p and 0xFF000000) or (rr shl 16) or (gg shl 8) or bb
+            pixels[i]=(p and -0x1000000) or (rr shl 16) or (gg shl 8) or bb
         }
         return create(w,h,pixels)
     }
