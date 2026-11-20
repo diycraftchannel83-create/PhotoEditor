@@ -66,7 +66,7 @@
 - [x] Blur, motion blur, vignette and grain parameters are serializable and replayable through Effect operation
 - [x] Layer-preserving bounded undo/redo snapshots and History panel restore
 - [x] Named operation states save/restore/remove API with regression tests authored (verification pending)
-- [x] Bounded (8 snapshot) undo/redo in the operation-stack screen for parameter edits, enable/disable, reorder, remove and reset; resets when the incoming layer-operation state changes (source implementation; verification deferred)\n- [ ] Parameter-level operation history across the main editor and full editable-state recovery
+- [x] Bounded (8 snapshot) undo/redo in the operation-stack screen for parameter edits, enable/disable, reorder, remove and reset; resets when the incoming layer-operation state changes (source implementation; verification deferred)\n- [ ] Parameter-level operation history across the main editor and full editable-state recovery (operation-stack local history and global Apply/Undo are present; unified timeline remains)
 - [ ] True live adjustment layers and render-cache invalidation
 
 ## Phase 4 — Layers, masks and compositing
@@ -166,8 +166,8 @@
 - [ ] Tablet/landscape layout and external keyboard support
 
 ## Phase 13 — Production/release readiness (deferred)
-- [ ] Permissions, SAF and privacy policy audit
-- [ ] Dependency/license/vulnerability inventory
+- [ ] Permissions, SAF and privacy policy audit (manifest currently has no explicit INTERNET permission; SAF behavior/privacy still requires verification)
+- [x] Source dependency/license inventory documented in `docs/DEPENDENCIES.md`; resolved transitive licenses and vulnerability scan remain release tasks
 - [ ] Offline/network behavior audit
 - [ ] Unit/instrumentation/UI regression suite and verification
 - [ ] Android API 26 through current device matrix
@@ -202,7 +202,7 @@
 
 ## History integration update
 - [x] Operation Stack Apply now adds a main-editor history snapshot and descriptive action label for Add/Remove/Edit or multi-operation changes (source implementation; verification deferred)
-- [ ] Merge parameter-level undo/redo inside Operation Stack into global editor history timeline
+- [ ] Merge parameter-level undo/redo inside Operation Stack into global editor history timeline (operation-stack edits are checkpointed on Apply; fine-grained timeline merge remains)
 
 ## Compositing safety
 - [x] Layer compositor applies a 24 MP guard before allocating output bitmap; oversized allocation regression test authored (verification deferred)
