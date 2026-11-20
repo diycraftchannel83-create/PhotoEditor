@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
 import com.winsmediatama.winsphotostudio.core.history.EditOperation
 import com.winsmediatama.winsphotostudio.core.history.NonDestructiveEditStack
+import com.winsmediatama.winsphotostudio.core.adjustments.BasicAdjustmentValues
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -24,6 +25,7 @@ import kotlinx.coroutines.withContext
 fun OperationStackScreen(layer:EditorLayer,onCancel:()->Unit,onApply:(EditorLayer)->Unit) {
     val original=layer.originalBitmap?:layer.bitmap
     var operations by remember(layer.id,layer.operations){mutableStateOf(layer.operations)}
+    var editingBasicId by remember { mutableStateOf<String?>(null) }
     val preview by produceState<Bitmap?>(null,original,operations){
         value?.takeIf{it!==original}?.recycle();value=null
         value=withContext(Dispatchers.IO){NonDestructiveEditStack(original,operations).render()}
@@ -38,6 +40,7 @@ fun OperationStackScreen(layer:EditorLayer,onCancel:()->Unit,onApply:(EditorLaye
                 Card(colors=CardDefaults.cardColors(containerColor=Color(0xFF20242A))){Row(Modifier.fillMaxWidth().padding(8.dp),verticalAlignment=Alignment.CenterVertically){
                     Checkbox(checked=op.enabled,onCheckedChange={v->operations=operations.toMutableList().also{it[index]=toggle(it[index],v)}})
                     Text(op.label,Modifier.weight(1f),color=Color.White)
+                    if(op is EditOperation.BasicAdjust)TextButton(onClick={editingBasicId=op.id}){Text("Edit")}
                     TextButton(enabled=index>0,onClick={operations=operations.toMutableList().also{val item=it.removeAt(index);it.add(index-1,item)}}){Text("Up")}
                     TextButton(enabled=index<operations.lastIndex,onClick={operations=operations.toMutableList().also{val item=it.removeAt(index);it.add(index+1,item)}}){Text("Down")}
                     TextButton(onClick={operations=operations.filterIndexed{i,_->i!=index}}){Text("Remove")}
@@ -46,7 +49,45 @@ fun OperationStackScreen(layer:EditorLayer,onCancel:()->Unit,onApply:(EditorLaye
         }
         if(operations.isEmpty())Text("No operations. Apply an adjustment to create a replayable operation.",color=Color.LightGray,modifier=Modifier.padding(12.dp))
     }
+    editingBasicId?.let { id ->
+        val current=operations.firstOrNull{it.id==id} as? EditOperation.BasicAdjust
+        if(current==null) editingBasicId=null else BasicAdjustEditDialog(current,onDismiss={editingBasicId=null},onSave={values->
+            operations=operations.map{if(it.id==id)current.copy(values=values) else it};editingBasicId=null
+        })
+    }
 }
+@Composable
+private fun BasicAdjustEditDialog(operation:EditOperation.BasicAdjust,onDismiss:()->Unit,onSave:(BasicAdjustmentValues)->Unit){
+    var values by remember(operation.id){mutableStateOf(operation.values)}
+    AlertDialog(onDismissRequest=onDismiss,title={Text("Edit Basic Adjust")},text={
+        Column(Modifier.heightIn(max=480.dp).verticalScrollCompat(),verticalArrangement=Arrangement.spacedBy(4.dp)){
+            BasicSlider("Brightness",values.brightness,-1f..1f){values=values.copy(brightness=it)}
+            BasicSlider("Contrast",values.contrast,-1f..1f){values=values.copy(contrast=it)}
+            BasicSlider("Exposure",values.exposure,-5f..5f){values=values.copy(exposure=it)}
+            BasicSlider("Saturation",values.saturation,-1f..1f){values=values.copy(saturation=it)}
+            BasicSlider("Hue",values.hue,-1f..1f){values=values.copy(hue=it)}
+            BasicSlider("Temperature",values.temperature,-1f..1f){values=values.copy(temperature=it)}
+            BasicSlider("Tint",values.tint,-1f..1f){values=values.copy(tint=it)}
+            BasicSlider("Highlights",values.highlights,-1f..1f){values=values.copy(highlights=it)}
+            BasicSlider("Shadows",values.shadows,-1f..1f){values=values.copy(shadows=it)}
+            BasicSlider("Whites",values.whites,-1f..1f){values=values.copy(whites=it)}
+            BasicSlider("Blacks",values.blacks,-1f..1f){values=values.copy(blacks=it)}
+            BasicSlider("Vibrance",values.vibrance,-1f..1f){values=values.copy(vibrance=it)}
+            BasicSlider("Clarity",values.clarity,-1f..1f){values=values.copy(clarity=it)}
+            BasicSlider("Sharpen",values.sharpen,0f..1f){values=values.copy(sharpen=it)}
+        }
+    },confirmButton={Button(onClick={onSave(values)}){Text("Update operation")}},dismissButton={TextButton(onClick=onDismiss){Text("Cancel")}})
+}
+@Composable
+private fun BasicSlider(label:String,value:Float,range:ClosedFloatingPointRange<Float>,onChange:(Float)->Unit){
+    Column {
+        Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){Text(label,color=Color.White,modifier=Modifier.weight(1f));Text("%.2f".format(value),color=Color.LightGray)}
+        Slider(value=value.coerceIn(range.start,range.endInclusive),onValueChange=onChange,valueRange=range)
+    }
+}
+@Composable
+private fun ColumnScope.verticalScrollCompat():Modifier = androidx.compose.foundation.rememberScrollState().let { state -> Modifier.fillMaxWidth().then(androidx.compose.foundation.verticalScroll(state)) }
+
 private fun toggle(op:EditOperation,enabled:Boolean):EditOperation=when(op){
     is EditOperation.BasicAdjust->op.copy(enabled=enabled)
     is EditOperation.Levels->op.copy(enabled=enabled)
