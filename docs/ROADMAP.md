@@ -404,3 +404,9 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Add Robolectric tests for adjustment output, source preservation and black-mask behavior.
 - [ ] Integrate AdjustmentNode into layer panel, persistence/project serialization, add/edit dialogs and global history; current model/renderer/test support is foundation-only and is not yet a user-visible feature.
 - [ ] Test operation order, opacity blending, mask scaling, invalid masks, transparent source behavior, nested groups and memory cleanup on device/CI.
+
+
+
+## CI queue policy update
+- [x] Update `.github/workflows/android-ci.yml` to set `cancel-in-progress: false`, so pushes queue their verification rather than cancelling the run already in progress. This is intended to make the final verification signal reliable during active development.
+- [ ] Observe queued runs and confirm the latest code reaches unit tests, lint and APK/AAB steps.
