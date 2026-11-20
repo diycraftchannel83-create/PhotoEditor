@@ -438,3 +438,12 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Filter screen preview now runs through the scheduler; removed duplicate preview disposal effect and guards recycling.
 - [ ] Verify CI compilation and tests for scheduler-integrated screens (pending).
 - [ ] Continue applying scheduler/cancellation to preview tools with expensive operations; add processor-level cancellation checkpoints where supported.
+
+
+## Continuation — remaining color preview tools on render queue
+- [x] Curves preview integrated with serialized scheduler, parameter key and cancellation.
+- [x] Levels preview integrated with serialized scheduler, parameter key and cancellation.
+- [x] HSL color-range preview integrated with serialized scheduler, parameter key and cancellation.
+- [x] LUT import preview integrated with serialized scheduler and cache keyed by source/LUT text.
+- [ ] CI compile/test verification for these four integrations remains pending.
+- [ ] Add cancellation checkpoints inside processors' per-pixel loops; currently scheduler cancellation is checked before/after processor calls, so in-progress pixel loops may not stop immediately.
