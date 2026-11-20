@@ -417,3 +417,11 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Add cache-clear/invalidation regression test verifying a subsequent request rerenders rather than returning stale cached pixels.
 - [ ] Run CI verification for these tests (deferred; no build run initiated manually).
 - [ ] Integrate scheduler with editor preview screens and versioned cache keys (next implementation target).
+
+
+## Continuation — adjustment preview scheduler integration
+- [x] Adjustment preview now uses the serialized bitmap render scheduler instead of directly running an unmanaged preview render.
+- [x] Preview requests use a parameter/source-derived cache key and are queued on a dedicated scheduler.
+- [x] Preview requests cancel on coroutine cancellation and the screen closes the scheduler on disposal.
+- [ ] Verify UI lifecycle, cancellation behavior and compile/CI (deferred to CI/manual verification).
+- [ ] Apply the same scheduler integration to remaining preview-producing tools; audit source bitmap immutability and cache-key completeness.
