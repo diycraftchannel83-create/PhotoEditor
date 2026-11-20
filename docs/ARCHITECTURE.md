@@ -86,3 +86,6 @@ A branch-specific bitmap ownership/recycling checklist is tracked in `docs/COMPO
 
 ### Recovery transaction and unsaved-state behavior
 - `RecoveryStore.save` stages new assets and manifest, swaps with backups, and rolls back snapshot/manifest on failed installation; temporary artifacts are cleaned. Recovery canvas size is bounded to 24 MP. Restored sessions are marked dirty and participate in unsaved-change protection.
+
+### Named operation state persistence
+- `NamedOperationStateStore` persists replayable operation arrays per layer ID in app-private storage. It validates schema and layer identity, bounds names/operations/state count, uses collision-resistant SHA-256-derived filenames and supports save/list/load/remove. Operation Stack panel exposes Save state, States, Restore and Delete.
