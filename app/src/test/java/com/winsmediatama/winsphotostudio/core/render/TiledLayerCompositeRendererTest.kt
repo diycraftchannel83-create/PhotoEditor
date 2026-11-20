@@ -58,6 +58,38 @@ class TiledLayerCompositeRendererTest {
         decoded.recycle(); reference.recycle(); base.recycle(); overlay.recycle()
     }
 
+    @Test fun streamedClippingAlphaMatchesFullComposite() {
+        val base=Bitmap.createBitmap(39,33,Bitmap.Config.ARGB_8888).apply{
+            eraseColor(Color.TRANSPARENT)
+            for(y in 5 until 28)for(x in 3 until 35)setPixel(x,y,Color.argb(160,40,90,160))
+        }
+        val clipped=Bitmap.createBitmap(39,33,Bitmap.Config.ARGB_8888).apply{
+            eraseColor(Color.TRANSPARENT)
+            for(y in 1 until 31)for(x in 1 until 38)setPixel(x,y,Color.argb(220,220,45,60))
+        }
+        val mask=Bitmap.createBitmap(39,33,Bitmap.Config.ARGB_8888).apply{
+            for(y in 0 until height)for(x in 0 until width){val v=if(x<20)255 else 120;setPixel(x,y,Color.argb(255,v,v,v))}
+        }
+        val top=Bitmap.createBitmap(39,33,Bitmap.Config.ARGB_8888).apply{
+            eraseColor(Color.TRANSPARENT)
+            for(y in 7 until 25)for(x in 9 until 30)setPixel(x,y,Color.argb(200,40,210,110))
+        }
+        val layers=listOf(
+            EditorLayer(name="Base",bitmap=base,opacity=.8f),
+            EditorLayer(name="Clipped 1",bitmap=clipped,opacity=.7f,mask=mask,clipToBelow=true),
+            EditorLayer(name="Clipped 2",bitmap=top,opacity=.6f,clipToBelow=true)
+        )
+        val reference=com.winsmediatama.winsphotostudio.core.editor.LayerCompositeRenderer.render(layers,39,33)
+        val stream=java.io.ByteArrayOutputStream()
+        try{
+            TiledLayerCompositeRenderer.encodeStreamingClippedOperationLayers(layers,39,33,stream,tileSize=32)
+            val decoded=requireNotNull(android.graphics.BitmapFactory.decodeByteArray(stream.toByteArray(),0,stream.size()))
+            for(y in 0 until 33)for(x in 0 until 39)
+                assertEquals("clip streaming pixel ($x,$y)",reference.getPixel(x,y),decoded.getPixel(x,y))
+            decoded.recycle()
+        }finally{reference.recycle();base.recycle();clipped.recycle();mask.recycle();top.recycle()}
+    }
+
     @Test fun streamedGroupCompositingMatchesFullRenderer() {
         val base=Bitmap.createBitmap(40,35,Bitmap.Config.ARGB_8888).apply {
             for(y in 0 until height)for(x in 0 until width)setPixel(x,y,Color.rgb((x*3)%255,(y*6)%255,80))
