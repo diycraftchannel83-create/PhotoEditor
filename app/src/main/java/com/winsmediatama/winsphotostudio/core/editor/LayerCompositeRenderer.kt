@@ -100,7 +100,12 @@ object LayerCompositeRenderer {
         val w=target.width;val h=target.height
         val base=IntArray(w*h);target.getPixels(base,0,w,0,0,w,h)
         val scaled=Bitmap.createScaledBitmap(source,w,h,true)
-        val pixels=IntArray(w*h);scaled.getPixels(pixels,0,w,0,0,w,h);if(scaled!==source)scaled.recycle()
+        val pixels=IntArray(w*h)
+        try {
+            scaled.getPixels(pixels,0,w,0,0,w,h)
+        } finally {
+            if(scaled!==source&&!scaled.isRecycled)scaled.recycle()
+        }
         for(i in base.indices){
             val d=base[i];val s=pixels[i];val da=d ushr 24;val sa=((s ushr 24)*opacity/255);val outA=sa+da*(255-sa)/255
             if(outA<=0){base[i]=0;continue}
