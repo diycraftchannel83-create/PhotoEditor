@@ -22,7 +22,8 @@ object BitmapTileProcessor {
         val planner = BitmapTilePlanner.plan(source.width, source.height, tileSize)
         val output = mutableListOf<ProcessedTile>()
         try {
-            planner.forEach { rect ->
+            planner.forEach { tile ->
+                val rect = tile.sourceRect
                 cancellation?.throwIfCanceled()
                 val inputTile = Bitmap.createBitmap(source, rect.left, rect.top, rect.width(), rect.height())
                 var processed: Bitmap? = null
