@@ -26,4 +26,38 @@ class CommandHistoryTest {
         repeat(3){n->history.execute(object:EditCommand{override val label="n$n";override fun apply(){value++};override fun undo(){value--}})}
         assertEquals(3,value);history.undo();history.undo();assertEquals(1,value);assertFalse(history.canUndo)
     }
+    @Test fun failedUndoKeepsCommandAvailable() {
+        val history=CommandHistory()
+        var state=1
+        val command=object:EditCommand {
+            override val label="fragile"
+            override fun apply(){state++}
+            override fun undo(){throw IllegalStateException("undo failed")}
+        }
+        history.execute(command)
+        val failure=runCatching{history.undo()}.exceptionOrNull()
+        assertNotNull(failure)
+        assertTrue(history.canUndo);assertFalse(history.canRedo);assertEquals("fragile",history.undoLabel)
+        assertEquals(2,state)
+    }
+
+    @Test fun failedRedoKeepsCommandOnRedoStack() {
+        val history=CommandHistory()
+        var failApply=false;var state=0
+        val command=object:EditCommand {
+            override val label="redo fragile"
+            override fun apply(){if(failApply)throw IllegalStateException("apply failed");state++}
+            override fun undo(){state--}
+        }
+        history.execute(command);history.undo();failApply=true
+        val failure=runCatching{history.redo()}.exceptionOrNull()
+        assertNotNull(failure)
+        assertTrue(history.canRedo);assertFalse(history.canUndo);assertEquals("redo fragile",history.redoLabel)
+        assertEquals(0,state)
+    }
+
+    @Test fun historyRejectsNonPositiveCapacity() {
+        assertThrows(IllegalArgumentException::class.java){CommandHistory(0)}
+        assertThrows(IllegalArgumentException::class.java){CommandHistory(-1)}
+    }
 }
