@@ -259,4 +259,5 @@ private fun toggle(op:EditOperation,enabled:Boolean):EditOperation=when(op){
     is EditOperation.Perspective->op.copy(enabled=enabled)
     is EditOperation.CanvasSize->op.copy(enabled=enabled)
     is EditOperation.BackgroundReplace->op.copy(enabled=enabled)
+    is EditOperation.SelectionMask->op.copy(enabled=enabled)
 }
