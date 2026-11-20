@@ -80,3 +80,6 @@ A branch-specific bitmap ownership/recycling checklist is tracked in `docs/COMPO
 
 ### Opacity intermediate ownership
 - `LayerCompositeRenderer.applyAlphaOpacity` now guards generated output against pixel-transfer failure and recycles it before rethrowing. Caller-owned layer bitmaps remain untouched.
+
+### Command history transactional behavior
+- `CommandHistory` only moves a command after the reverse/apply callback succeeds; failed undo/redo retains the entry on the current stack. Capacity must be positive. This is separate from the editor's bitmap snapshot history.
