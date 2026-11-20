@@ -55,16 +55,7 @@ object TiledPngEncoder {
             8, 6, 0, 0, 0
         ))
         val deflater = Deflater(Deflater.DEFAULT_COMPRESSION)
-        var idatBuffer = ByteArray(DEFLATE_BUFFER)
-        var idatSize = 0
         val compressed = ByteArray(DEFLATE_BUFFER)
-        val crcData = ByteArray(DEFLATE_BUFFER)
-        fun flushIdat() {
-            if (idatSize > 0) {
-                writeChunk(output, "IDAT", idatBuffer.copyOf(idatSize))
-                idatSize = 0
-            }
-        }
         val row = ByteArray(width * 4 + 1)
         try {
             for (y in 0 until height) {
@@ -87,30 +78,19 @@ object TiledPngEncoder {
                 require(cursor == row.size) { "Tile row coverage mismatch at y=$y" }
                 deflater.setInput(row)
                 while (!deflater.needsInput()) {
+                    cancellation?.throwIfCanceled()
                     val count = deflater.deflate(compressed)
-                    if (count <= 0) break
-                    if (idatSize + count > idatBuffer.size) flushIdat()
-                    if (idatSize + count > idatBuffer.size) {
-                        writeChunk(output, "IDAT", compressed.copyOf(count))
-                    } else {
-                        compressed.copyInto(idatBuffer, idatSize, 0, count)
-                        idatSize += count
-                    }
+                    if (count > 0) writeChunk(output, "IDAT", compressed.copyOf(count))
+                    else if (!deflater.needsInput()) throw IllegalStateException("PNG deflater made no progress")
                 }
             }
             deflater.finish()
             while (!deflater.finished()) {
                 cancellation?.throwIfCanceled()
                 val count = deflater.deflate(compressed)
-                if (count <= 0) break
-                if (idatSize + count > idatBuffer.size) flushIdat()
-                if (idatSize + count > idatBuffer.size) writeChunk(output, "IDAT", compressed.copyOf(count))
-                else {
-                    compressed.copyInto(idatBuffer, idatSize, 0, count)
-                    idatSize += count
-                }
+                if (count > 0) writeChunk(output, "IDAT", compressed.copyOf(count))
+                else if (!deflater.finished()) throw IllegalStateException("PNG deflater made no progress during finish")
             }
-            flushIdat()
             writeChunk(output, "IEND", byteArrayOf())
             output.flush()
         } finally {
