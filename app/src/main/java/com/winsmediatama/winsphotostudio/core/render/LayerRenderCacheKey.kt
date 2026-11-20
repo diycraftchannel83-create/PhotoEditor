@@ -1,15 +1,12 @@
 package com.winsmediatama.winsphotostudio.core.render
 
+import android.graphics.Bitmap
 import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
 import java.security.MessageDigest
 
-/**
- * Deterministic cache key for layer-stack rendering.
- * Bitmap generation IDs invalidate entries after in-place pixel edits; layer properties,
- * masks, source bitmaps and non-destructive operation payloads are also included.
- */
+/** Deterministic cache key; pixel-content hashes supplement generation IDs for reliable invalidation. */
 object LayerRenderCacheKey {
-    private const val VERSION = "winsphoto-layer-stack-v1"
+    private const val VERSION = "winsphoto-layer-stack-v2"
 
     fun create(layers: List<EditorLayer>, canvasWidth: Int, canvasHeight: Int): String {
         require(canvasWidth > 0 && canvasHeight > 0)
@@ -34,9 +31,25 @@ object LayerRenderCacheKey {
         return VERSION + ":" + digest.joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
     }
 
-    private fun bitmapToken(bitmap: android.graphics.Bitmap?): String {
+    /** Hashes pixels row-wise without allocating a full bitmap-sized buffer. */
+    private fun bitmapToken(bitmap: Bitmap?): String {
         if (bitmap == null) return "null"
-        if (bitmap.isRecycled) return "recycled:" + bitmap.width + "x" + bitmap.height
-        return bitmap.width.toString() + "x" + bitmap.height + "@" + bitmap.generationId + ":" + bitmap.config
+        if (bitmap.isRecycled) return "recycled"
+        val pixelDigest = MessageDigest.getInstance("SHA-256")
+        val row = IntArray(bitmap.width)
+        val bytes = ByteArray(bitmap.width * 4)
+        for (y in 0 until bitmap.height) {
+            bitmap.getPixels(row, 0, bitmap.width, 0, y, bitmap.width, 1)
+            var p = 0
+            for (color in row) {
+                bytes[p++] = (color ushr 24).toByte()
+                bytes[p++] = (color ushr 16).toByte()
+                bytes[p++] = (color ushr 8).toByte()
+                bytes[p++] = color.toByte()
+            }
+            pixelDigest.update(bytes)
+        }
+        val content = pixelDigest.digest().joinToString("") { "%02x".format(it.toInt() and 0xff) }
+        return bitmap.width.toString() + "x" + bitmap.height + "@" + bitmap.generationId + ":" + bitmap.config + ":" + content
     }
 }
