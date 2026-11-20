@@ -12,7 +12,8 @@
 - [x] Flat clipping-to-below alpha replay: previous visible source alpha is preserved with mask and opacity, per-band replay, and clipped-layer streaming; groups/Difference excluded (parity test authored, not run)
 - [x] Difference blend for flat streaming paths: explicit alpha-aware row compositor for ordinary flat stacks and operation replay; groups/clipping Difference excluded (test authored, not run)
 - [x] Deterministic layer render-cache key: SHA-256 key includes canvas, layer flags, opacity/blend/group, bitmap/mask/original generation IDs and operation payloads; invalidation tests authored (not run)
-- [ ] Integrate layer render-cache keys into preview/composite cache lifecycle and dirty-region invalidation
+- [x] Integrate deterministic layer-stack key into `BitmapRenderScheduler.requestLayerStackComposite` with caller-owned bitmap copies and generation-ID invalidation (test authored, not run)
+- [ ] Wire cached composite requests into MainActivity layer preview/apply lifecycle and add dirty-region invalidation
 - [x] Android Kotlin/Compose scaffold, SAF import/export, offline-first foundation
 - [x] CI workflow configured
 - [x] Source dependency/license inventory documented (resolved transitive licenses and vulnerability scan remain release audit items)
