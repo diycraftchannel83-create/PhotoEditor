@@ -35,7 +35,7 @@ class TiledOperationReplayProcessorTest {
     }
 
     @Test fun streamedOperationReplayPngMatchesFullStack() {
-        val source=Bitmap.createBitmap(19,13,Bitmap.Config.ARGB_8888)
+        val source=Bitmap.createBitmap(45,37,Bitmap.Config.ARGB_8888)
         for(y in 0 until source.height) for(x in 0 until source.width)
             source.setPixel(x,y,Color.argb(255,(x*13)%256,(y*19)%256,(x*y*7)%256))
         val operation=EditOperation.BasicAdjust(values=BasicAdjustmentValues(brightness=.1f,contrast=.05f,saturation=.12f))
