@@ -455,3 +455,11 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Retouch preview uses scheduler; active and committed stroke snapshots are keyed to preview settings.
 - [ ] CI verification pending.
 - [ ] Canvas-size tool still applies directly without a visual preview; next follow-up should add an async preview and safe output-size guard.
+
+
+## Canvas-size preview continuation — 20 November 2026
+- [x] Canvas Size renders a scheduled, cache-keyed preview for dimension, anchor and background changes; cancellation and screen disposal close the preview scheduler.
+- [x] Apply uses an owned bitmap copy of the preview, avoiding transfer/recycle ownership conflicts.
+- [x] Guard canvas output at 24 MP and 8192 px per side; invalid sizes show a warning and disable Apply.
+- [ ] Verify compile/preview behavior in CI and on device (deferred during feature pass).
+- [ ] Processor-level cancellation checkpoints and tiled/full-resolution canvas resize remain future rendering tasks.
