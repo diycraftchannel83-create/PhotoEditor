@@ -15,7 +15,7 @@ class TransformProcessorTest {
         val source=Bitmap.createBitmap(4,2,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.RED);setPixel(0,0,Color.BLUE)}
         val result=TransformProcessor.apply(source,TransformSpec(left=0f,top=0f,right=.5f,bottom=1f,flipHorizontal=true,outputWidth=3,outputHeight=4))
         assertEquals(3,result.width);assertEquals(4,result.height)
-        assertEquals(Color.RED,source.getPixel(0,0))
+        assertEquals(Color.BLUE,source.getPixel(0,0))
     }
     @Test fun rotationProducesExpectedBounds() {
         val source=Bitmap.createBitmap(3,2,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.GREEN)}
