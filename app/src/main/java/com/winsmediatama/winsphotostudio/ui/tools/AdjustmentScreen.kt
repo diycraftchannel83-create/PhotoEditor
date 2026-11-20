@@ -47,7 +47,7 @@ fun AdjustmentScreen(source: Bitmap, onCancel: () -> Unit, onApply: (Bitmap,Basi
             value = withContext(Dispatchers.IO) {
                 request = renderScheduler.request(cacheKey) { cancellation ->
                     cancellation.throwIfCanceled()
-                    val result = BasicAdjustmentProcessor.apply(source, values, signal)
+                    val result = BasicAdjustmentProcessor.apply(source, values, cancellation)
                     cancellation.throwIfCanceled()
                     result
                 }
