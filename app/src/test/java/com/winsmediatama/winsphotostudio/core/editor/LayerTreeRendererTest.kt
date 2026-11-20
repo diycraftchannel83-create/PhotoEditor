@@ -3,6 +3,7 @@ package com.winsmediatama.winsphotostudio.core.editor
 import android.graphics.Bitmap
 import android.graphics.Color
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -21,5 +22,20 @@ class LayerTreeRendererTest {
         val bitmap=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.RED)}
         val node=LayerNode.GroupNode(children=listOf(LayerNode.BitmapNode(EditorLayer(name="Layer",bitmap=bitmap))),opacity=.5f)
         assertEquals(127,Color.alpha(LayerTreeRenderer.render(listOf(node),1,1).getPixel(0,0)))
+    }
+    @Test fun rejectsOversizedLayerTreeCanvasBeforeAllocation() {
+        val error=assertThrows(IllegalArgumentException::class.java) {
+            LayerTreeRenderer.render(emptyList(),6000,5000)
+        }
+        assertEquals(true,error.message?.contains("24 MP")==true)
+    }
+
+    @Test fun rejectsExcessiveGroupNesting() {
+        var node:LayerNode=LayerNode.GroupNode()
+        repeat(34){node=LayerNode.GroupNode(children=listOf(node))}
+        val error=assertThrows(IllegalArgumentException::class.java) {
+            LayerTreeRenderer.render(listOf(node),1,1)
+        }
+        assertEquals(true,error.message?.contains("nesting")==true)
     }
 }
