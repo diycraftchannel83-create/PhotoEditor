@@ -311,3 +311,8 @@ Build verification and release readiness must be tracked honestly. Check the lat
 - [x] ClipAlphaProcessor validates source/base dimensions before allocating arrays and recycles its scaled temporary in `finally` (source-level; verification pending).
 - [x] Clip-alpha regression coverage checks clipping output and caller-owned bitmap preservation; not executed.
 - [ ] Continue exception-path ownership audit for composite/group/intermediate bitmap allocations.
+
+## Layer-tree rendering safeguards
+- [x] LayerTreeRenderer now caps canvas allocation at 24 MP and recursion depth at 32 groups.
+- [x] Child render bitmaps recycle in `finally`; output bitmap recycles if a render branch throws.
+- [x] Oversized canvas and excessive nesting regression tests authored (not executed).
