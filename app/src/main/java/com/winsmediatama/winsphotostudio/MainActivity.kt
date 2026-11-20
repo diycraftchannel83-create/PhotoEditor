@@ -296,12 +296,22 @@ private fun WinsPhotoApp() {
                         val supportsStreaming=currentLayers.isNotEmpty() &&
                             currentLayers.none { it.groupId != null || it.clipToBelow || it.operations.isNotEmpty() || it.blendMode == EditorBlendMode.DIFFERENCE } &&
                             currentLayers.all { it.bitmap.width == currentBitmap.width && it.bitmap.height == currentBitmap.height && (it.mask == null || (it.mask.width == currentBitmap.width && it.mask.height == currentBitmap.height)) }
+                        val supportsGroupedReplay=currentLayers.any { it.groupId != null } && currentLayers.none { it.clipToBelow || it.blendMode == EditorBlendMode.DIFFERENCE || it.groupBlendMode == EditorBlendMode.DIFFERENCE } &&
+                            currentLayers.all { it.bitmap.width == currentBitmap.width && it.bitmap.height == currentBitmap.height && (it.mask == null || (it.mask.width == currentBitmap.width && it.mask.height == currentBitmap.height)) } &&
+                            currentLayers.filter { it.visible }.all { TiledOperationReplayProcessor.supportsHalo(it.operations) }
                         val supportsMultiLayerReplay=currentLayers.any { it.operations.isNotEmpty() } && currentLayers.none { it.groupId != null || it.clipToBelow || it.blendMode == EditorBlendMode.DIFFERENCE } &&
                             currentLayers.all { it.bitmap.width == currentBitmap.width && it.bitmap.height == currentBitmap.height && (it.mask == null || (it.mask.width == currentBitmap.width && it.mask.height == currentBitmap.height)) } &&
                             currentLayers.filter { it.visible }.all { TiledOperationReplayProcessor.supportsHalo(it.operations) }
                         if(canReplayTiles) {
                             TiledPngEncoder.encodeOperationReplayStreaming(
                                 requireNotNull(replaySource),replayLayer!!.operations,stream,tileSize=256,
+                                cancellation=exportCancellation,cancelCheck={ ioContext.ensureActive() }
+                            )
+                            tiledExportUsed=true
+                            true
+                        } else if(supportsGroupedReplay) {
+                            TiledLayerCompositeRenderer.encodeStreamingGroupedOperationLayers(
+                                currentLayers,currentBitmap.width,currentBitmap.height,stream,tileSize=256,
                                 cancellation=exportCancellation,cancelCheck={ ioContext.ensureActive() }
                             )
                             tiledExportUsed=true
