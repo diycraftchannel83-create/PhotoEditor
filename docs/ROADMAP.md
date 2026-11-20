@@ -370,3 +370,25 @@ Additional corrections after inspecting the CI job log and current source:
 Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` with conclusion `pending`. This run was created by the repository's push workflow; it is not a locally executed build. Earlier runs were cancelled because newer commits superseded them. Check the exact latest run above before continuing build-related repairs.
 
 **Continuation rule:** keep the roadmap honest. Source implementation, source audit, CI compilation, automated tests, device verification and production readiness are separate acceptance gates. Do not tick a verification gate without evidence.
+
+
+
+## Continued work — 20 November 2026 (render foundation + CI test repair)
+
+### Implemented source in this continuation
+- [x] Add `core/render/BitmapRenderScheduler.kt`: serialized preview work queue, per-request cancellation signal, bounded bitmap LRU cache, caller-owned bitmap copies, cache clearing, and close lifecycle.
+- [x] Propagate cancellation signals when `cancelAll()` / `close()` cancel render work.
+- [x] Add Robolectric tests for cache ownership and cache memory bounds.
+- [x] Repair CI-discovered malformed literal newline escapes in `FullResolutionEditReplayTest.kt` and `SelectionMaskProcessorTest.kt`.
+- [x] Replace unsupported AndroidJUnit4 imports/runner in local unit tests with the configured Robolectric runner in `FullResolutionEditReplayTest.kt` and `NativeSourceLayerExportTest.kt`.
+
+### Newly observed CI issue and repair status
+- [x] CI run #666 reached `compileDebugUnitTestKotlin` and failed because three tests referenced `androidx.test.ext.junit.runners.AndroidJUnit4` not included in current test dependencies; two tests also contained literal `\\n` sequences instead of actual source newlines. The source corrections above are committed.
+- [ ] Confirm a green run on the exact latest commit. The current source additions have not yet been proven by compilation or test execution.
+- [ ] Review whether the render scheduler should be integrated with editor preview UI in a later dedicated pass; this class is a foundation, not yet a global render-engine replacement.
+
+### Remaining work from rendering foundation
+- [ ] Integrate scheduler into actual preview/edit surfaces with stable render keys, cancellation on tool change, and UI lifecycle ownership.
+- [ ] Add render progress/telemetry and immutable render snapshots.
+- [ ] Implement tile/region rendering and multi-stage preview/full-resolution pipeline; current 24 MP safety caps remain in place.
+- [ ] Add deterministic test coverage for cancellation, close, cache eviction order, and render failures.
