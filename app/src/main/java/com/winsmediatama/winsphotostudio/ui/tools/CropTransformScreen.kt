@@ -48,16 +48,16 @@ fun CropTransformScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,EditOper
     var heightText by remember { mutableStateOf(source.height.toString()) }
     var showResize by remember { mutableStateOf(false) }
     val renderScheduler=remember{BitmapRenderScheduler(0L,"WinsPhoto-CropPreview")}
-    DisposableEffect(renderScheduler){onDispose{renderScheduler.close()}}
+    val previewBitmaps=remember{mutableListOf<Bitmap>()}
+    DisposableEffect(renderScheduler){onDispose{renderScheduler.close();previewBitmaps.toList().forEach{if(!it.isRecycled)it.recycle()};previewBitmaps.clear()}}
     val preview by produceState<Bitmap?>(null,source,settings,renderScheduler) {
-        value?.takeIf{it!==source&&!it.isRecycled}?.recycle();value=null
+        value=null
         val key="crop:"+System.identityHashCode(source)+":"+source.width+"x"+source.height+":"+settings.hashCode()
         var request:Future<Bitmap>?=null
-        try{value=withContext(Dispatchers.IO){request=renderScheduler.request(key){signal->signal.throwIfCanceled();renderCropTransform(source,settings).also{signal.throwIfCanceled()}};request!!.get(60,TimeUnit.SECONDS)}}
+        try{value=withContext(Dispatchers.IO){request=renderScheduler.request(key){signal->signal.throwIfCanceled();renderCropTransform(source,settings).also{signal.throwIfCanceled()}};request!!.get(60,TimeUnit.SECONDS)}?.also{previewBitmaps.add(it)}}
         catch(cancelled:CancellationException){request?.cancel(true);throw cancelled}
         catch(_:Exception){request?.cancel(true);value=null}
     }
-    DisposableEffect(preview){onDispose{preview?.takeIf{it!==source&&!it.isRecycled}?.recycle()}}
     val sourceRatio=source.width.toFloat()/source.height.coerceAtLeast(1)
 
     fun updateCrop(l:Float,t:Float,r:Float,b:Float,markFree:Boolean=true) {
