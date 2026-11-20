@@ -86,3 +86,9 @@ LayerMaskProcessor now checks source/mask/combined dimensions using Long pixel-c
 - Editor history limit aligned to 8 snapshots for Undo and Redo.
 - Project save/lifecycle hardening: save bounds, cleanup of partial folder on failure, canonical folder validation, safe traversal-ID deletion.
 - Failure-injection coverage still needed; tests are authored only, and verification remains deferred.
+
+
+
+## 20 November 2026 — Difference blend target ownership
+
+Legacy API Difference blending now receives the renderer-owned destination bitmap explicitly rather than attempting to read a private/nonexistent `Canvas.bitmap` property. Root and group compositor call sites pass their respective backing bitmap. The scaled source is still cleaned in `finally`. This records source behavior only; pixel parity, exception injection and caller-ownership tests remain unexecuted.
