@@ -492,3 +492,5 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Added cancellation regression coverage for selection mask operations.
 - [ ] CI/build/test execution remains pending; changes are not yet verified by an Android build.
 - [ ] Continue cancellation and memory profiling for selection apply/export paths, not only preview.
+
+- [x] Selection mask overlay compositing also checks cancellation by row and cleans scaled/output bitmap ownership on interruption.
