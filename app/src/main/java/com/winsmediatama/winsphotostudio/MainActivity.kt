@@ -136,8 +136,9 @@ private fun WinsPhotoApp() {
     var exportStatus by remember { mutableStateOf<String?>(null) }
     var beforeAfterBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var beforeAfterLoading by remember { mutableStateOf(false) }
+    var beforeAfterError by remember { mutableStateOf<String?>(null)
     val scope = rememberCoroutineScope()
-    LaunchedEffect(bitmap) { beforeAfterBitmap?.takeUnless{it.isRecycled}?.recycle();beforeAfterBitmap=null;beforeAfterLoading=false }
+    LaunchedEffect(bitmap) { beforeAfterBitmap?.takeUnless{it.isRecycled}?.recycle();beforeAfterBitmap=null;beforeAfterLoading=false;beforeAfterError=null }
     val context = androidx.compose.ui.platform.LocalContext.current
     var editHistory by remember { mutableStateOf<List<EditorSnapshot>>(emptyList()) }
     var redoHistory by remember { mutableStateOf<List<EditorSnapshot>>(emptyList()) }
@@ -152,6 +153,7 @@ private fun WinsPhotoApp() {
         val original=sourceLayer.originalBitmap?:return
         val layerSnapshot=layers.toList()
         beforeAfterLoading=true
+        beforeAfterError=null
         scope.launch {
             val baseline=runCatching { withContext(Dispatchers.IO) {
                 val baselineLayers=layerSnapshot.map{layer->if(layer.id==sourceId)layer.copy(bitmap=original,originalBitmap=null,operations=emptyList(),mask=null,clipToBelow=false)else layer}
@@ -164,6 +166,7 @@ private fun WinsPhotoApp() {
             }
             beforeAfterBitmap?.takeUnless{it.isRecycled}?.recycle()
             beforeAfterBitmap=baseline
+            beforeAfterError=if(baseline==null)"Unable to render before preview. Try again." else null
             beforeAfterLoading=false
         }
     }
@@ -506,7 +509,7 @@ private fun WinsPhotoApp() {
                 onExport = { exportDialogOpen=true },
                 onHistory = { historyOpen=true },
                 onOperations = { operationsOpen=true },
-                onBeforeAfter = { prepareBeforeAfter() }, beforeAfterBitmap=beforeAfterBitmap, beforeAfterLoading=beforeAfterLoading, beforeAfterAvailable=layers.any{it.id==sourceLayerId&&it.originalBitmap!=null},
+                onBeforeAfter = { prepareBeforeAfter() }, beforeAfterBitmap=beforeAfterBitmap, beforeAfterLoading=beforeAfterLoading, beforeAfterError=beforeAfterError, beforeAfterAvailable=layers.any{it.id==sourceLayerId&&it.originalBitmap!=null},
                 onUndo = { if (editHistory.isNotEmpty() && bitmap!=null) { redoHistory=(redoHistory+EditorSnapshot(layers.toList(),selectedLayerId,bitmap!!,"Redo state")).takeLast(MAX_HISTORY_STATES);val previous=editHistory.last();restoreSnapshot(previous);editHistory=editHistory.dropLast(1) } },
                 onRedo = { if (redoHistory.isNotEmpty() && bitmap!=null) { editHistory=(editHistory+EditorSnapshot(layers.toList(),selectedLayerId,bitmap!!,"Undo state")).takeLast(MAX_HISTORY_STATES);val next=redoHistory.last();restoreSnapshot(next);redoHistory=redoHistory.dropLast(1) } },
                 canUndo = editHistory.isNotEmpty(), canRedo = redoHistory.isNotEmpty(), undoLabel=editHistory.lastOrNull()?.label, redoLabel=redoHistory.lastOrNull()?.label, canOperations=layers.firstOrNull{it.id==selectedLayerId}?.operations?.isNotEmpty()==true
@@ -629,7 +632,7 @@ private fun HomeScreen(loading: Boolean, error: String?, onImport: () -> Unit) {
 }
 
 @Composable
-private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onLevels: () -> Unit, onCurves: () -> Unit, onLayers: () -> Unit, onProjects: () -> Unit, onBrush: () -> Unit, onSelection: () -> Unit, onTextShape: () -> Unit, onFilters: () -> Unit, onEffects: () -> Unit, onLut: () -> Unit, onCanvasSize: () -> Unit, onBackgroundReplace: () -> Unit, onPerspective: () -> Unit, onHsl: () -> Unit, onGradient: () -> Unit, onRetouch: () -> Unit, onBackgroundRemove: () -> Unit, onAiBackgroundRemove: () -> Unit, onExport: () -> Unit, onHistory:()->Unit, onOperations:()->Unit, onBeforeAfter:()->Unit, beforeAfterBitmap:Bitmap?, beforeAfterLoading:Boolean, beforeAfterAvailable:Boolean, onUndo: () -> Unit, onRedo: () -> Unit, canUndo: Boolean, canRedo: Boolean, undoLabel:String?, redoLabel:String?, canOperations:Boolean) {
+private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onLevels: () -> Unit, onCurves: () -> Unit, onLayers: () -> Unit, onProjects: () -> Unit, onBrush: () -> Unit, onSelection: () -> Unit, onTextShape: () -> Unit, onFilters: () -> Unit, onEffects: () -> Unit, onLut: () -> Unit, onCanvasSize: () -> Unit, onBackgroundReplace: () -> Unit, onPerspective: () -> Unit, onHsl: () -> Unit, onGradient: () -> Unit, onRetouch: () -> Unit, onBackgroundRemove: () -> Unit, onAiBackgroundRemove: () -> Unit, onExport: () -> Unit, onHistory:()->Unit, onOperations:()->Unit, onBeforeAfter:()->Unit, beforeAfterBitmap:Bitmap?, beforeAfterLoading:Boolean, beforeAfterError:String?, beforeAfterAvailable:Boolean, onUndo: () -> Unit, onRedo: () -> Unit, canUndo: Boolean, canRedo: Boolean, undoLabel:String?, redoLabel:String?, canOperations:Boolean) {
     var beforeAfterVisible by remember(bitmap){mutableStateOf(false)}
     val displayedBitmap=if(beforeAfterVisible&&beforeAfterBitmap!=null)beforeAfterBitmap else bitmap
     var zoom by remember { mutableFloatStateOf(1f) }
