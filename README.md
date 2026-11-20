@@ -370,3 +370,6 @@ Build verification and release readiness must be tracked honestly. Check the lat
 
 
 - Export metadata policy: edited JPEG/PNG are generated from bitmap content and source EXIF/location metadata is not copied; the export dialog communicates this privacy behavior.
+
+
+- Project duplication now validates its source folder/name and cleans partially copied projects on failure (test authored; verification pending).
