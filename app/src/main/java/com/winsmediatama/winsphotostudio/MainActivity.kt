@@ -76,6 +76,7 @@ import java.io.File
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
@@ -277,9 +278,11 @@ private fun WinsPhotoApp() {
         val currentBitmap=bitmap
         val currentLayers=layers
         if(uri!=null && currentBitmap!=null) scope.launch {
+            val exportCancellation=CancellationSignal()
+            currentCoroutineContext()[Job]?.invokeOnCompletion { cause -> if(cause is CancellationException) exportCancellation.cancel() }
             var nativeReplayUsed=false
             var tiledExportUsed=false
-            val ok=withContext(Dispatchers.IO) { runCatching {
+            val ok=withContext(Dispatchers.IO) { val ioContext=currentCoroutineContext(); runCatching {
                 context.contentResolver.openOutputStream(uri)?.use { stream ->
                     if(!exportOriginalDimensions) {
                         val supportsStreaming=currentLayers.isNotEmpty() &&
@@ -287,7 +290,7 @@ private fun WinsPhotoApp() {
                             currentLayers.all { it.bitmap.width == currentBitmap.width && it.bitmap.height == currentBitmap.height && (it.mask == null || (it.mask.width == currentBitmap.width && it.mask.height == currentBitmap.height)) }
                         if(supportsStreaming) {
                             TiledLayerCompositeRenderer.encodeStreamingPng(
-                                currentLayers,currentBitmap.width,currentBitmap.height,stream,tileWidth=512,cancellation=exportCancellation
+                                currentLayers,currentBitmap.width,currentBitmap.height,stream,tileWidth=512,cancellation=exportCancellation,cancelCheck={ ioContext.ensureActive() }
                             )
                             tiledExportUsed=true
                             true
