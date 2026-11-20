@@ -146,6 +146,20 @@ DOMAIN_MAX 1 1 1
         assertEquals(Color.TRANSPARENT,restored.render().getPixel(0,0))
         rendered.recycle();source.recycle()
     }
+    @Test fun toggleSupportsEveryReplayableOperationType() {
+        val source=Bitmap.createBitmap(4,4,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.BLUE)}
+        val stack=NonDestructiveEditStack(source).apply{
+            append(EditOperation.Perspective())
+            append(EditOperation.CanvasSize(width=4,height=4))
+            append(EditOperation.BackgroundReplace(mode="solid",startColor=Color.RED))
+        }
+        stack.operations.forEach{assertTrue("Toggle failed for ${it.label}",stack.toggle(it.id,false))}
+        assertTrue(stack.operations.all{!it.enabled})
+        val restored=NonDestructiveEditStack.fromJson(source,stack.toJson())
+        assertEquals(3,restored.operations.size)
+        assertTrue(restored.operations.all{!it.enabled})
+        source.recycle()
+    }
     @Test fun stackSupportsInsertAndReorder() {
         val src=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
         val first=EditOperation.BasicAdjust(values=BasicAdjustmentValues(brightness=.1f))
