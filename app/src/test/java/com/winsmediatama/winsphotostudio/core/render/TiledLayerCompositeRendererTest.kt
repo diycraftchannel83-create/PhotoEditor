@@ -28,12 +28,10 @@ class TiledLayerCompositeRendererTest {
     }
 
     @Test(expected = IllegalArgumentException::class)
-    fun operationStackIsRejectedRatherThanSilentlyIgnored() {
+    fun clippingIsRejectedRatherThanSilentlyIgnored() {
         val bitmap = Bitmap.createBitmap(4, 4, Bitmap.Config.ARGB_8888)
         try {
             val layer = EditorLayer(name = "Operations", bitmap = bitmap)
-            // The layer's operation list is immutable/default empty in this constructor; this test
-            // protects the explicit supported-scope rejection via group/clipping metadata instead.
             val clipped = layer.copy(clipToBelow = true)
             TiledLayerCompositeRenderer.renderTiles(listOf(clipped), 4, 4, tileSize = 2)
         } finally { bitmap.recycle() }
