@@ -31,7 +31,7 @@ object LayerRenderCacheKey {
             }
         }
         val digest = MessageDigest.getInstance("SHA-256").digest(canonical.toByteArray(Charsets.UTF_8))
-        return VERSION + ":" + digest.joinToString("") { byte -> "%02x".format(byte) }
+        return VERSION + ":" + digest.joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
     }
 
     private fun bitmapToken(bitmap: android.graphics.Bitmap?): String {
