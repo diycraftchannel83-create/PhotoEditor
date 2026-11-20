@@ -553,3 +553,13 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Add tests comparing tiled output against the existing full compositor for flat aligned layers and transparent out-of-bounds source regions (authored; not executed).
 - [ ] Integrate into export and expand to replayable operations, groups, clipping, scaled layer geometry and difference blend parity.
 - [ ] Build/test/device verification remains deferred.
+
+
+## Streaming tiled PNG export foundation — 20 November 2026
+
+- [x] Add `TiledPngEncoder` writing PNG signature/IHDR/IDAT/IEND and CRC32 directly to an `OutputStream`, avoiding full-canvas flattening.
+- [x] Encode RGBA scanlines from sorted tile coverage; reject canvas gaps, overlaps, invalid tile sizes and out-of-bounds geometry.
+- [x] Add adapters for basic processed tiles, halo tiles and tiled layer-composite output.
+- [x] Add decode round-trip test and missing-coverage test (authored; not executed).
+- [ ] Connect the encoder to the Android export UI/SAF output flow and provide tile-row streaming rather than retaining all rendered tiles in memory.
+- [ ] Build/test/device verification remains deferred.
