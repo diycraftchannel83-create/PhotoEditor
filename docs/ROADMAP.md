@@ -66,7 +66,7 @@
 - [x] Blur, motion blur, vignette and grain parameters are serializable and replayable through Effect operation
 - [x] Layer-preserving bounded undo/redo snapshots and History panel restore
 - [x] Named operation states save/restore/remove API with regression tests authored (verification pending)
-- [ ] Parameter-level operation history
+- [x] Bounded (8 snapshot) undo/redo in the operation-stack screen for parameter edits, enable/disable, reorder, remove and reset (source implementation; verification deferred)\n- [ ] Parameter-level operation history across the main editor and full editable-state recovery
 - [ ] True live adjustment layers and render-cache invalidation
 
 ## Phase 4 — Layers, masks and compositing
