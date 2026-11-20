@@ -152,3 +152,8 @@ The normal-size PNG export can use `TiledLayerCompositeRenderer.encodeStreamingP
 Streaming eligibility also requires all layer and mask bitmaps to match canvas dimensions. Difference blend is excluded because pre-29 parity needs the legacy compositor; unsupported cases use the existing preview export fallback.
 
 The scanline stream also accepts an explicit Android cancellation signal and a callback for coroutine-context cancellation, checked during row composition and compression.
+
+
+### Tiled operation replay
+
+`TiledOperationReplayProcessor` supports tile-local replay for enabled Basic Adjust, Levels, Curves, HSL, Effect and LUT operations from preserved source bitmap. It rejects geometry/spatial operation types rather than silently applying them incorrectly. Normal-size PNG export uses this for a single visible canvas-sized layer with normal blend, full opacity, no mask/group/clipping and retained original source. Operation outputs are currently retained as tiles until PNG encoding; streaming per tile-row and broader stack semantics remain future work.
