@@ -124,6 +124,8 @@ object TiledLayerCompositeRenderer {
         require(layers.filter { it.visible }.all { TiledOperationReplayProcessor.supportsHalo(it.operations) }) {
             "One or more layers contain unsupported operation stacks"
         }
+        val visibleLayerCount = layers.count { it.visible && !it.bitmap.isRecycled }.coerceAtLeast(1)
+        val bandHeight = minOf(tileSize, (4_000_000L / (width.toLong() * visibleLayerCount)).coerceAtLeast(1L).toInt())
         var activeBandTop = -1
         val activeTiles = mutableMapOf<String, TiledOperationReplayProcessor.OutputTile>()
         fun releaseBand() {
@@ -132,11 +134,11 @@ object TiledLayerCompositeRenderer {
         }
         try {
             TiledPngEncoder.encodeRows(width, height, output, cancellation, cancelCheck) { y, row ->
-                val bandTop = (y / tileSize) * tileSize
+                val bandTop = (y / bandHeight) * bandHeight
                 if (bandTop != activeBandTop) {
                     releaseBand()
                     activeBandTop = bandTop
-                    val bandBottom = minOf(height, bandTop + tileSize)
+                    val bandBottom = minOf(height, bandTop + bandHeight)
                     layers.filter { it.visible && !it.bitmap.isRecycled }.forEach { layer ->
                         cancellation?.throwIfCanceled(); cancelCheck?.invoke()
                         val replayed = TiledOperationReplayProcessor.renderHaloTile(
@@ -150,7 +152,6 @@ object TiledLayerCompositeRenderer {
                 while (left < width) {
                     cancellation?.throwIfCanceled(); cancelCheck?.invoke()
                     val tileWidth = minOf(tileSize, width - left)
-                    val tileRect = Rect(left, bandTop, left + tileWidth, minOf(height, bandTop + tileSize))
                     val composite = Bitmap.createBitmap(tileWidth, 1, Bitmap.Config.ARGB_8888)
                     try {
                         val canvas = Canvas(composite)
