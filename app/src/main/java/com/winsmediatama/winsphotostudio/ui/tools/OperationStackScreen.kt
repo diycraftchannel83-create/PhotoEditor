@@ -119,6 +119,7 @@ private fun OperationParameterDialog(operation:EditOperation,onDismiss:()->Unit,
         is EditOperation.BackgroundReplace -> BackgroundReplaceEditDialog(operation,onDismiss,onSave)
         is EditOperation.Retouch -> RetouchEditDialog(operation,onDismiss,onSave)
         is EditOperation.Lut -> LutEditDialog(operation,onDismiss,onSave)
+        is EditOperation.SelectionMask -> SelectionMaskEditDialog(operation,onDismiss,onSave)
         else -> Unit
     }
 }
@@ -239,6 +240,14 @@ private fun RetouchEditDialog(operation:EditOperation.Retouch,onDismiss:()->Unit
  }},confirmButton={Button(onClick={onSave(operation.copy(strength=strength,offsetX=x,offsetY=y))}){Text("Update")}},dismissButton={TextButton(onClick=onDismiss){Text("Cancel")}})
 }
 @Composable
+@Composable
+private fun SelectionMaskEditDialog(operation:EditOperation.SelectionMask,onDismiss:()->Unit,onSave:(EditOperation)->Unit){
+    var inverted by remember(operation.id){mutableStateOf(operation.invertSelection)}
+    AlertDialog(onDismissRequest=onDismiss,title={Text("Edit Selection Mask")},text={Column{
+        Text(if(inverted)"This operation removes the selected pixels (Cut)." else "This operation keeps the selected pixels (Mask).",color=Color.LightGray)
+        Row(verticalAlignment=Alignment.CenterVertically){Checkbox(checked=inverted,onCheckedChange={inverted=it});Text("Invert mask / Cut",color=Color.White)}
+    }},confirmButton={Button(onClick={onSave(operation.copy(invertSelection=inverted))}){Text("Update")}},dismissButton={TextButton(onClick=onDismiss){Text("Cancel")}})
+}
 private fun LutEditDialog(operation:EditOperation.Lut,onDismiss:()->Unit,onSave:(EditOperation)->Unit){
  var cube by remember(operation.id){mutableStateOf(operation.cubeText)}
  AlertDialog(onDismissRequest=onDismiss,title={Text("Edit LUT")},text={Column(Modifier.heightIn(max=420.dp)){
