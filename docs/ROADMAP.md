@@ -575,3 +575,13 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 
 
 - [x] Optimize PNG coverage validation and row lookup using vertical-boundary sweeps and an active tile row; avoid repeatedly scanning every tile for every image scanline on large dimensions.
+
+
+## Scanline streaming PNG rendering — 20 November 2026
+
+- [x] Add callback-driven PNG scanline encoder with bounded row memory.
+- [x] Add flat-layer compositor that composites horizontal segments per scanline and feeds PNG encoder immediately, recycling each segment bitmap; no retained tile grid or flattened full-canvas bitmap.
+- [x] Integrate supported flat-layer normal-size PNG export into this streaming path; unsupported layer features fall back to the existing preview PNG export path.
+- [x] Add parity regression test against full compositor (test authored, execution deferred).
+- [ ] Extend scanline streaming to replay operation stacks, groups, clipping, masks with layer transform/offset semantics and native source-resolution replay.
+- [ ] Build/test/device performance verification deferred.
