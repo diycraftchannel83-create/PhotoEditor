@@ -42,9 +42,6 @@ object TiledLayerCompositeRenderer {
         require(layers.none { it.operations.isNotEmpty() }) {
             "Streaming compositor currently supports layers without operation stacks"
         }
-        require(layers.none { it.blendMode == EditorBlendMode.DIFFERENCE }) {
-            "Difference blend is not yet supported by scanline streaming"
-        }
         require(layers.all { it.bitmap.width == width && it.bitmap.height == height }) {
             "Streaming compositor requires canvas-sized layer bitmaps"
         }
@@ -76,7 +73,8 @@ object TiledLayerCompositeRenderer {
                                 alpha = (layer.opacity.coerceIn(0f, 1f) * 255).toInt()
                                 xfermode = blendMode(layer.blendMode)
                             }
-                            canvas.drawBitmap(masked ?: cropped, 0f, 0f, paint)
+                            if (layer.blendMode == EditorBlendMode.DIFFERENCE) drawDifferenceRow(composite, masked ?: cropped, layer.opacity)
+                            else canvas.drawBitmap(masked ?: cropped, 0f, 0f, paint)
                             paint.xfermode = null
                         } finally {
                             masked?.let { if (!it.isRecycled) it.recycle() }
@@ -111,9 +109,6 @@ object TiledLayerCompositeRenderer {
         require(layers.isNotEmpty())
         require(layers.none { it.groupId != null || it.clipToBelow }) {
             "Streaming operation compositor does not support groups or clipping"
-        }
-        require(layers.none { it.blendMode == EditorBlendMode.DIFFERENCE }) {
-            "Difference blend is not supported by this streaming path"
         }
         require(layers.all { it.bitmap.width == width && it.bitmap.height == height }) {
             "Layer bitmaps must match canvas dimensions"
@@ -168,7 +163,8 @@ object TiledLayerCompositeRenderer {
                                     alpha = (layer.opacity.coerceIn(0f, 1f) * 255).toInt()
                                     xfermode = blendMode(layer.blendMode)
                                 }
-                                canvas.drawBitmap(masked ?: tilePixels, 0f, 0f, paint)
+                                if (layer.blendMode == EditorBlendMode.DIFFERENCE) drawDifferenceRow(composite, masked ?: tilePixels, layer.opacity)
+                                else canvas.drawBitmap(masked ?: tilePixels, 0f, 0f, paint)
                                 paint.xfermode = null
                             } finally {
                                 masked?.let { if (!it.isRecycled) it.recycle() }
