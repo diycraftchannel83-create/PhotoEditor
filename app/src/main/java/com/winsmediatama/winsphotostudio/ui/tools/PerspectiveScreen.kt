@@ -16,6 +16,10 @@ import com.winsmediatama.winsphotostudio.core.tools.PerspectiveQuad
 import com.winsmediatama.winsphotostudio.core.tools.PerspectiveTransformProcessor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CancellationException
+import com.winsmediatama.winsphotostudio.core.render.BitmapRenderScheduler
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 
 @Composable
 fun PerspectiveScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,PerspectiveQuad)->Unit) {
@@ -24,11 +28,19 @@ fun PerspectiveScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,Perspectiv
     var brx by remember{mutableFloatStateOf(1f)};var bry by remember{mutableFloatStateOf(1f)}
     var blx by remember{mutableFloatStateOf(0f)};var bly by remember{mutableFloatStateOf(1f)}
     val quad=PerspectiveQuad(tlx to tly,trx to tryy,brx to bry,blx to bly)
-    val preview by produceState<Bitmap?>(null,source,quad){
-        value?.takeIf{it!==source}?.recycle();value=null
-        if(quad.isValid())value=withContext(Dispatchers.Default){runCatching{PerspectiveTransformProcessor.warp(source,quad)}.getOrNull()}
+    val renderScheduler=remember{BitmapRenderScheduler(48L*1024L*1024L,"WinsPhoto-PerspectivePreview")}
+    DisposableEffect(renderScheduler){onDispose{renderScheduler.close()}}
+    val preview by produceState<Bitmap?>(null,source,quad,renderScheduler){
+        value?.takeIf{it!==source&&!it.isRecycled}?.recycle();value=null
+        if(quad.isValid()){
+            val key="perspective:"+System.identityHashCode(source)+":"+source.width+"x"+source.height+":"+quad.hashCode()
+            var request:Future<Bitmap>?=null
+            try{value=withContext(Dispatchers.IO){request=renderScheduler.request(key){signal->signal.throwIfCanceled();PerspectiveTransformProcessor.warp(source,quad).also{signal.throwIfCanceled()}};request!!.get(60,TimeUnit.SECONDS)}}
+            catch(cancelled:CancellationException){request?.cancel(true);throw cancelled}
+            catch(_:Exception){request?.cancel(true);value=null}
+        }
     }
-    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==source}?.recycle()}}
+    DisposableEffect(preview){onDispose{preview?.takeIf{it!==source&&!it.isRecycled}?.recycle()}}
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))){
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically){Text("Perspective",Modifier.weight(1f),color=Color.White);TextButton(onClick=onCancel){Text("Cancel")};Button(enabled=preview!=null,onClick={preview?.let{onApply(it.copy(Bitmap.Config.ARGB_8888,true),quad)}}){Text("Apply")}}
         Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D)),contentAlignment=Alignment.Center){preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize().padding(8.dp),contentScale=ContentScale.Fit)}?:Text("Adjust corners to correct perspective",color=Color.LightGray)}
