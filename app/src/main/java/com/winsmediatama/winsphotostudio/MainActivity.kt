@@ -142,15 +142,6 @@ private fun WinsPhotoApp() {
     var pendingProjectToOpen by remember { mutableStateOf<com.winsmediatama.winsphotostudio.core.storage.LoadedStudioProject?>(null) }
     fun recordUndo(canvas:Bitmap,label:String){editHistory=(editHistory+EditorSnapshot(layers.toList(),selectedLayerId,canvas,label)).takeLast(MAX_HISTORY_STATES);redoHistory=emptyList();editorDirty=true}
     fun restoreSnapshot(snapshot:EditorSnapshot){layers=snapshot.layers;selectedLayerId=snapshot.selectedLayerId;bitmap=snapshot.canvas;editorDirty=true}
-    fun executePendingEditorAction(action:PendingEditorAction?,project:com.winsmediatama.winsphotostudio.core.storage.LoadedStudioProject?=null){
-        pendingEditorAction=null;pendingProjectToOpen=null
-        when(action){
-            PendingEditorAction.BACK_TO_HOME->{bitmap=null;imageUri=null;editHistory=emptyList();redoHistory=emptyList();layers=emptyList();selectedLayerId=null;editorDirty=false;scope.launch(Dispatchers.IO){RecoveryStore(context).clear()}}
-            PendingEditorAction.IMPORT_ANOTHER->{imagePicker.launch(arrayOf("image/*"))}
-            PendingEditorAction.OPEN_PROJECT->{if(project!=null)scope.launch{val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(project.layers,project.canvasWidth,project.canvasHeight)};bitmap=composite;layers=project.layers;selectedLayerId=project.selectedLayerId?:project.layers.lastOrNull()?.id;editHistory=emptyList();redoHistory=emptyList();editorDirty=false}}
-            null->Unit
-        }
-    }
     var recoveryCandidate by remember { mutableStateOf<RecoveryStore.Recovered?>(null) }
     fun commitEdit(edited:Bitmap,previousComposite:Bitmap,flatten:Boolean=false) {
         val selected=layers.firstOrNull{it.id==selectedLayerId}
@@ -263,6 +254,16 @@ private fun WinsPhotoApp() {
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) { imageUri = uri; loading = true; error = null; editHistory=emptyList();redoHistory=emptyList();editorDirty=false }
     }
+    fun executePendingEditorAction(action:PendingEditorAction?,project:com.winsmediatama.winsphotostudio.core.storage.LoadedStudioProject?=null){
+        pendingEditorAction=null;pendingProjectToOpen=null
+        when(action){
+            PendingEditorAction.BACK_TO_HOME->{bitmap=null;imageUri=null;editHistory=emptyList();redoHistory=emptyList();layers=emptyList();selectedLayerId=null;editorDirty=false;scope.launch(Dispatchers.IO){RecoveryStore(context).clear()}}
+            PendingEditorAction.IMPORT_ANOTHER->{imagePicker.launch(arrayOf("image/*"))}
+            PendingEditorAction.OPEN_PROJECT->{if(project!=null)scope.launch{val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(project.layers,project.canvasWidth,project.canvasHeight)};bitmap=composite;layers=project.layers;selectedLayerId=project.selectedLayerId?:project.layers.lastOrNull()?.id;editHistory=emptyList();redoHistory=emptyList();editorDirty=false}}
+            null->Unit
+        }
+    }
+
     LaunchedEffect(Unit) {
         recoveryCandidate=withContext(Dispatchers.IO){RecoveryStore(context).recover()}
     }
