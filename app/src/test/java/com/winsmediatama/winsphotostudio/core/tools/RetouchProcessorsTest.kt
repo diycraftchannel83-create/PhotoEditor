@@ -29,4 +29,12 @@ class RetouchProcessorsTest {
         assertEquals(255,Color.alpha(out.getPixel(0,0)))
         assertNotEquals(Color.RED,out.getPixel(0,0))
     }
+    @Test fun canceledRetouchProcessorsAbortWithoutChangingSource() {
+        val source=Bitmap.createBitmap(2,2,Bitmap.Config.ARGB_8888);source.eraseColor(Color.GREEN)
+        val signal=android.os.CancellationSignal().apply{cancel()}
+        assertThrows(android.os.OperationCanceledException::class.java){RetouchProcessors.dodgeBurn(source,1f,.5f,cancellation=signal)}
+        assertThrows(android.os.OperationCanceledException::class.java){RetouchProcessors.spotHeal(source,1,1,1,signal)}
+        assertThrows(android.os.OperationCanceledException::class.java){RetouchProcessors.smudge(source,1,1,.5f,signal)}
+        assertEquals(Color.GREEN,source.getPixel(0,0))
+    }
 }
