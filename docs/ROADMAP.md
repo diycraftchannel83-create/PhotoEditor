@@ -144,7 +144,7 @@
 - [x] Non-destructive operation-project save/load/replay regression tests authored (verification pending)
 - [x] Save-as UI (save current with a new project name)
 - [x] Recent/saved project list with open, rename, duplicate, delete (existing ProjectScreen; refresh-on-action)
-- [ ] Unsaved-changes protection
+- [x] Basic unsaved-changes guard for editor Back, Replace/import and opening another saved project; Save routes to Project manager, Discard continues and Cancel blocks (build/UI verification pending)
 - [x] Basic Adjustment operation stack is live-integrated and per-layer operation metadata is saved in projects/recovery
 - [x] Levels, Curves, HSL, Transform, Effects and LUT live operation integration and per-layer persistence
 - [x] Operation stack toggle, reorder, remove and reset UI
@@ -184,7 +184,7 @@
 - [x] Layer-preserving undo/redo history and History panel
 - [x] Mask/group/lock/clipping models, processors and persistence
 - [x] Selection, retouch, effect, LUT, perspective, canvas-size, background replacement and recovery feature batches added
-- [ ] **No build, CI, lint or test execution during this feature pass by request.**
+- [ ] **No build, CI, lint or test execution during this feature pass by request.**\n- [x] Unsaved editor state guard added to Back, Replace/import and opening saved projects; Save routes to Project manager and the action must be repeated after save; Discard executes the pending action; Cancel aborts (implementation committed, verification deferred).
 - [ ] Source-level audit and final feature integration pass still required before build/CI verification.
 
 
