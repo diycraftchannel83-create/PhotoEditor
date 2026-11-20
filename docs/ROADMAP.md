@@ -497,3 +497,12 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [ ] Continue cancellation and memory profiling for selection apply/export paths, not only preview.
 
 - [x] Selection mask overlay compositing also checks cancellation by row and cleans scaled/output bitmap ownership on interruption.
+
+
+## Tiled preview import continuation — 20 November 2026
+
+- [x] RegionPreviewAssembler builds a bounded preview by decoding source rectangles in tiles and composing them to the sampled output.
+- [x] Import path uses the region/tile assembler as a fallback if the bounds-first preview decoder returns no bitmap.
+- [x] Tile/output sizing is factored into a safety-checked helper; regression tests cover sampling, custom dimensions and invalid input.
+- [ ] Region-preview seam/orientation tests, cancellation UI propagation and device profiling remain pending.
+- [ ] Tile-aware editing/effect/export replay remains separate work; the import fallback does not imply full tiled editing.
