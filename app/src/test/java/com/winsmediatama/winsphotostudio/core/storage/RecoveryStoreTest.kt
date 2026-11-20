@@ -96,4 +96,23 @@ class RecoveryStoreTest {
         assertNull(store.recover())
         store.clear()
     }
+    @Test fun legacyRecoverySchemaOneLoadsMissingOptionalMetadataDefaults() {
+        val context=org.robolectric.RuntimeEnvironment.getApplication()
+        val store=RecoveryStore(context)
+        val root=java.io.File(context.filesDir,"studio-recovery")
+        val snapshotDir=java.io.File(root,"snapshot").apply{mkdirs()}
+        val asset=Bitmap.createBitmap(2,2,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.YELLOW)}
+        java.io.File(snapshotDir,"legacy.png").outputStream().use{asset.compress(Bitmap.CompressFormat.PNG,100,it)}
+        val layers=org.json.JSONArray().put(org.json.JSONObject().put("id","legacy").put("name","Legacy").put("asset","legacy.png"))
+        val recovery=org.json.JSONObject().put("schemaVersion",1).put("canvasWidth",2).put("canvasHeight",2).put("layers",layers)
+        java.io.File(snapshotDir,"recovery.json").writeText(recovery.toString())
+        java.io.File(root,"recovery.json").writeText(org.json.JSONObject().put("snapshot","snapshot/recovery.json").toString())
+        val restored=store.recover()
+        assertNotNull(restored)
+        assertEquals("Legacy",restored!!.layers.single().name)
+        assertEquals(1f,restored.layers.single().opacity,.001f)
+        assertFalse(restored.layers.single().locked)
+        assertEquals(Color.YELLOW,restored.layers.single().bitmap.getPixel(0,0))
+        store.clear()
+    }
 }
