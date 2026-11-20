@@ -321,3 +321,9 @@ Build verification and release readiness must be tracked honestly. Check the lat
 - [x] LayerCompositeRenderer now tracks renderer-owned replay, mask, clip, opacity and group bitmaps by identity.
 - [x] Owned temporaries are cleaned in outer `finally`, including renderer exceptions; output bitmap is recycled on failure.
 - [ ] Processor-internal exception cleanup and comprehensive tests remain pending; verification not run.
+
+
+### Compositor processor failure cleanup
+- `LayerMaskProcessor.apply`, `combineMultiply`, `createWhiteMask`, and `invert` now recycle their generated outputs when an operation fails, and scaled mask temporaries are always cleaned in `finally` without recycling caller-owned masks.
+- `ClipAlphaProcessor.apply` now cleans its result bitmap if pixel transfer fails; its scaled base is still cleaned on every path.
+- Regression tests remain authored but **not executed**; build/test/CI intentionally deferred.
