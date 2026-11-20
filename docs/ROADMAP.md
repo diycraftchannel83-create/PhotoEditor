@@ -10,6 +10,7 @@
 - [x] Streaming multi-layer tiled PNG export: per-layer operation replay, halo spatial support, masks, opacity, and supported blend modes; flat canvas-aligned layers only; parity test authored, not run
 - [x] Group-aware streaming compositor: contiguous groups, per-child operations/masks/opacity/blend, group opacity/blend; clipping and Difference rejected (group parity test authored, not run)
 - [x] Flat clipping-to-below alpha replay: previous visible source alpha is preserved with mask and opacity, per-band replay, and clipped-layer streaming; groups/Difference excluded (parity test authored, not run)
+- [x] Difference blend for flat streaming paths: explicit alpha-aware row compositor for ordinary flat stacks and operation replay; groups/clipping Difference excluded (test authored, not run)
 - [x] Android Kotlin/Compose scaffold, SAF import/export, offline-first foundation
 - [x] CI workflow configured
 - [x] Source dependency/license inventory documented (resolved transitive licenses and vulnerability scan remain release audit items)
