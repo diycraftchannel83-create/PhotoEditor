@@ -184,7 +184,7 @@ private fun buildSelectionOverlay(source:Bitmap,shape:SelectionShape,rect:Rect,p
     }
     try {
         val processed=processSelectionMask(mask,invertSelection,expandRadius.toInt(),featherRadius.toInt(),cancellation)
-        try{return buildMaskOverlay(source,processed)}finally{if(!processed.isRecycled)processed.recycle()}
+        try{return buildMaskOverlay(source,processed,cancellation)}finally{if(!processed.isRecycled)processed.recycle()}
     } finally { if(!mask.isRecycled)mask.recycle() }
 }
 private fun Rect.normalize()=Rect(minOf(left,right),minOf(top,bottom),maxOf(left,right),maxOf(top,bottom))
@@ -223,13 +223,18 @@ private fun applyMask(source:Bitmap,mask:Bitmap):Bitmap {
     for(i in pixels.indices){val p=pixels[i];val m=android.graphics.Color.red(mp[i]);val a=(p ushr 24)*m/255;pixels[i]=(a shl 24) or (p and 0x00FFFFFF)}
     return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(pixels,0,w,0,0,w,h)}
 }
-private fun buildMaskOverlay(source:Bitmap,mask:Bitmap):Bitmap {
+private fun buildMaskOverlay(source:Bitmap,mask:Bitmap,cancellation:android.os.CancellationSignal?=null):Bitmap {
     val w=source.width;val h=source.height
+    cancellation?.throwIfCanceled()
     val scaled=if(mask.width==w&&mask.height==h) mask else Bitmap.createScaledBitmap(mask,w,h,true)
-    val pixels=IntArray(w*h);scaled.getPixels(pixels,0,w,0,0,w,h)
-    if(scaled!==mask)scaled.recycle()
-    val overlay=IntArray(pixels.size){i->val alpha=(android.graphics.Color.red(pixels[i])*.3f).toInt().coerceIn(0,255);android.graphics.Color.argb(alpha,119,215,192)}
-    return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(overlay,0,w,0,0,w,h)}
+    try {
+        val pixels=IntArray(w*h);scaled.getPixels(pixels,0,w,0,0,w,h)
+        val overlay=IntArray(pixels.size)
+        for(y in 0 until h){cancellation?.throwIfCanceled();for(x in 0 until w){val i=y*w+x;val alpha=(android.graphics.Color.red(pixels[i])*.3f).toInt().coerceIn(0,255);overlay[i]=android.graphics.Color.argb(alpha,119,215,192)}}
+        cancellation?.throwIfCanceled()
+        val result=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888)
+        try{result.setPixels(overlay,0,w,0,0,w,h);cancellation?.throwIfCanceled();return result}catch(error:Throwable){if(!result.isRecycled)result.recycle();throw error}
+    } finally { if(scaled!==mask&&!scaled.isRecycled)scaled.recycle() }
 }
 private fun renderSavedMask(source:Bitmap,mask:Bitmap,action:SelectionAction,invert:Boolean,expand:Int,feather:Int):SelectionOutput {
     val w=source.width;val h=source.height
