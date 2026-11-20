@@ -57,6 +57,7 @@ import com.winsmediatama.winsphotostudio.ui.tools.RetouchScreen
 import com.winsmediatama.winsphotostudio.ui.tools.BackgroundRemoveScreen
 import com.winsmediatama.winsphotostudio.ui.tools.AiBackgroundRemoveScreen
 import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
+import com.winsmediatama.winsphotostudio.core.editor.EditorBlendMode
 import com.winsmediatama.winsphotostudio.core.history.EditOperation
 import com.winsmediatama.winsphotostudio.core.history.NonDestructiveEditStack
 import com.winsmediatama.winsphotostudio.core.adjustments.TransformProcessor
