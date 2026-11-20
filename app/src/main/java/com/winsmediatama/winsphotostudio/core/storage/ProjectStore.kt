@@ -69,8 +69,12 @@ class ProjectStore(context: Context) {
     fun projectName(projectFolder: File): String = readManifest(projectFolder).optString("name", projectFolder.name)
 
     fun saveLayerProject(layers:List<EditorLayer>,selectedLayerId:String?,canvasWidth:Int,canvasHeight:Int,projectName:String):File {
+        require(layers.isNotEmpty()&&layers.size<=100){"Project must contain 1-100 layers"}
+        require(canvasWidth>0&&canvasHeight>0&&canvasWidth.toLong()*canvasHeight<=24_000_000L){"Project canvas exceeds 24 MP safety limit"}
+        require(projectName.trim().length<=120){"Project name is too long"}
         val id=UUID.randomUUID().toString()
         val folder=File(root,id).apply{mkdirs()}
+        try {
         File(folder,"assets").mkdirs()
         val layerArray=JSONArray()
         layers.forEachIndexed{index,layer->
@@ -86,6 +90,10 @@ class ProjectStore(context: Context) {
             .put("selectedLayerId",selectedLayerId).put("layers",layerArray)
         writeManifestAtomically(folder,manifest)
         return folder
+        } catch(error:Throwable) {
+            folder.deleteRecursively()
+            throw error
+        }
     }
 
     fun loadEditableProject(projectFolder:File):LoadedStudioProject? = runCatching {
