@@ -294,3 +294,7 @@
 - [x] Added before/after preview toggle that renders the retained source layer with replayable operations/mask removed, preserves other layers, renders on demand in background, and disables edit/history controls while comparison is active (source implementation; verification pending).
 
 - [x] Before/After comparison includes on-demand background rendering, stale-result rejection, error feedback and editor-action gating (source implementation; verification pending).
+
+
+### Export metadata policy
+- [x] Edited JPEG/PNG exports are generated from bitmap content without copying source EXIF/location metadata; export UI states this policy. Dimension/metadata tests remain pending.
