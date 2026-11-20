@@ -38,6 +38,60 @@ object TiledPngEncoder {
         width, height, output, cancellation
     )
 
+    fun encodeRows(
+        width: Int,
+        height: Int,
+        output: OutputStream,
+        cancellation: CancellationSignal? = null,
+        rowProvider: (Int, IntArray) -> Unit
+    ) {
+        require(width in 1..MAX_DIMENSION && height in 1..MAX_DIMENSION) { "PNG dimensions exceed supported bounds" }
+        writePngHeader(output, width, height)
+        val deflater = Deflater(Deflater.DEFAULT_COMPRESSION)
+        val compressed = ByteArray(DEFLATE_BUFFER)
+        val row = ByteArray(width * 4 + 1)
+        val pixels = IntArray(width)
+        try {
+            for (y in 0 until height) {
+                cancellation?.throwIfCanceled()
+                rowProvider(y, pixels)
+                row[0] = 0
+                var cursor = 1
+                pixels.forEach { pixel ->
+                    row[cursor++] = (pixel ushr 16).toByte()
+                    row[cursor++] = (pixel ushr 8).toByte()
+                    row[cursor++] = pixel.toByte()
+                    row[cursor++] = (pixel ushr 24).toByte()
+                }
+                deflater.setInput(row)
+                while (!deflater.needsInput()) {
+                    cancellation?.throwIfCanceled()
+                    val count = deflater.deflate(compressed)
+                    if (count > 0) writeChunk(output, "IDAT", compressed.copyOf(count))
+                    else if (!deflater.needsInput()) throw IllegalStateException("PNG deflater made no progress")
+                }
+            }
+            deflater.finish()
+            while (!deflater.finished()) {
+                cancellation?.throwIfCanceled()
+                val count = deflater.deflate(compressed)
+                if (count > 0) writeChunk(output, "IDAT", compressed.copyOf(count))
+                else if (!deflater.finished()) throw IllegalStateException("PNG deflater made no progress during finish")
+            }
+            writeChunk(output, "IEND", byteArrayOf())
+            output.flush()
+        } finally { deflater.end() }
+    }
+
+    private fun writePngHeader(output: OutputStream, width: Int, height: Int) {
+        output.write(byteArrayOf(137.toByte(), 80.toByte(), 78.toByte(), 71.toByte(), 13.toByte(), 10.toByte(), 26.toByte(), 10.toByte()))
+        writeChunk(output, "IHDR", byteArrayOf(
+            (width ushr 24).toByte(), (width ushr 16).toByte(), (width ushr 8).toByte(), width.toByte(),
+            (height ushr 24).toByte(), (height ushr 16).toByte(), (height ushr 8).toByte(), height.toByte(),
+            8, 6, 0, 0, 0
+        ))
+    }
+
     fun encode(
         tiles: List<BitmapTileProcessor.ProcessedTile>,
         width: Int,
