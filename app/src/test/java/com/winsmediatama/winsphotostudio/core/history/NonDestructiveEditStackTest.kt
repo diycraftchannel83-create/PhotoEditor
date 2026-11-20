@@ -175,6 +175,12 @@ DOMAIN_MAX 1 1 1
         assertEquals(255,Color.alpha(disabled.getPixel(1,0)))
         output.recycle();disabled.recycle();mask.recycle();source.recycle()
     }
+    @Test fun selectionMaskRejectsMalformedPngPayload() {
+        val invalid=EditOperation.SelectionMask(maskBase64="not-a-png",maskWidth=2,maskHeight=2)
+        assertFalse(invalid.valid())
+        val oversized=EditOperation.SelectionMask(maskBase64="AA",maskWidth=16384,maskHeight=16384)
+        assertFalse(oversized.valid())
+    }
     @Test fun stackSupportsInsertAndReorder() {
         val src=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
         val first=EditOperation.BasicAdjust(values=BasicAdjustmentValues(brightness=.1f))
