@@ -18,30 +18,59 @@ class RecoveryStore(context:Context) {
 
     @Synchronized fun save(layers:List<EditorLayer>,selectedLayerId:String?,canvasWidth:Int,canvasHeight:Int) {
         require(layers.isNotEmpty()){"Cannot autosave an empty layer stack"}
+        require(canvasWidth>0&&canvasHeight>0&&canvasWidth.toLong()*canvasHeight<=24_000_000L){"Recovery canvas exceeds 24 MP safety limit"}
         val staging=File(root,"snapshot.tmp").apply{deleteRecursively();mkdirs()}
-        File(staging,"assets").mkdirs()
-        val entries=JSONArray()
-        layers.forEachIndexed{index,layer->
-            val asset="assets/layer_$index.png"
-            File(staging,asset).outputStream().use{if(!layer.bitmap.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write recovery layer $index")}
-            val originalAsset=layer.originalBitmap?.let{original->val path="assets/original_$index.png";File(staging,path).outputStream().use{if(!original.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write recovery original $index")};path}
-            val operations=if(layer.operations.isNotEmpty())NonDestructiveEditStack(layer.originalBitmap?:layer.bitmap,layer.operations).toJson()else null
-            val maskAsset=layer.mask?.let{mask->val path="assets/mask_$index.png";File(staging,path).outputStream().use{if(!mask.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write recovery mask $index")};path}
-            entries.put(JSONObject().put("id",layer.id).put("name",layer.name).put("visible",layer.visible).put("opacity",layer.opacity).put("blendMode",layer.blendMode.name).put("locked",layer.locked).put("alphaLocked",layer.alphaLocked).put("groupId",layer.groupId).put("groupName",layer.groupName).put("groupOpacity",layer.groupOpacity).put("groupBlendMode",layer.groupBlendMode?.name).put("clipToBelow",layer.clipToBelow).put("asset",asset).put("originalAsset",originalAsset).put("operations",operations).put("maskAsset",maskAsset))
-        }
-        val json=JSONObject().put("schemaVersion",3).put("canvasWidth",canvasWidth).put("canvasHeight",canvasHeight).put("selectedLayerId",selectedLayerId).put("updatedAt",System.currentTimeMillis()).put("layers",entries)
-        File(staging,"recovery.json").writeText(json.toString(2))
-        val target=File(root,"snapshot");val backup=File(root,"snapshot.bak")
-        backup.deleteRecursively()
-        if(target.exists()&&!target.renameTo(backup))throw IllegalStateException("Could not stage previous recovery snapshot")
-        if(!staging.renameTo(target)){if(backup.exists())backup.renameTo(target);throw IllegalStateException("Could not atomically replace recovery snapshot")}
+        val target=File(root,"snapshot")
+        val backup=File(root,"snapshot.bak")
         val manifestTemp=File(root,"recovery.tmp")
-        manifestTemp.writeText(JSONObject().put("snapshot","snapshot/recovery.json").put("updatedAt",System.currentTimeMillis()).toString())
         val manifestBackup=File(root,"recovery.bak")
-        manifestBackup.delete()
-        if(manifest.exists()&&!manifest.renameTo(manifestBackup))throw IllegalStateException("Could not stage recovery manifest")
-        if(!manifestTemp.renameTo(manifest)){if(manifestBackup.exists())manifestBackup.renameTo(manifest);throw IllegalStateException("Recovery manifest write failed")}
-        manifestBackup.delete();backup.deleteRecursively()
+        var oldSnapshotMoved=false
+        var newSnapshotInstalled=false
+        var oldManifestMoved=false
+        var newManifestInstalled=false
+        try {
+            File(staging,"assets").mkdirs()
+            val entries=JSONArray()
+            layers.forEachIndexed{index,layer->
+                val asset="assets/layer_$index.png"
+                File(staging,asset).outputStream().use{if(!layer.bitmap.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write recovery layer $index")}
+                val originalAsset=layer.originalBitmap?.let{original->val path="assets/original_$index.png";File(staging,path).outputStream().use{if(!original.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write recovery original $index")};path}
+                val operations=if(layer.operations.isNotEmpty())NonDestructiveEditStack(layer.originalBitmap?:layer.bitmap,layer.operations).toJson()else null
+                val maskAsset=layer.mask?.let{mask->val path="assets/mask_$index.png";File(staging,path).outputStream().use{if(!mask.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write recovery mask $index")};path}
+                entries.put(JSONObject().put("id",layer.id).put("name",layer.name).put("visible",layer.visible).put("opacity",layer.opacity).put("blendMode",layer.blendMode.name).put("locked",layer.locked).put("alphaLocked",layer.alphaLocked).put("groupId",layer.groupId).put("groupName",layer.groupName).put("groupOpacity",layer.groupOpacity).put("groupBlendMode",layer.groupBlendMode?.name).put("clipToBelow",layer.clipToBelow).put("asset",asset).put("originalAsset",originalAsset).put("operations",operations).put("maskAsset",maskAsset))
+            }
+            val json=JSONObject().put("schemaVersion",3).put("canvasWidth",canvasWidth).put("canvasHeight",canvasHeight).put("selectedLayerId",selectedLayerId).put("updatedAt",System.currentTimeMillis()).put("layers",entries)
+            File(staging,"recovery.json").writeText(json.toString(2))
+            manifestTemp.writeText(JSONObject().put("snapshot","snapshot/recovery.json").put("updatedAt",System.currentTimeMillis()).toString())
+
+            backup.deleteRecursively()
+            if(target.exists()) {
+                if(!target.renameTo(backup))throw IllegalStateException("Could not stage previous recovery snapshot")
+                oldSnapshotMoved=true
+            }
+            if(!staging.renameTo(target))throw IllegalStateException("Could not install recovery snapshot")
+            newSnapshotInstalled=true
+
+            manifestBackup.delete()
+            if(manifest.exists()) {
+                if(!manifest.renameTo(manifestBackup))throw IllegalStateException("Could not stage previous recovery manifest")
+                oldManifestMoved=true
+            }
+            if(!manifestTemp.renameTo(manifest))throw IllegalStateException("Recovery manifest write failed")
+            newManifestInstalled=true
+            manifestBackup.delete()
+            backup.deleteRecursively()
+        } catch(error:Throwable) {
+            if(newManifestInstalled&&manifest.exists())manifest.delete()
+            if(oldManifestMoved&&manifestBackup.exists())manifestBackup.renameTo(manifest)
+            if(newSnapshotInstalled)target.deleteRecursively()
+            if(oldSnapshotMoved&&backup.exists())backup.renameTo(target)
+            throw error
+        } finally {
+            staging.deleteRecursively()
+            manifestTemp.delete()
+            if(!newManifestInstalled)manifestBackup.takeIf{it.exists()&&manifest.exists()}?.delete()
+        }
     }
     fun exists():Boolean=manifest.isFile
     fun recover():Recovered?=runCatching{
