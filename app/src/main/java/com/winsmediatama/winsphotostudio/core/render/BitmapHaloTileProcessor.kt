@@ -1,4 +1,4 @@
-package com.winsmediatama.winsphotudio.core.render
+package com.winsmediatama.winsphotostudio.core.render
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
