@@ -49,6 +49,13 @@ sealed interface LayerNode {
         override val visible:Boolean=true,
         override val opacity:Float=1f
     ):LayerNode
+
+}
+
+object LayerTreeRenderer {
+    private const val MAX_PIXELS=24_000_000L
+    private const val MAX_DEPTH=32
+
     private fun applyAdjustment(target:Bitmap,node:LayerNode.AdjustmentNode) {
         val adjusted=NonDestructiveEditStack(target,listOf(node.operation)).render()
         try {
@@ -80,11 +87,6 @@ sealed interface LayerNode {
         } finally { if(!adjusted.isRecycled)adjusted.recycle() }
     }
 
-}
-
-object LayerTreeRenderer {
-    private const val MAX_PIXELS=24_000_000L
-    private const val MAX_DEPTH=32
 
     fun render(nodes:List<LayerNode>,width:Int,height:Int):Bitmap=renderInternal(nodes,width,height,0)
 
