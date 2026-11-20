@@ -15,7 +15,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.winsmediatama.winsphotostudio.core.render.BitmapRenderScheduler
 import com.winsmediatama.winsphotostudio.core.tools.CanvasAnchor
-import com.winsmediatama.winsmediatama.winsphotostudio.core.tools.CanvasResizeProcessor
+import com.winsmediatama.winsphotostudio.core.tools.CanvasResizeProcessor
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
