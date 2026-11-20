@@ -3,6 +3,7 @@ package com.winsmediatama.winsphotostudio.core.render
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.CancellationSignal
+import android.os.OperationCanceledException
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -18,8 +19,8 @@ class BitmapTileProcessorTest {
         assertEquals(6,tiles.size)
         assertEquals(520,source.width)
         assertEquals(Color.RED,source.getPixel(0,0))
-        assertEquals(8,tiles.last().sourceRect.left)
-        assertEquals(44,tiles.last().sourceRect.width())
+        assertEquals(512,tiles.last().sourceRect.left)
+        assertEquals(8,tiles.last().sourceRect.width())
         BitmapTileProcessor.recycleTiles(tiles)
         source.recycle()
     }
