@@ -21,4 +21,11 @@ class PerspectiveTransformProcessorTest {
         val invalid=PerspectiveQuad(0f to 0f,1f to 1f,0f to 1f,1f to 0f)
         assertThrows(IllegalArgumentException::class.java){PerspectiveTransformProcessor.warp(source,invalid)}
     }
+    @Test fun cancellationAndOversizedOutputAreRejectedBeforeWarp() {
+        val source=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888);source.setPixel(0,0,Color.BLUE)
+        val signal=android.os.CancellationSignal().apply{cancel()}
+        assertThrows(android.os.OperationCanceledException::class.java){PerspectiveTransformProcessor.warp(source,PerspectiveQuad.IDENTITY,cancellation=signal)}
+        assertThrows(IllegalArgumentException::class.java){PerspectiveTransformProcessor.warp(source,PerspectiveQuad.IDENTITY,5000,5000)}
+        assertEquals(Color.BLUE,source.getPixel(0,0))
+    }
 }
