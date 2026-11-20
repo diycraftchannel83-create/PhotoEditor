@@ -3,7 +3,6 @@ package com.winsmediatama.winsphotostudio.core.render
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.os.CancellationSignal
-import com.winsmediatama.winsphotostudio.core.importer.BitmapTilePlanner
 
 /**
  * Bounded source-region rendering primitive. A processor receives a single source tile and must
