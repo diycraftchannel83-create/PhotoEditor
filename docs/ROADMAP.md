@@ -207,3 +207,9 @@
 ## Compositing safety
 - [x] Layer compositor applies a 24 MP guard before allocating output bitmap; oversized allocation regression test authored (verification deferred)
 - [ ] Audit temporary bitmap ownership/recycling under every blend, mask, clip and group branch
+
+
+## Compositor lifecycle audit continuation
+- [x] Add explicit bitmap ownership/recycling checklist and branch audit matrix (`docs/COMPOSITOR_AUDIT.md`).
+- [ ] Inspect current compositor source branch-by-branch and apply fixes (source fetch/search unavailable in this continuation; avoid ungrounded code changes).
+- [ ] Add success/exception/aliasing regression tests and verify later.
