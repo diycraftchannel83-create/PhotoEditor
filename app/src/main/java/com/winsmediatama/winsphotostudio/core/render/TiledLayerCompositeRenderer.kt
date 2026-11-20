@@ -306,13 +306,12 @@ object TiledLayerCompositeRenderer {
         require(layers.none{it.groupId!=null}){"Clipping stream does not support groups"}
         require(layers.none{it.blendMode==EditorBlendMode.DIFFERENCE}){"Difference blend unsupported in clipping stream"}
         require(layers.all{it.bitmap.width==width&&it.bitmap.height==height}){"Canvas-aligned layers required"}
-        require(layers.all{it.mask==null||(it.mask.width==width&&it.mask.height==height)}){"Canvas-aligned masks required"}
+        require(layers.all{it.mask==null||(it.mask.width==width&&it.mask.height==height}){"Canvas-aligned masks required"}
         require(layers.filter{it.visible}.all{TiledOperationReplayProcessor.supportsHalo(it.operations)}){"Unsupported operation replay"}
         val visibleCount=layers.count{it.visible&&!it.bitmap.isRecycled}.coerceAtLeast(1)
         val bandHeight=minOf(tileSize,(4_000_000L/(width.toLong()*visibleCount)).coerceAtLeast(1L).toInt())
         var bandTopActive=-1
         val replayBands=mutableMapOf<String,Bitmap>()
-        var previousAlphaRow:Bitmap?=null
         fun clearBand(){replayBands.values.forEach{if(!it.isRecycled)it.recycle()};replayBands.clear()}
         try{
             TiledPngEncoder.encodeRows(width,height,output,cancellation,cancelCheck){y,row->
@@ -332,6 +331,7 @@ object TiledLayerCompositeRenderer {
                     cancellation?.throwIfCanceled();cancelCheck?.invoke()
                     val sw=minOf(tileSize,width-left)
                     val composite=Bitmap.createBitmap(sw,1,Bitmap.Config.ARGB_8888)
+                    var previousAlphaRow:Bitmap?=null
                     try{
                         val canvas=Canvas(composite)
                         layers.filter{it.visible&&!it.bitmap.isRecycled}.forEach{layer->
@@ -339,7 +339,7 @@ object TiledLayerCompositeRenderer {
                             val sourceRow=Bitmap.createBitmap(replay,left,y-bandTop,sw,1)
                             var masked:Bitmap?=null
                             var clipped:Bitmap?=null
-                            var alphaSource:Bitmap?=null
+                            var storedAlpha:Bitmap?=null
                             try{
                                 masked=layer.mask?.let{mask->
                                     val maskRow=Bitmap.createBitmap(mask,left,y,sw,1)
@@ -352,32 +352,27 @@ object TiledLayerCompositeRenderer {
                                     xfermode=blendMode(layer.blendMode)
                                 }
                                 canvas.drawBitmap(clipped!!,0f,0f,paint);paint.xfermode=null
-                                alphaSource=if(layer.opacity<1f){
-                                    val opacityBitmap=Bitmap.createBitmap(sw,1,Bitmap.Config.ARGB_8888)
-                                    val pixels=IntArray(sw);clipped!!.getPixels(pixels,0,sw,0,0,sw,1)
-                                    for(i in pixels.indices)pixels[i]=( ((pixels[i] ushr 24)*layer.opacity.coerceIn(0f,1f)).toInt() shl 24) or (pixels[i] and 0x00FFFFFF)
-                                    opacityBitmap.setPixels(pixels,0,sw,0,0,sw,1);opacityBitmap
-                                }else clipped
-                                if(alphaSource!==previousAlphaRow){
-                                    previousAlphaRow?.let{if(!it.isRecycled)it.recycle()}
-                                    previousAlphaRow=alphaSource
-                                }
+                                val pixels=IntArray(sw);clipped!!.getPixels(pixels,0,sw,0,0,sw,1)
+                                for(i in pixels.indices)pixels[i]=( ((pixels[i] ushr 24)*layer.opacity.coerceIn(0f,1f)).toInt() shl 24) or (pixels[i] and 0x00FFFFFF)
+                                storedAlpha=Bitmap.createBitmap(sw,1,Bitmap.Config.ARGB_8888).also{it.setPixels(pixels,0,sw,0,0,sw,1)}
+                                previousAlphaRow?.let{if(!it.isRecycled)it.recycle()}
+                                previousAlphaRow=storedAlpha
                             }finally{
-                                if(alphaSource!==clipped)alphaSource?.let{if(!it.isRecycled)it.recycle()}
+                                storedAlpha?.takeIf{it!==previousAlphaRow}?.let{if(!it.isRecycled)it.recycle()}
                                 clipped?.takeIf{it!==sourceRow&&it!==masked}?.let{if(!it.isRecycled)it.recycle()}
                                 masked?.let{if(!it.isRecycled)it.recycle()}
                                 if(!sourceRow.isRecycled)sourceRow.recycle()
                             }
                         }
                         composite.getPixels(row,left,width,0,0,sw,1)
-                    }finally{if(!composite.isRecycled)composite.recycle()}
+                    }finally{
+                        previousAlphaRow?.let{if(!it.isRecycled)it.recycle()}
+                        if(!composite.isRecycled)composite.recycle()
+                    }
                     left+=sw
                 }
             }
-        }finally{
-            clearBand()
-            previousAlphaRow?.takeUnless{it.isRecycled}?.recycle()
-        }
+        }finally{clearBand()}
     }
 
     fun renderTiles(
