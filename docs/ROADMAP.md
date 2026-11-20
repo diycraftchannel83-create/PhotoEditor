@@ -633,3 +633,15 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Relax PNG RGB round-trip assertion to ±2 while retaining exact alpha comparison to account for premultiplied-alpha conversion rounding.
 - [ ] Re-run unit-test CI and analyze remaining renderer/compositor/tile failures; test environment changes are hypotheses until CI confirms.
 - [ ] Do not resume APK/AAB builds until unit-test suite is stable and passing.
+
+
+## Compose preview bitmap lifetime crash fix — 20 November 2026
+
+- [x] Stop recycling Crop/Transform, Levels and Adjust preview bitmaps immediately when preview state changes; Compose may still be drawing the prior frame.
+- [x] Retain tool-owned preview bitmap copies for the screen lifetime and release them when the tool screen is disposed; render scheduler is closed on disposal.
+- [x] Apply the same ownership strategy to the Operation Stack preview.
+- [ ] Audit remaining preview screens (Curves, HSL, LUT, Filters, Effects, Perspective, Retouch, Canvas Size, Background tools and AI preview) for early recycling and shared/caller-owned bitmap mistakes.
+- [ ] Add focused lifecycle regression coverage and verify crash-free navigation, slider updates and apply/cancel on-device.
+- [ ] Run unit tests/CI and inspect failures; source changes are not yet build verified.
+
+**Root cause addressed:** `produceState` previously recycled the previous preview as soon as new render parameters arrived. Compose can still hold the previous `BitmapPainter`/`ImageBitmap` in a recorded draw pass, causing `Canvas: trying to use a recycled bitmap`. The fix deliberately defers preview release until the composable screen is disposed. This is a targeted safety fix, not proof all bitmap ownership paths are correct.
