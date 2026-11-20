@@ -51,6 +51,27 @@ class TiledOperationReplayProcessorTest {
         } finally { source.recycle();reference.recycle() }
     }
 
+    @Test fun streamedBlurHaloReplayMatchesFullStackAcrossBands() {
+        val source=Bitmap.createBitmap(45,37,Bitmap.Config.ARGB_8888)
+        for(y in 0 until source.height) for(x in 0 until source.width)
+            source.setPixel(x,y,Color.argb(255,(x*9)%256,(y*15)%256,(x*y*5)%256))
+        val settings=com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectSettings(
+            kind=com.winsmediatama.winsphotudio.core.adjustments.PhotoEffectKind.BLUR,
+            strength=.15f
+        )
+        val operation=EditOperation.Effect(settings=settings)
+        val reference=com.winsmediatama.winsphotudio.core.adjustments.EffectProcessor.gaussianBlur(source,3)
+        val bytes=java.io.ByteArrayOutputStream()
+        try {
+            assertEquals(3,TiledOperationReplayProcessor.haloRadius(listOf(operation)))
+            TiledPngEncoder.encodeOperationReplayStreaming(source,listOf(operation),bytes,tileSize=32)
+            val decoded=requireNotNull(BitmapFactory.decodeByteArray(bytes.toByteArray(),0,bytes.size()))
+            for(y in 0 until source.height) for(x in 0 until source.width)
+                assertEquals("blur pixel $x,$y",reference.getPixel(x,y),decoded.getPixel(x,y))
+            decoded.recycle()
+        } finally { source.recycle();reference.recycle() }
+    }
+
     @Test fun unsupportedSpatialOperationsAreRejectedBeforeProcessing() {
         val source=Bitmap.createBitmap(4,4,Bitmap.Config.ARGB_8888)
         val crop=EditOperation.Crop(left=0f,top=0f,right=.5f,bottom=.5f)
