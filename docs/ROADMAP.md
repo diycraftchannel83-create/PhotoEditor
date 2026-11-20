@@ -23,7 +23,9 @@
 - [ ] Full crop/transform correctness and undo regression tests (test files authored; verification pending)
 - [x] Source-level repair of Text & Shapes multiline and line-spacing declarations (build deferred)
 - [x] Align non-destructive Transform replay with TransformProcessor API (build deferred)
-- [x] Disk-backed original source cache foundation (copy original without decoding, transactional cache replacement, cache status surfaced; regression tests authored)\n- [x] Add source-resolution replay foundation that scales Transform/Perspective/CanvasSize dimension parameters while retaining normalized geometry; 24 MP safety guards added; tests authored (verification deferred)\n- [x] Integrate native source-layer replay with source-dimension JPEG/PNG export; reconstruct the retained imported source layer, replay its operations, composite editor layers at source size; preview-resampling fallback remains for destructive or non-replayable edits (tests authored; verification deferred)
+- [x] Disk-backed original source cache foundation (copy original without decoding, transactional cache replacement, cache status surfaced; regression tests authored)
+- [x] Add source-resolution replay foundation that scales Transform/Perspective/CanvasSize dimension parameters while retaining normalized geometry; 24 MP safety guards added; tests authored (verification deferred)
+- [x] Integrate native source-layer replay with source-dimension JPEG/PNG export; reconstruct the retained imported source layer, replay its operations, composite editor layers at source size; preview-resampling fallback remains for destructive or non-replayable edits (tests authored; verification deferred)
 
 ## Phase 2 — Color and tonal editing
 - [x] Basic adjustment processor and UI (brightness, contrast, exposure, saturation, hue, temperature, tint, RGB balance, highlights/shadows, whites/blacks, vibrance, clarity, sharpen)
@@ -33,7 +35,9 @@
 - [x] RGB/luminance histogram processor and UI
 - [x] Unit tests authored for basic adjustment, levels, curves, HSL and histogram (CI verification pending)
 - [x] Histogram large-image sampling bounded to 1,000,000 samples; regression test authored (verification pending)
-- [x] In-place parameter editing for Basic Adjust, Levels, Curves, HSL and Effects operation-stack entries (dialogs update same operation ID without changing order; implementation committed, verification deferred)\n- [x] Extend in-place editing to Transform/Crop, Perspective, Canvas Size, Background Replace, Retouch and LUT (source implementation; verification deferred)\n- [ ] Color-management consistency
+- [x] In-place parameter editing for Basic Adjust, Levels, Curves, HSL and Effects operation-stack entries (dialogs update same operation ID without changing order; implementation committed, verification deferred)
+- [x] Extend in-place editing to Transform/Crop, Perspective, Canvas Size, Background Replace, Retouch and LUT (source implementation; verification deferred)
+- [ ] Color-management consistency
 - [ ] Live parameter adjustment layers and preview cache
 
 ## Phase 3 — Non-destructive editing foundation
@@ -51,12 +55,16 @@
 - [x] Operation-replay compositor test authored to catch stale rendered bitmap usage (verification pending)
 - [x] Integrate Basic Adjustments, Levels, Curves and HSL parameter callbacks into MainActivity operation stack (verification pending)
 - [x] Crop/Transform screen now returns normalized operation parameters and commits non-destructively as a flattened replayable layer (verification pending)
-- [x] Operation-stack UI now edits Basic Adjust values on existing entries in-place (ID/order preserved)\n- [x] Extend operation-stack parameter editor to remaining replayable types: Crop, Transform, Levels, Curves, HSL, Effect, LUT, Retouch, Perspective, Canvas Size and Background Replace; responsive action scrolling and background palette presets added (source implementation; build/test verification deferred)
+- [x] Operation-stack UI now edits Basic Adjust values on existing entries in-place (ID/order preserved)
+- [x] Extend operation-stack parameter editor to remaining replayable types: Crop, Transform, Levels, Curves, HSL, Effect, LUT, Retouch, Perspective, Canvas Size and Background Replace; responsive action scrolling and background palette presets added (source implementation; build/test verification deferred)
 - [x] Filter screen commits selected preset and strength as replayable Basic Adjust operation (source implementation; verification deferred)
 - [x] Effects screen commits effect kind, strength and angle as replayable Effect operation (source implementation; verification deferred)
 - [x] Effect operation can be enabled/disabled from operation stack and replays from retained source
 - [x] Imported .cube LUT text is retained in a replayable LUT operation, with parse validation and stack toggle
-- [x] Selection-mask output now commits as a replayable, serialized per-layer Selection Mask and inverted Selection Cut operations with enable/disable and in-place invert editing, PNG payload/dimension validation and 24 MP safety limit; regression tests authored (verification deferred)\n- [x] Copy Layer and Cut-to-Layer selection actions now create source-retaining layers with replayable keep/invert masks (tests authored; verification deferred)\n- [x] Selection Crop ratio presets (Free, 1:1, 4:3, 16:9, 3:2), select-all/clear shortcuts, and horizontally scrollable shape/action controls (implementation committed; verification deferred)\n- [ ] Remaining selection/tool operation integration
+- [x] Selection-mask output now commits as a replayable, serialized per-layer Selection Mask and inverted Selection Cut operations with enable/disable and in-place invert editing, PNG payload/dimension validation and 24 MP safety limit; regression tests authored (verification deferred)
+- [x] Copy Layer and Cut-to-Layer selection actions now create source-retaining layers with replayable keep/invert masks (tests authored; verification deferred)
+- [x] Selection Crop ratio presets (Free, 1:1, 4:3, 16:9, 3:2), select-all/clear shortcuts, and horizontally scrollable shape/action controls (implementation committed; verification deferred)
+- [ ] Remaining selection/tool operation integration
 - [x] Retouch operation model added to NonDestructiveEditStack with normalized stroke JSON, strength/offset parameters, enable/disable/replay and source-preserving render path (test authored; verification pending)
 - [x] Retouch UI returns stroke parameters and MainActivity commits it as a replayable per-layer operation (build/device verification pending)
 - [x] Core retouch mode/stroke model with normalized points, validation and JSON codec
@@ -66,7 +74,8 @@
 - [x] Blur, motion blur, vignette and grain parameters are serializable and replayable through Effect operation
 - [x] Layer-preserving bounded undo/redo snapshots and History panel restore
 - [x] Named operation states save/restore/remove API with regression tests authored (verification pending)
-- [x] Bounded (8 snapshot) undo/redo in the operation-stack screen for parameter edits, enable/disable, reorder, remove and reset; resets when the incoming layer-operation state changes (source implementation; verification deferred)\n- [ ] Parameter-level operation history across the main editor and full editable-state recovery (operation-stack local history and global Apply/Undo are present; unified timeline remains)
+- [x] Bounded (8 snapshot) undo/redo in the operation-stack screen for parameter edits, enable/disable, reorder, remove and reset; resets when the incoming layer-operation state changes (source implementation; verification deferred)
+- [ ] Parameter-level operation history across the main editor and full editable-state recovery (operation-stack local history and global Apply/Undo are present; unified timeline remains)
 - [ ] True live adjustment layers and render-cache invalidation
 
 ## Phase 4 — Layers, masks and compositing
@@ -94,7 +103,9 @@
 - [x] Saved-mask browse/load/rename/delete UI and apply loaded mask to selection workflow
 - [x] Saved-selection UI integrated with selection preview, crop/mask/copy/cut/cut-to-layer output
 - [x] Cut and cut-to-layer selection actions
-- [x] Selection mask processors account for source alpha in color-range and magic-wand selections\n- [x] Selection expand/contract morphology and feather blur optimized with separable/sliding-window processing; edge regression tests authored (verification deferred)\n- [ ] Refine edge, paste selection as layers and regression verification
+- [x] Selection mask processors account for source alpha in color-range and magic-wand selections
+- [x] Selection expand/contract morphology and feather blur optimized with separable/sliding-window processing; edge regression tests authored (verification deferred)
+- [ ] Refine edge, paste selection as layers and regression verification
 
 ## Phase 6 — Retouch and paint
 - [x] Brush and eraser with size, opacity, hardness and straight-line controls UI
@@ -148,12 +159,15 @@
 - [x] Basic Adjustment operation stack is live-integrated and per-layer operation metadata is saved in projects/recovery
 - [x] Levels, Curves, HSL, Transform, Effects and LUT live operation integration and per-layer persistence
 - [x] Operation stack toggle, reorder, remove and reset UI
-- [x] Parameter editing inside existing replayable operations (Basic Adjust and remaining stack types; source implementation, verification deferred)\n- [ ] Full editable-state recovery, parameter-level operation history
+- [x] Parameter editing inside existing replayable operations (Basic Adjust and remaining stack types; source implementation, verification deferred)
+- [ ] Full editable-state recovery, parameter-level operation history
 
 ## Phase 11 — Render/export and performance
 - [x] JPEG/PNG export, JPEG quality and background flattening controls
-- [x] Preview proxy limit to reduce memory pressure\n- [x] Bounds-first shared image decoder for main import and photo layers; rejects invalid/extreme dimensions and samples to 2048px preview; regression tests authored (verification deferred)
-- [x] Disk-backed source cache and bounded original decode foundation (24 MP cap; tests authored, verification deferred)\n- [x] Native source-layer replay path for source-dimension JPEG/PNG export; replayable operations scaled to source dimensions with 24 MP guards; destructive/non-replayable fallback remains (tests authored, verification pending)
+- [x] Preview proxy limit to reduce memory pressure
+- [x] Bounds-first shared image decoder for main import and photo layers; rejects invalid/extreme dimensions and samples to 2048px preview; regression tests authored (verification deferred)
+- [x] Disk-backed source cache and bounded original decode foundation (24 MP cap; tests authored, verification deferred)
+- [x] Native source-layer replay path for source-dimension JPEG/PNG export; replayable operations scaled to source dimensions with 24 MP guards; destructive/non-replayable fallback remains (tests authored, verification pending)
 - [ ] Tile/region processing, memory-aware caches, background progress and cancellation
 - [ ] Metadata/EXIF policy, color profile consistency and export dimension tests
 - [ ] Benchmark low-RAM devices and large images
@@ -184,8 +198,9 @@
 - [x] Layer-preserving undo/redo history and History panel
 - [x] Mask/group/lock/clipping models, processors and persistence
 - [x] Selection, retouch, effect, LUT, perspective, canvas-size, background replacement and recovery feature batches added
-- [ ] **No build, CI, lint or test execution during this feature pass by request.**\n- [x] Unsaved editor state guard added to Back, Replace/import and opening saved projects; Save routes to Project manager and the action must be repeated after save; Discard executes the pending action; Cancel aborts (implementation committed, verification deferred).
-- [ ] Source-level audit and final feature integration pass still required before build/CI verification.
+- [ ] **No build, CI, lint or test execution during this feature pass by request.**
+- [x] Unsaved editor state guard added to Back, Replace/import and opening saved projects; Save routes to Project manager and the action must be repeated after save; Discard executes the pending action; Cancel aborts (implementation committed, verification deferred).
+- [ ] Final source-level integration audit remains before verification.
 
 
 ## Recent implementation batch — export sizing
@@ -226,7 +241,7 @@
 - [x] Mask inversion and white-mask creation now enforce 24 MP safety ceiling before allocations.
 - [x] Clip-to-below processor validates both input dimensions and cleans up scaled temporary in `finally`.
 - [x] Clip-alpha input-ownership regression test added; tests/build remain deferred.
-- [ ] Continue renderer exception-path cleanup and layer-tree recursion/allocation audit.
+- [ ] Add renderer failure-injection tests and later verification.
 
 ## Layer tree audit
 - [x] 24 MP output limit and maximum nesting depth (32) applied before recursion/allocation.
@@ -237,7 +252,7 @@
 ## Layer compositor exception cleanup
 - [x] Renderer-owned intermediate bitmap identity registry tracks replay/mask/clip/opacity/group allocations.
 - [x] Outer `finally` disposes tracked intermediates on success and failure; output is recycled on exception.
-- [ ] Inspect processor-internal allocation exception cleanup and add failure-injection tests.
+- [ ] Add processor failure-injection tests and later verification.
 - [ ] Build/test/CI remain deferred.
 
 
