@@ -35,7 +35,7 @@ fun PerspectiveScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,Perspectiv
         if(quad.isValid()){
             val key="perspective:"+System.identityHashCode(source)+":"+source.width+"x"+source.height+":"+quad.hashCode()
             var request:Future<Bitmap>?=null
-            try{value=withContext(Dispatchers.IO){request=renderScheduler.request(key){signal->signal.throwIfCanceled();PerspectiveTransformProcessor.warp(source,quad).also{signal.throwIfCanceled()}};request!!.get(60,TimeUnit.SECONDS)}}
+            try{value=withContext(Dispatchers.IO){request=renderScheduler.request(key){signal->signal.throwIfCanceled();PerspectiveTransformProcessor.warp(source,quad,cancellation=signal)};request!!.get(60,TimeUnit.SECONDS)}}
             catch(cancelled:CancellationException){request?.cancel(true);throw cancelled}
             catch(_:Exception){request?.cancel(true);value=null}
         }
