@@ -44,7 +44,6 @@ fun OperationStackScreen(layer:EditorLayer,onCancel:()->Unit,onApply:(EditorLaye
     var manageNamedStatesOpen by remember{mutableStateOf(false)}
     var namedStateName by remember{mutableStateOf("")}
     var namedStateError by remember{mutableStateOf<String?>(null)}
-    var namedStateError by remember{mutableStateOf<String?>(null)}
     var operations by remember(layer.id,layer.operations){mutableStateOf(layer.operations)}
     var editingBasicId by remember { mutableStateOf<String?>(null) }
     var undoOperations by remember(layer.id,layer.operations){mutableStateOf<List<List<EditOperation>>>(emptyList())}
