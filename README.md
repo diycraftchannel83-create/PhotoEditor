@@ -390,4 +390,5 @@ Recent source-only integration fixes and the ordered remaining feature plan are 
 
 - Bounded tile processing for independent/pointwise processors is available in the core render package.
 - Halo-aware tile processing supports neighborhood filters by processing expanded regions and retaining only each non-overlapping core tile; seam regression tests are authored but not executed yet.
+- Basic Adjust has a tile-backed processor that retains core tile outputs and uses a 1-pixel halo for sharpen; the flattened output helper remains bounded by the 24 MP guard.
 - These primitives are not yet wired into full-resolution filter, retouch or export replay. See [Roadmap](docs/ROADMAP.md) for implementation vs verification status.
