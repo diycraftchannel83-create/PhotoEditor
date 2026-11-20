@@ -27,7 +27,7 @@ class BitmapRenderScheduler(
         Thread(runnable, threadName).apply { isDaemon = true }
     }
     private val cache = LinkedHashMap<String, Bitmap>(16, 0.75f, true)
-    private val activeTasks = LinkedHashMap<Long, Future<*>>()
+    private val activeTasks = LinkedHashMap<Long, Pair<Future<*>, CancellationSignal>>()
     private val taskIds = AtomicLong(0L)
     private var cacheBytes = 0L
     private var closed = false
@@ -68,7 +68,7 @@ class BitmapRenderScheduler(
         })
         synchronized(this) {
             check(!closed) { "Render scheduler is closed" }
-            activeTasks[id] = task
+            activeTasks[id] = task to cancellation
         }
         executor.execute {
             try { task.run() }
@@ -85,7 +85,7 @@ class BitmapRenderScheduler(
     /** Cancels queued and running work. Render callbacks should check signal periodically. */
     @Synchronized
     fun cancelAll() {
-        activeTasks.values.forEach { it.cancel(true) }
+        activeTasks.values.forEach { (task, signal) -> signal.cancel(); task.cancel(true) }
         activeTasks.clear()
     }
 
@@ -128,7 +128,7 @@ class BitmapRenderScheduler(
     override fun close() {
         if (closed) return
         closed = true
-        activeTasks.values.forEach { it.cancel(true) }
+        activeTasks.values.forEach { (task, signal) -> signal.cancel(); task.cancel(true) }
         activeTasks.clear()
         executor.shutdownNow()
         clearCache()
