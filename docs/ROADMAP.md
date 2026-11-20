@@ -304,3 +304,23 @@
 
 ### Project duplication safety
 - [x] Project duplication now validates source folder and name bounds and removes partial destination folders on failure; regression test authored (verification pending).
+
+
+## Source compile repair — 20 November 2026
+
+This section records source changes committed to `main` after inspecting the latest available CI failure. It does not claim that the fixes have passed compilation or tests.
+
+- [x] Repair the MainActivity selection action dispatcher and exhaustively handle COPY_LAYER, MASK, CUT, CUT_TO_LAYER and CROP; keep crop committed through the existing Transform operation path.
+- [x] Correct Cube LUT interpolation arithmetic from mixed Int/Float expressions and bound LUT text/image allocation.
+- [x] Correct Gaussian-blur kernel arithmetic and enforce the 24 MP working-buffer ceiling for CPU effect processors.
+- [x] Remove the inaccessible Canvas bitmap property from legacy Difference blending; pass the owned destination bitmap explicitly for root and group compositing.
+- [x] Add the missing BitmapFactory import and bounds-first / 24 MP rejection when decoding persisted project assets.
+- [x] Correct retouch spot-heal Long-to-Int color packing and add a renderer pixel budget.
+- [x] Repair magic-wand neighbour branches and selection-feather sliding-window syntax; apply a consistent 24 MP guard across selection-mask allocation paths.
+- [x] Fix BrushScreen preview point references to the current stroke.
+- [x] Remove the stale GradientScreen source reference and consolidate preview cleanup into one lifecycle effect.
+- [x] Correct OperationStackScreen Compose annotations for selection-mask and LUT edit dialogs.
+- [ ] Review the full latest CI output and address any newly exposed compiler, unit-test or lint issues. Do not treat the pre-fix CI failure as resolved until a green run exists.
+- [ ] Run Android unit tests, lint, debug APK, release APK and unsigned AAB verification after the feature pass is explicitly complete.
+- [ ] Perform device-level interaction, large-image, memory, export and project round-trip testing.
+- [ ] Complete remaining roadmap phases: full adjustment layer architecture, tiled renderer/cache/cancellation, advanced brush/font/shape tools, AI object segmentation/removal, global recovery/history merge, localization/accessibility/tablet support, dependency/SBOM/license/CVE review, privacy/offline audit and production release validation.
