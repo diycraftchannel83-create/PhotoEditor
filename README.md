@@ -304,3 +304,10 @@ Build verification and release readiness must be tracked honestly. Check the lat
 - Difference-blend scaled temporary bitmap cleanup is now protected by `finally`; a regression test checks repeated compositing does not recycle caller-owned source or mask bitmaps. Tests remain unexecuted.
 
 - Layer-mask processors now reject source/mask inputs above 24 MP before large pixel-array allocation (source-level guard; verification pending).
+
+## Compositor/mask safety update
+
+- [x] LayerMaskProcessor guards inversion and white-mask allocations with the shared 24 MP pixel ceiling (source-level; verification pending).
+- [x] ClipAlphaProcessor validates source/base dimensions before allocating arrays and recycles its scaled temporary in `finally` (source-level; verification pending).
+- [x] Clip-alpha regression coverage checks clipping output and caller-owned bitmap preservation; not executed.
+- [ ] Continue exception-path ownership audit for composite/group/intermediate bitmap allocations.
