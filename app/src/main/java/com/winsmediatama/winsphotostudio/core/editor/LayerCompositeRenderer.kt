@@ -87,7 +87,9 @@ object LayerCompositeRenderer {
     private fun applyAlphaOpacity(source:Bitmap,opacity:Float):Bitmap {
         val w=source.width;val h=source.height;val pixels=IntArray(w*h);source.getPixels(pixels,0,w,0,0,w,h)
         for(i in pixels.indices){val a=(pixels[i] ushr 24)*opacity;pixels[i]=(a.toInt().coerceIn(0,255) shl 24)or(pixels[i] and 0x00FFFFFF)}
-        return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(pixels,0,w,0,0,w,h)}
+        val output=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888)
+        try { output.setPixels(pixels,0,w,0,0,w,h);return output }
+        catch(error:Throwable){if(!output.isRecycled)output.recycle();throw error}
     }
     private fun drawPrepared(canvas:Canvas,source:Bitmap,dest:Rect,opacity:Float,blendMode:EditorBlendMode) {
         val paint=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply{alpha=(opacity.coerceIn(0f,1f)*255).toInt()}
