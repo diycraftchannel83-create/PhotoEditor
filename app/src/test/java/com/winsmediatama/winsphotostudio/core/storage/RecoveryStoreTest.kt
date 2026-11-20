@@ -65,4 +65,35 @@ class RecoveryStoreTest {
         assertTrue(failure is IllegalArgumentException)
         store.clear()
     }
+    @Test fun corruptRecoveryManifestAndUnsupportedSchemaReturnNull() {
+        val context=org.robolectric.RuntimeEnvironment.getApplication()
+        val store=RecoveryStore(context)
+        val tiny=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
+        store.save(listOf(EditorLayer(name="safe",bitmap=tiny)),null,1,1)
+        val root=java.io.File(context.filesDir,"studio-recovery")
+        val manifest=java.io.File(root,"recovery.json")
+        manifest.writeText("{bad")
+        assertNull(store.recover())
+        manifest.writeText(org.json.JSONObject().put("snapshot","snapshot/recovery.json").toString())
+        val snapshot=java.io.File(root,"snapshot/recovery.json")
+        val json=org.json.JSONObject(snapshot.readText()).put("schemaVersion",99)
+        snapshot.writeText(json.toString())
+        assertNull(store.recover())
+        store.clear()
+    }
+
+    @Test fun recoveryRejectsTraversalSnapshotAssetPath() {
+        val context=org.robolectric.RuntimeEnvironment.getApplication()
+        val store=RecoveryStore(context)
+        val tiny=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
+        store.save(listOf(EditorLayer(name="safe",bitmap=tiny)),null,1,1)
+        val root=java.io.File(context.filesDir,"studio-recovery")
+        val snapshot=java.io.File(root,"snapshot/recovery.json")
+        val json=org.json.JSONObject(snapshot.readText())
+        val layers=json.getJSONArray("layers")
+        layers.getJSONObject(0).put("asset","../../outside.png")
+        snapshot.writeText(json.toString())
+        assertNull(store.recover())
+        store.clear()
+    }
 }
