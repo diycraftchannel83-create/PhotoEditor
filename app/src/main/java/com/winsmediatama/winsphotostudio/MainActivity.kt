@@ -266,15 +266,32 @@ private fun WinsPhotoApp() {
     }
     val pngExporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/png")) { uri ->
         val currentBitmap=bitmap
+        val currentLayers=layers
         if(uri!=null && currentBitmap!=null) scope.launch {
             var nativeReplayUsed=false
+            var tiledExportUsed=false
             val ok=withContext(Dispatchers.IO) { runCatching {
-                val (resized,nativeReplay)=buildExportBitmap(currentBitmap)
-                nativeReplayUsed=nativeReplay
-                try { context.contentResolver.openOutputStream(uri)?.use { resized.compress(Bitmap.CompressFormat.PNG,100,it) } ?: false }
-                finally { if(resized!==currentBitmap&&!resized.isRecycled)resized.recycle() }
+                context.contentResolver.openOutputStream(uri)?.use { stream ->
+                    if(!exportOriginalDimensions) {
+                        val tiled=runCatching {
+                            TiledLayerCompositeRenderer.renderTiles(currentLayers,currentBitmap.width,currentBitmap.height,tileSize=512)
+                        }.getOrNull()
+                        if(tiled!=null) {
+                            try {
+                                TiledPngEncoder.encodeCompositeTiles(tiled,currentBitmap.width,currentBitmap.height,stream)
+                                tiledExportUsed=true
+                                true
+                            } finally { TiledLayerCompositeRenderer.recycleTiles(tiled) }
+                        } else currentBitmap.compress(Bitmap.CompressFormat.PNG,100,stream)
+                    } else {
+                        val (resized,nativeReplay)=buildExportBitmap(currentBitmap)
+                        nativeReplayUsed=nativeReplay
+                        try { resized.compress(Bitmap.CompressFormat.PNG,100,stream) }
+                        finally { if(resized!==currentBitmap&&!resized.isRecycled)resized.recycle() }
+                    }
+                } ?: false
             }.getOrDefault(false) }
-            exportStatus=if(ok) (if(exportOriginalDimensions&&nativeReplayUsed) "PNG exported using native source replay" else if(exportOriginalDimensions) "PNG exported at source dimensions (preview resampled fallback)" else "PNG exported successfully") else "Export failed"
+            exportStatus=if(ok) (if(tiledExportUsed) "PNG exported using streaming tiled compositor" else if(exportOriginalDimensions&&nativeReplayUsed) "PNG exported using native source replay" else if(exportOriginalDimensions) "PNG exported at source dimensions (preview resampled fallback)" else "PNG exported successfully") else "Export failed"
         }
     }
     val layerImagePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
