@@ -13,6 +13,7 @@
 - `BitmapTilePlanner` partitions source dimensions into bounded non-overlapping core regions.
 - `BitmapTileProcessor` is for seam-safe pointwise operations: it processes independent tiles and returns core geometry plus owned output bitmaps.
 - `BitmapHaloTileProcessor` supports neighborhood operations by expanding each core region with a clamped halo, processing the expanded region, then cropping back to the core. Filters must request a halo at least as large as their neighborhood radius to avoid seams. Both utilities support cancellation and bounded stitching, but they are not yet integrated into editor effect/export replay.
+- `TiledBasicAdjustmentProcessor` runs Basic Adjust across halo-aware tiles and retains core tile outputs for downstream consumers. Sharpen uses a 1-pixel halo to preserve its radius-1 neighborhood across tile boundaries; flattening is still limited to 24 MP.
 - Region preview import uses region-decoded tiles only as a fallback path; this is not equivalent to tiled full-resolution editing.
 
 ## Structure
