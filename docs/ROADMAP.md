@@ -410,3 +410,10 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 ## CI queue policy update
 - [x] Update `.github/workflows/android-ci.yml` to set `cancel-in-progress: false`, so pushes queue their verification rather than cancelling the run already in progress. This is intended to make the final verification signal reliable during active development.
 - [ ] Observe queued runs and confirm the latest code reaches unit tests, lint and APK/AAB steps.
+
+
+## Continuation — render scheduler regression coverage
+- [x] Add cancellation-signal propagation regression test for the serialized preview scheduler.
+- [x] Add cache-clear/invalidation regression test verifying a subsequent request rerenders rather than returning stale cached pixels.
+- [ ] Run CI verification for these tests (deferred; no build run initiated manually).
+- [ ] Integrate scheduler with editor preview screens and versioned cache keys (next implementation target).
