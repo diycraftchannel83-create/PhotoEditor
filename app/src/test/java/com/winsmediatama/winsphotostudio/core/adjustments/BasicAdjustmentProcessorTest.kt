@@ -25,4 +25,10 @@ class BasicAdjustmentProcessorTest {
         assertEquals(100,Color.red(source.getPixel(0,0)))
         assertTrue(Color.red(output.getPixel(0,0))>100)
     }
+    @Test fun canceledRenderStopsBeforeProcessingAndPreservesSource() {
+        val source=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888);source.setPixel(0,0,Color.RED)
+        val cancellation=android.os.CancellationSignal().apply{cancel()}
+        assertThrows(android.os.OperationCanceledException::class.java){BasicAdjustmentProcessor.apply(source,BasicAdjustmentValues(),cancellation)}
+        assertEquals(Color.RED,source.getPixel(0,0))
+    }
 }
