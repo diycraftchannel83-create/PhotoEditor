@@ -669,18 +669,24 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
 }
 
 private fun flattenForJpeg(source:Bitmap,backgroundColor:Int):Bitmap {
+    require(source.width>0&&source.height>0&&source.width.toLong()*source.height<=24_000_000L){"JPEG flatten exceeds 24 MP safety limit"}
     val output=Bitmap.createBitmap(source.width,source.height,Bitmap.Config.ARGB_8888)
-    val canvas=Canvas(output);canvas.drawColor(backgroundColor);canvas.drawBitmap(source,0f,0f,Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG));return output
+    try {
+        val canvas=Canvas(output);canvas.drawColor(backgroundColor);canvas.drawBitmap(source,0f,0f,Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG));return output
+    } catch(error:Throwable) { if(!output.isRecycled)output.recycle();throw error }
 }
 
 private fun fitBitmapToCanvas(source:Bitmap,width:Int,height:Int):Bitmap {
+    require(width>0&&height>0&&width.toLong()*height<=24_000_000L){"Layer fit exceeds 24 MP safety limit"}
     val output=Bitmap.createBitmap(width,height,Bitmap.Config.ARGB_8888)
-    val canvas=Canvas(output)
-    val scale=minOf(width.toFloat()/source.width,height.toFloat()/source.height)
-    val drawW=(source.width*scale).toInt();val drawH=(source.height*scale).toInt()
-    val left=(width-drawW)/2;val top=(height-drawH)/2
-    canvas.drawBitmap(source,null,Rect(left,top,left+drawW,top+drawH),Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
-    return output
+    try {
+        val canvas=Canvas(output)
+        val scale=minOf(width.toFloat()/source.width,height.toFloat()/source.height)
+        val drawW=(source.width*scale).toInt().coerceAtLeast(1);val drawH=(source.height*scale).toInt().coerceAtLeast(1)
+        val left=(width-drawW)/2;val top=(height-drawH)/2
+        canvas.drawBitmap(source,null,Rect(left,top,left+drawW,top+drawH),Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
+        return output
+    } catch(error:Throwable) { if(!output.isRecycled)output.recycle();throw error }
 }
 
 private fun calculateSampleSize(width: Int, height: Int, maxDimension: Int): Int {
