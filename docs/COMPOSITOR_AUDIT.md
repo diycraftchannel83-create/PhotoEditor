@@ -72,3 +72,6 @@ LayerMaskProcessor now checks source/mask/combined dimensions using Long pixel-c
 
 ### Opacity failure path
 - The compositor's generated opacity bitmap now recycles on pixel-transfer failure. Added a regression test verifying combine/invert preserve caller-owned masks. Tests not executed.
+
+### Command history resilience
+- Undo/redo stack transitions now occur after successful command execution; failed actions leave history recoverable. Capacity validation and failure regression tests added; no verification run.
