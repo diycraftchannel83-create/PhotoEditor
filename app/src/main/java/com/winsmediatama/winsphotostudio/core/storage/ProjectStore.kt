@@ -2,6 +2,7 @@ package com.winsmediatama.winsphotostudio.core.storage
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import org.json.JSONArray
 import org.json.JSONObject
@@ -37,7 +38,6 @@ class ProjectStore(context: Context) {
         File(folder, "project.json").writeText(manifest.toString(2))
         return folder
     }
-
 
     /** Save the current rendered canvas as a reopenable project snapshot without altering the source import. */
     fun saveSnapshot(bitmap: Bitmap, projectName: String): File {
@@ -75,21 +75,32 @@ class ProjectStore(context: Context) {
         val id=UUID.randomUUID().toString()
         val folder=File(root,id).apply{mkdirs()}
         try {
-        File(folder,"assets").mkdirs()
-        val layerArray=JSONArray()
-        layers.forEachIndexed{index,layer->
-            val assetPath="assets/layer_$index.png"
-            File(folder,assetPath).outputStream().use{if(!layer.bitmap.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write layer asset $index")}
-            val originalPath=layer.originalBitmap?.let{original->val path="assets/original_$index.png";File(folder,path).outputStream().use{if(!original.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write original layer $index")};path}
-            val operationJson=if(layer.operations.isNotEmpty())NonDestructiveEditStack(layer.originalBitmap?:layer.bitmap,layer.operations).toJson()else null
-            val maskPath=layer.mask?.let{mask->val path="assets/mask_$index.png";File(folder,path).outputStream().use{if(!mask.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write mask $index")};path}
-            layerArray.put(JSONObject().put("id",layer.id).put("name",layer.name).put("visible",layer.visible).put("opacity",layer.opacity).put("blendMode",layer.blendMode.name).put("locked",layer.locked).put("alphaLocked",layer.alphaLocked).put("groupId",layer.groupId).put("groupName",layer.groupName).put("groupOpacity",layer.groupOpacity).put("groupBlendMode",layer.groupBlendMode?.name).put("clipToBelow",layer.clipToBelow).put("asset",assetPath).put("originalAsset",originalPath).put("operations",operationJson).put("maskAsset",maskPath))
-        }
-        val manifest=JSONObject().put("schemaVersion",4).put("projectId",id).put("name",projectName.trim().ifBlank{"Untitled Project"})
-            .put("canvasWidth",canvasWidth).put("canvasHeight",canvasHeight).put("createdAt",System.currentTimeMillis()).put("updatedAt",System.currentTimeMillis())
-            .put("selectedLayerId",selectedLayerId).put("layers",layerArray)
-        writeManifestAtomically(folder,manifest)
-        return folder
+            File(folder,"assets").mkdirs()
+            val layerArray=JSONArray()
+            layers.forEachIndexed{index,layer->
+                require(layer.bitmap.width.toLong()*layer.bitmap.height<=24_000_000L){"Layer exceeds 24 MP safety limit"}
+                val assetPath="assets/layer_$index.png"
+                File(folder,assetPath).outputStream().use{if(!layer.bitmap.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write layer asset $index")}
+                val originalPath=layer.originalBitmap?.let{original->
+                    require(original.width.toLong()*original.height<=24_000_000L){"Original layer exceeds 24 MP safety limit"}
+                    val path="assets/original_$index.png"
+                    File(folder,path).outputStream().use{if(!original.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write original layer $index")}
+                    path
+                }
+                val operationJson=if(layer.operations.isNotEmpty())NonDestructiveEditStack(layer.originalBitmap?:layer.bitmap,layer.operations).toJson()else null
+                val maskPath=layer.mask?.let{mask->
+                    require(mask.width.toLong()*mask.height<=24_000_000L){"Layer mask exceeds 24 MP safety limit"}
+                    val path="assets/mask_$index.png"
+                    File(folder,path).outputStream().use{if(!mask.compress(Bitmap.CompressFormat.PNG,100,it))throw IllegalStateException("Failed to write mask $index")}
+                    path
+                }
+                layerArray.put(JSONObject().put("id",layer.id).put("name",layer.name).put("visible",layer.visible).put("opacity",layer.opacity).put("blendMode",layer.blendMode.name).put("locked",layer.locked).put("alphaLocked",layer.alphaLocked).put("groupId",layer.groupId).put("groupName",layer.groupName).put("groupOpacity",layer.groupOpacity).put("groupBlendMode",layer.groupBlendMode?.name).put("clipToBelow",layer.clipToBelow).put("asset",assetPath).put("originalAsset",originalPath).put("operations",operationJson).put("maskAsset",maskPath))
+            }
+            val manifest=JSONObject().put("schemaVersion",4).put("projectId",id).put("name",projectName.trim().ifBlank{"Untitled Project"})
+                .put("canvasWidth",canvasWidth).put("canvasHeight",canvasHeight).put("createdAt",System.currentTimeMillis()).put("updatedAt",System.currentTimeMillis())
+                .put("selectedLayerId",selectedLayerId).put("layers",layerArray)
+            writeManifestAtomically(folder,manifest)
+            return folder
         } catch(error:Throwable) {
             folder.deleteRecursively()
             throw error
@@ -104,6 +115,7 @@ class ProjectStore(context: Context) {
         val name=manifest.optString("name",projectFolder.name)
         val width=manifest.optInt("canvasWidth",1).coerceAtLeast(1)
         val height=manifest.optInt("canvasHeight",1).coerceAtLeast(1)
+        require(width.toLong()*height.toLong()<=24_000_000L) { "Project canvas exceeds 24 MP safety limit" }
         val array=manifest.optJSONArray("layers")
         val layers=mutableListOf<EditorLayer>()
         if(array!=null)for(i in 0 until array.length()){
@@ -174,6 +186,9 @@ class ProjectStore(context: Context) {
     private fun decodeAsset(projectFolder:File,relativePath:String):Bitmap? {
         val file=resolveProjectAsset(projectFolder,relativePath)
         if(!file.isFile || file.length()<=0L) return null
+        val bounds=BitmapFactory.Options().apply{inJustDecodeBounds=true}
+        BitmapFactory.decodeFile(file.absolutePath,bounds)
+        if(bounds.outWidth<=0||bounds.outHeight<=0||bounds.outWidth.toLong()*bounds.outHeight>24_000_000L)return null
         return BitmapFactory.decodeFile(file.absolutePath)?.takeIf{it.width>0&&it.height>0}
     }
 
