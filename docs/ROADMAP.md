@@ -227,3 +227,9 @@
 - [x] Clip-to-below processor validates both input dimensions and cleans up scaled temporary in `finally`.
 - [x] Clip-alpha input-ownership regression test added; tests/build remain deferred.
 - [ ] Continue renderer exception-path cleanup and layer-tree recursion/allocation audit.
+
+## Layer tree audit
+- [x] 24 MP output limit and maximum nesting depth (32) applied before recursion/allocation.
+- [x] Child intermediate disposal and output exception cleanup use `finally`/catch paths.
+- [x] Regression tests for oversize and excessive nesting authored; verification deferred.
+- [ ] Continue exception cleanup audit in LayerCompositeRenderer, especially mask/clip/group paths.
