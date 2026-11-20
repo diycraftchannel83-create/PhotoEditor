@@ -67,3 +67,5 @@ A branch-specific bitmap ownership/recycling checklist is tracked in `docs/COMPO
 **Mask allocation safety:** LayerMaskProcessor validates source, mask and combined-mask dimensions against a 24 MP pixel budget before allocating pixel arrays. Verification remains deferred.
 
 **Mask and clipping safety update:** LayerMaskProcessor now also guards inversion and white-mask creation at 24 MP. ClipAlphaProcessor checks source and base dimensions before large arrays, and its scaled base bitmap is disposed through `finally`. A regression test covers clip output and caller input ownership. These are source-level changes only; no tests/build were run.
+
+**Layer tree safeguards:** LayerTreeRenderer now enforces a 24 MP canvas budget and a nesting depth limit of 32. Each rendered child is disposed in `finally`; output is recycled if a branch fails. Regression tests are authored but unexecuted.
