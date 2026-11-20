@@ -4,7 +4,12 @@ import android.os.CancellationSignal
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk=[28])
 class BitmapTilePlannerTest {
     @Test fun plansNonOverlappingTilesAndShrinksEdges() {
         val tiles=BitmapTilePlanner.plan(1025,513,512).toList()
