@@ -71,6 +71,10 @@ class ProjectStoreTest {
         val context=org.robolectric.RuntimeEnvironment.getApplication()
         val store=ProjectStore(context)
         assertFalse(store.deleteProject("../outside"))
+        val tiny=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
+        val project=store.saveLayerProject(listOf(EditorLayer(name="safe",bitmap=tiny)),null,1,1,"Safe")
+        assertNull(store.duplicateProject(project,"x".repeat(121)))
+        assertTrue(store.deleteProject(project.name))
         val outside=java.io.File(context.filesDir,"not-a-project").apply{mkdirs()}
         assertFalse(store.renameProject(outside,"bad rename"))
         assertNull(store.duplicateProject(outside))
