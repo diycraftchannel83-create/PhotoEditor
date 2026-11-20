@@ -425,3 +425,9 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Preview requests cancel on coroutine cancellation and the screen closes the scheduler on disposal.
 - [ ] Verify UI lifecycle, cancellation behavior and compile/CI (deferred to CI/manual verification).
 - [ ] Apply the same scheduler integration to remaining preview-producing tools; audit source bitmap immutability and cache-key completeness.
+
+
+## CI failure follow-up
+- [x] Investigated the queued scheduler test CI failures: both Robolectric test sources were missing the JUnit `RunWith` import.
+- [x] Added the missing imports in NativeSourceLayerExportTest and FullResolutionEditReplayTest.
+- [ ] Re-run CI and inspect test results; build verification remains pending.
