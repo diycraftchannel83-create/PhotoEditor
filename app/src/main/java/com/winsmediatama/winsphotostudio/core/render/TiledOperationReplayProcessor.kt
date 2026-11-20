@@ -36,26 +36,27 @@ object TiledOperationReplayProcessor {
         try {
             planned.forEach { rect ->
                 cancellation?.throwIfCanceled()
-                var current = Bitmap.createBitmap(source, rect.left, rect.top, rect.width(), rect.height())
+                var current: Bitmap? = Bitmap.createBitmap(source, rect.left, rect.top, rect.width(), rect.height())
                 try {
                     operations.filter { it.enabled }.forEach { operation ->
                         cancellation?.throwIfCanceled()
+                        val input = requireNotNull(current)
                         val next = when (operation) {
-                            is EditOperation.BasicAdjust -> BasicAdjustmentProcessor.apply(current, operation.values)
-                            is EditOperation.Levels -> LevelsProcessor.apply(current, operation.values)
-                            is EditOperation.Curves -> CurvesProcessor.apply(current, operation.values)
-                            is EditOperation.Hsl -> HslProcessor.apply(current, operation.values)
-                            is EditOperation.Effect -> operation.settings.apply(current)
-                            is EditOperation.Lut -> CubeLut.parse(operation.cubeText).apply(current)
+                            is EditOperation.BasicAdjust -> BasicAdjustmentProcessor.apply(input, operation.values)
+                            is EditOperation.Levels -> LevelsProcessor.apply(input, operation.values)
+                            is EditOperation.Curves -> CurvesProcessor.apply(input, operation.values)
+                            is EditOperation.Hsl -> HslProcessor.apply(input, operation.values)
+                            is EditOperation.Effect -> operation.settings.apply(input)
+                            is EditOperation.Lut -> CubeLut.parse(operation.cubeText).apply(input)
                             else -> error("Unsupported operation reached tiled replay")
                         }
-                        if (next !== current && !current.isRecycled) current.recycle()
+                        if (next !== input && !input.isRecycled) input.recycle()
                         current = next
                     }
-                    output += OutputTile(android.graphics.Rect(rect), current)
-                    current = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).also { it.eraseColor(android.graphics.Color.TRANSPARENT) }
+                    output += OutputTile(android.graphics.Rect(rect), requireNotNull(current))
+                    current = null // transfer ownership to output list
                 } finally {
-                    if (!current.isRecycled) current.recycle()
+                    current?.let { if (!it.isRecycled) it.recycle() }
                 }
             }
             return output
