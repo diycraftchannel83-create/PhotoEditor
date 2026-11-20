@@ -64,7 +64,7 @@ class LayerCompositeRendererTest {
 
     @Test fun alphaOpacityStripProcessingPreservesRgbAndScalesAlpha() {
         val source=Bitmap.createBitmap(2,2,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.RED)}
-        val result=LayerCompositeRenderer.render(listOf(EditorLayer(name=\"Half\",bitmap=source,opacity=.5f)),2,2)
+        val result=LayerCompositeRenderer.render(listOf(EditorLayer(name="Half",bitmap=source,opacity=.5f)),2,2)
         assertEquals(127,Color.alpha(result.getPixel(0,0)))
         assertEquals(Color.RED and 0x00FFFFFF,result.getPixel(0,0) and 0x00FFFFFF)
         assertFalse(source.isRecycled)
