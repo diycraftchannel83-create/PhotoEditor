@@ -11,6 +11,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import com.winsmediatama.winsphotostudio.core.storage.NamedOperationStateStore
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,6 +37,12 @@ import kotlinx.coroutines.withContext
 @Composable
 fun OperationStackScreen(layer:EditorLayer,onCancel:()->Unit,onApply:(EditorLayer)->Unit) {
     val original=layer.originalBitmap?:layer.bitmap
+    val context=LocalContext.current
+    val namedStateStore=remember(context,layer.id){NamedOperationStateStore(context)}
+    var namedStateNames by remember(layer.id){mutableStateOf(namedStateStore.names(layer.id))}
+    var saveNamedStateOpen by remember{mutableStateOf(false)}
+    var manageNamedStatesOpen by remember{mutableStateOf(false)}
+    var namedStateName by remember{mutableStateOf("")}
     var operations by remember(layer.id,layer.operations){mutableStateOf(layer.operations)}
     var editingBasicId by remember { mutableStateOf<String?>(null) }
     var undoOperations by remember(layer.id,layer.operations){mutableStateOf<List<List<EditOperation>>>(emptyList())}
@@ -47,7 +55,7 @@ fun OperationStackScreen(layer:EditorLayer,onCancel:()->Unit,onApply:(EditorLaye
     }
     androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==original}?.recycle()}}
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))){
-        Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(10.dp),verticalAlignment=Alignment.CenterVertically){Text("Non-destructive stack",Modifier.weight(1f),color=Color.White);TextButton(enabled=undoOperations.isNotEmpty(),onClick={val previous=undoOperations.last();redoOperations=(redoOperations+listOf(operations)).takeLast(8);undoOperations=undoOperations.dropLast(1);operations=previous}){Text("Undo")};TextButton(enabled=redoOperations.isNotEmpty(),onClick={val next=redoOperations.last();undoOperations=(undoOperations+listOf(operations)).takeLast(8);redoOperations=redoOperations.dropLast(1);operations=next}){Text("Redo")};TextButton(onClick=onCancel){Text("Cancel")};Button(enabled=preview!=null,onClick={preview?.let{onApply(layer.copy(bitmap=it.copy(Bitmap.Config.ARGB_8888,true),originalBitmap=original,operations=operations))}}){Text("Apply")}}
+        Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(10.dp),verticalAlignment=Alignment.CenterVertically){Text("Non-destructive stack",Modifier.weight(1f),color=Color.White);TextButton(onClick={saveNamedStateOpen=true}){Text("Save state")};TextButton(onClick={namedStateNames=namedStateStore.names(layer.id);manageNamedStatesOpen=true}){Text("States")};TextButton(enabled=undoOperations.isNotEmpty(),onClick={val previous=undoOperations.last();redoOperations=(redoOperations+listOf(operations)).takeLast(8);undoOperations=undoOperations.dropLast(1);operations=previous}){Text("Undo")};TextButton(enabled=redoOperations.isNotEmpty(),onClick={val next=redoOperations.last();undoOperations=(undoOperations+listOf(operations)).takeLast(8);redoOperations=redoOperations.dropLast(1);operations=next}){Text("Redo")};TextButton(onClick=onCancel){Text("Cancel")};Button(enabled=preview!=null,onClick={preview?.let{onApply(layer.copy(bitmap=it.copy(Bitmap.Config.ARGB_8888,true),originalBitmap=original,operations=operations))}}){Text("Apply")}}
         Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D)),contentAlignment=Alignment.Center){preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize().padding(8.dp),contentScale=ContentScale.Fit)}?:CircularProgressIndicator()}
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(8.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)){Text("Original source retained",color=Color.LightGray,modifier=Modifier.weight(1f));TextButton(onClick={changeOperations(emptyList())}){Text("Reset")}}
         LazyColumn(Modifier.weight(1f),contentPadding=PaddingValues(8.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
@@ -65,6 +73,28 @@ fun OperationStackScreen(layer:EditorLayer,onCancel:()->Unit,onApply:(EditorLaye
         }
         if(operations.isEmpty())Text("No operations. Apply an adjustment to create a replayable operation.",color=Color.LightGray,modifier=Modifier.padding(12.dp))
     }
+    if(saveNamedStateOpen) AlertDialog(
+        onDismissRequest={saveNamedStateOpen=false},
+        title={Text("Save operation state")},
+        text={Column {Text("Save this operation stack under a name.");OutlinedTextField(value=namedStateName,onValueChange={namedStateName=it},label={Text("State name")},singleLine=true)}},
+        confirmButton={TextButton(onClick={val saved=namedStateStore.save(layer.id,namedStateName,operations);if(saved){namedStateNames=namedStateStore.names(layer.id);namedStateName="";saveNamedStateOpen=false}}){Text("Save")}},
+        dismissButton={TextButton(onClick={saveNamedStateOpen=false}){Text("Cancel")}}
+    )
+    if(manageNamedStatesOpen) AlertDialog(
+        onDismissRequest={manageNamedStatesOpen=false},
+        title={Text("Saved operation states")},
+        text={Column(Modifier.heightIn(max=420.dp).verticalScroll(rememberScrollState())) {
+            if(namedStateNames.isEmpty())Text("No saved states for this layer yet.")
+            namedStateNames.forEach{name->
+                Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){
+                    Text(name,Modifier.weight(1f))
+                    TextButton(onClick={val saved=namedStateStore.load(layer.id,name,original);if(saved!=null){changeOperations(saved);manageNamedStatesOpen=false}}){Text("Restore")}
+                    TextButton(onClick={if(namedStateStore.remove(layer.id,name)){namedStateNames=namedStateStore.names(layer.id)}}){Text("Delete")}
+                }
+            }
+        }},
+        confirmButton={TextButton(onClick={manageNamedStatesOpen=false}){Text("Done")}}
+    )
     editingOperationId?.let { id ->
         val op=operations.firstOrNull{it.id==id}
         if(op==null)editingOperationId=null else OperationParameterDialog(op,onDismiss={editingOperationId=null},onSave={updated->changeOperations(operations.map{if(it.id==id)updated else it});editingOperationId=null})
