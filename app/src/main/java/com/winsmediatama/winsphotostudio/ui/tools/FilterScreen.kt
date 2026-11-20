@@ -18,6 +18,10 @@ import com.winsmediatama.winsphotostudio.core.adjustments.BasicAdjustmentProcess
 import com.winsmediatama.winsphotostudio.core.adjustments.BasicAdjustmentValues
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CancellationException
+import com.winsmediatama.winsphotostudio.core.render.BitmapRenderScheduler
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 
 private data class PhotoFilter(val name:String,val values:BasicAdjustmentValues)
 private val filters=listOf(
@@ -36,9 +40,27 @@ private val filters=listOf(
 fun FilterScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,BasicAdjustmentValues)->Unit) {
     var selected by remember { mutableStateOf(filters.first()) }
     var strength by remember { mutableFloatStateOf(1f) }
-    val preview by produceState<Bitmap?>(null,source,selected,strength) { value?.takeIf { it !== source }?.recycle(); value=null; value=withContext(Dispatchers.IO){BasicAdjustmentProcessor.apply(source,scaledFilterValues(selected.values,strength))} }
-    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==source}?.recycle()}}
-    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.recycle()}}
+    val renderScheduler=remember{BitmapRenderScheduler(48L*1024L*1024L,"WinsPhoto-FilterPreview")}
+    DisposableEffect(renderScheduler){onDispose{renderScheduler.close()}}
+    val preview by produceState<Bitmap?>(null,source,selected,strength,renderScheduler) {
+        value?.takeIf{it!==source&&!it.isRecycled}?.recycle();value=null
+        val params=scaledFilterValues(selected.values,strength)
+        val key="filter:"+System.identityHashCode(source)+":"+source.width+"x"+source.height+":"+selected.name+":"+strength+":"+params.hashCode()
+        var request:Future<Bitmap>?=null
+        try {
+            value=withContext(Dispatchers.IO) {
+                request=renderScheduler.request(key){ cancellation ->
+                    cancellation.throwIfCanceled()
+                    val result=BasicAdjustmentProcessor.apply(source,params)
+                    cancellation.throwIfCanceled()
+                    result
+                }
+                request!!.get(60,TimeUnit.SECONDS)
+            }
+        } catch(cancelled:CancellationException){request?.cancel(true);throw cancelled}
+        catch(_:Exception){request?.cancel(true);value=null}
+    }
+    DisposableEffect(preview){onDispose{preview?.takeIf{it!==source&&!it.isRecycled}?.recycle()}}
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
             Text("Filters",Modifier.weight(1f),color=Color.White)
