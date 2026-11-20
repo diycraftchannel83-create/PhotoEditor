@@ -20,14 +20,11 @@ import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
 import com.winsmediatama.winsphotostudio.core.history.EditOperation
 import com.winsmediatama.winsphotostudio.core.history.NonDestructiveEditStack
 import com.winsmediatama.winsphotostudio.core.adjustments.BasicAdjustmentValues
-import com.winsmediatama.winsphotostudio.core.adjustments.LevelsValues
 import com.winsmediatama.winsphotostudio.core.adjustments.LevelsChannel
-import com.winsmediatama.winsphotostudio.core.adjustments.CurvesValues
 import com.winsmediatama.winsphotostudio.core.adjustments.CurvePoint
 import com.winsmediatama.winsphotostudio.core.adjustments.HslAdjustments
 import com.winsmediatama.winsphotostudio.core.adjustments.HslColorRange
 import com.winsmediatama.winsphotostudio.core.adjustments.HslRangeAdjustment
-import com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectSettings
 import com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectKind
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
