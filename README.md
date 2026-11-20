@@ -291,3 +291,5 @@ Build verification and release readiness must be tracked honestly. Check the lat
 - Selection Tool: crop ratio presets (Free, 1:1, 4:3, 16:9, 3:2); selection crop now commits a replayable normalized Transform bounding-box operation rather than a one-off flattened bitmap (test authored, verification deferred).
 
 - Operation Stack Apply now creates a main-editor History entry with descriptive labels (Add/Remove/Edit operation or stack-level summary), so the editor's Undo/Redo timeline identifies the change.
+
+- Layer compositor now rejects canvases above 24 MP before bitmap allocation to reduce OOM risk; regression test authored (verification deferred).
