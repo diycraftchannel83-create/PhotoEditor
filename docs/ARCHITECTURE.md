@@ -59,3 +59,6 @@ Operation Stack Apply now records a main-editor history snapshot with descriptiv
 
 ## Compositor ownership audit
 A branch-specific bitmap ownership/recycling checklist is tracked in `docs/COMPOSITOR_AUDIT.md`. It documents expected ownership rules and regression scenarios, but is not a completed source audit. Source fetch/search limitations prevented safe code modifications in this continuation. Verification remains deferred.
+
+
+**Compositor ownership update:** Difference blending now releases the scaled source bitmap in a `finally` block. A regression test asserts caller-owned layer and mask inputs remain unrecycled across repeated renders. Exception cleanup for all renderer branches remains incomplete and verification is deferred.
