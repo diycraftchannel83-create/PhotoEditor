@@ -392,3 +392,15 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [ ] Add render progress/telemetry and immutable render snapshots.
 - [ ] Implement tile/region rendering and multi-stage preview/full-resolution pipeline; current 24 MP safety caps remain in place.
 - [ ] Add deterministic test coverage for cancellation, close, cache eviction order, and render failures.
+
+
+
+## Adjustment-layer renderer foundation — 20 November 2026
+
+- [x] Add `LayerNode.AdjustmentNode` model for pixel-color adjustments (Basic, Levels, Curves, HSL, Effects, LUT).
+- [x] Apply adjustment nodes in order to the accumulated layer-tree composite, so the node affects layers below it instead of rendering as a separate overlay.
+- [x] Support adjustment opacity and optional grayscale/alpha mask blending.
+- [x] Reject geometry operations on adjustment layers and reject output dimension changes during adjustment rendering.
+- [x] Add Robolectric tests for adjustment output, source preservation and black-mask behavior.
+- [ ] Integrate AdjustmentNode into layer panel, persistence/project serialization, add/edit dialogs and global history; current model/renderer/test support is foundation-only and is not yet a user-visible feature.
+- [ ] Test operation order, opacity blending, mask scaling, invalid masks, transparent source behavior, nested groups and memory cleanup on device/CI.
