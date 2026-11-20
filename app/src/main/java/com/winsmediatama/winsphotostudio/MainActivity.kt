@@ -461,8 +461,8 @@ private fun WinsPhotoApp() {
             if(pendingEditorAction!=null) AlertDialog(
                 onDismissRequest={pendingEditorAction=null;pendingProjectToOpen=null},
                 title={Text("Unsaved changes")},
-                text={Text("Your current project has unsaved changes. Save it before continuing, discard changes, or cancel this action.")},
-                confirmButton={TextButton(onClick={pendingEditorAction=null;pendingProjectToOpen=null;projectsOpen=true}){Text("Save")}},
+                text={Text("Your current project has unsaved changes. Save opens the project manager so you can save first; after saving, repeat the action. Discard continues immediately.")},
+                confirmButton={TextButton(onClick={pendingEditorAction=null;pendingProjectToOpen=null;projectsOpen=true}){Text("Save project")}},
                 dismissButton={Row {
                     TextButton(onClick={val action=pendingEditorAction;val project=pendingProjectToOpen;executePendingEditorAction(action,project)}){Text("Discard")}
                     TextButton(onClick={pendingEditorAction=null;pendingProjectToOpen=null}){Text("Cancel")}
@@ -512,7 +512,7 @@ private fun WinsPhotoApp() {
                         scope.launch {
                             val restored=recovered.layers
                             val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(restored,recovered.canvasWidth,recovered.canvasHeight)}
-                            bitmap=composite;layers=restored;selectedLayerId=recovered.selectedLayerId ?: restored.lastOrNull()?.id;editHistory=emptyList();redoHistory=emptyList()
+                            bitmap=composite;layers=restored;selectedLayerId=recovered.selectedLayerId ?: restored.lastOrNull()?.id;editHistory=emptyList();redoHistory=emptyList();editorDirty=false
                         }
                     }){Text("Restore")}},
                     dismissButton={TextButton(onClick={recoveryCandidate=null;scope.launch(Dispatchers.IO){RecoveryStore(context).clear()}}){Text("Discard")}}
