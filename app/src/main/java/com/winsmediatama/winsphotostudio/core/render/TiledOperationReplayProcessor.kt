@@ -18,9 +18,9 @@ object TiledOperationReplayProcessor {
     data class OutputTile(val rect: android.graphics.Rect, val bitmap: Bitmap)
 
     fun supports(operations: List<EditOperation>): Boolean = operations.filter { it.enabled }.all {
-        it is EditOperation.BasicAdjust || it is EditOperation.Levels ||
-            it is EditOperation.Curves || it is EditOperation.Hsl ||
-            it is EditOperation.Effect || it is EditOperation.Lut
+        (it is EditOperation.BasicAdjust && it.values.clarity == 0f && it.values.sharpen == 0f) ||
+            it is EditOperation.Levels || it is EditOperation.Curves || it is EditOperation.Hsl ||
+            it is EditOperation.Lut
     }
 
     fun renderTiles(
@@ -46,7 +46,6 @@ object TiledOperationReplayProcessor {
                             is EditOperation.Levels -> LevelsProcessor.apply(input, operation.values)
                             is EditOperation.Curves -> CurvesProcessor.apply(input, operation.values)
                             is EditOperation.Hsl -> HslProcessor.apply(input, operation.values)
-                            is EditOperation.Effect -> operation.settings.apply(input)
                             is EditOperation.Lut -> CubeLut.parse(operation.cubeText).apply(input)
                             else -> error("Unsupported operation reached tiled replay")
                         }
