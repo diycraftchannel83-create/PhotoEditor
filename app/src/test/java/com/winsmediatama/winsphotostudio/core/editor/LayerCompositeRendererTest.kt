@@ -62,7 +62,21 @@ class LayerCompositeRendererTest {
         }
     }
 
-    @Test fun alphaOpacityStripProcessingPreservesRgbAndScalesAlpha() {\n        val source=Bitmap.createBitmap(2,2,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.RED)}\n        val result=LayerCompositeRenderer.render(listOf(EditorLayer(name=\"Half\",bitmap=source,opacity=.5f)),2,2)\n        assertEquals(127,Color.alpha(result.getPixel(0,0)))\n        assertEquals(Color.RED and 0x00FFFFFF,result.getPixel(0,0) and 0x00FFFFFF)\n        assertFalse(source.isRecycled)\n        result.recycle();source.recycle()\n    }\n\n    @Test fun preCancelledRenderStopsBeforeOutputAllocation() {\n        val signal=CancellationSignal().apply{cancel()}\n        assertThrows(android.os.OperationCanceledException::class.java) { LayerCompositeRenderer.render(emptyList(),1,1,signal) }\n    }\n\n    @Test fun oversizedCanvasFailsBeforeBitmapAllocation() {
+    @Test fun alphaOpacityStripProcessingPreservesRgbAndScalesAlpha() {
+        val source=Bitmap.createBitmap(2,2,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.RED)}
+        val result=LayerCompositeRenderer.render(listOf(EditorLayer(name=\"Half\",bitmap=source,opacity=.5f)),2,2)
+        assertEquals(127,Color.alpha(result.getPixel(0,0)))
+        assertEquals(Color.RED and 0x00FFFFFF,result.getPixel(0,0) and 0x00FFFFFF)
+        assertFalse(source.isRecycled)
+        result.recycle();source.recycle()
+    }
+
+    @Test fun preCancelledRenderStopsBeforeOutputAllocation() {
+        val signal=CancellationSignal().apply{cancel()}
+        assertThrows(android.os.OperationCanceledException::class.java) { LayerCompositeRenderer.render(emptyList(),1,1,signal) }
+    }
+
+    @Test fun oversizedCanvasFailsBeforeBitmapAllocation() {
         val failure=runCatching{LayerCompositeRenderer.render(emptyList(),6000,5000)}.exceptionOrNull()
         assertNotNull(failure)
         assertTrue(failure?.message?.contains("24 MP safety limit")==true)
