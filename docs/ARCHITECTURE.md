@@ -120,3 +120,7 @@ A branch-specific bitmap ownership/recycling checklist is tracked in `docs/COMPO
 
 
 - Export metadata policy: edited JPEG/PNG are generated from bitmap content and source EXIF/location metadata is not copied; the export dialog communicates this privacy behavior.
+
+
+### Project duplication transaction
+- Duplicating a project now validates its canonical source directory, bounds the requested name and removes the destination if copying/manifest update fails. Source implementation only.
