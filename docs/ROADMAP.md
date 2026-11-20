@@ -33,7 +33,7 @@
 - [x] RGB/luminance histogram processor and UI
 - [x] Unit tests authored for basic adjustment, levels, curves, HSL and histogram (CI verification pending)
 - [x] Histogram large-image sampling bounded to 1,000,000 samples; regression test authored (verification pending)
-- [x] In-place parameter editing for existing Basic Adjust operation-stack entries (slider dialog updates same operation ID without changing order; implementation committed, verification deferred)\n- [ ] Extend in-place editing to Levels, Curves, HSL, Effects, Transform and other operation types; color-management consistency
+- [x] In-place parameter editing for Basic Adjust, Levels, Curves, HSL and Effects operation-stack entries (dialogs update same operation ID without changing order; implementation committed, verification deferred)\n- [ ] Extend in-place editing to Transform/Crop, Perspective, Canvas Size, Background Replace, Retouch and LUT; color-management consistency
 - [ ] Live parameter adjustment layers and preview cache
 
 ## Phase 3 — Non-destructive editing foundation
