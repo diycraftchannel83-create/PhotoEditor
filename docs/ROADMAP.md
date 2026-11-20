@@ -616,3 +616,11 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Add regression tests for halo clamp, coalescing, full-canvas threshold, fragmentation limit and reset (authored; execution deferred).
 - [ ] Connect dirty regions to layer-edit mutations and scheduler cache invalidation; current preview composite requests still render full canvas.
 - [ ] Implement incremental region compositor with strict eligibility and full-render fallback; build/test/device verification remains deferred.
+
+
+## Targeted render-cache invalidation — 20 November 2026
+- [x] Add exact-key cache invalidation and release cached bitmap memory for the selected key.
+- [x] Cancel matching active render work when its cache key is invalidated.
+- [x] Add layer-stack invalidation helper using deterministic composite cache keys.
+- [x] Add regression test that invalidates an exact key and confirms a fresh render (authored; execution deferred).
+- [ ] Wire dirty-region/layer mutations to invalidation calls and implement region-specific incremental composite updates.
