@@ -389,7 +389,8 @@ object TiledLayerCompositeRenderer {
         val planned = BitmapTilePlanner.plan(width, height, tileSize)
         val outputs = mutableListOf<CompositeTile>()
         try {
-            planned.forEach { rect ->
+            planned.forEach { plannedTile ->
+                val rect = plannedTile.sourceRect
                 cancellation?.throwIfCanceled()
                 val tile = Bitmap.createBitmap(rect.width(), rect.height(), Bitmap.Config.ARGB_8888)
                 try {
