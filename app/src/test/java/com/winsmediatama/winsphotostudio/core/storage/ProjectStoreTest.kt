@@ -83,4 +83,20 @@ class ProjectStoreTest {
         assertTrue(runCatching{store.saveLayerProject(listOf(EditorLayer(name="tiny",bitmap=tiny)),null,6000,5000,"too big")}.exceptionOrNull() is IllegalArgumentException)
         assertTrue(runCatching{store.saveLayerProject(emptyList(),null,1,1,"empty")}.exceptionOrNull() is IllegalArgumentException)
     }
+    @Test fun legacySnapshotProjectSchemaOneMigratesToEditableLayer() {
+        val context=org.robolectric.RuntimeEnvironment.getApplication()
+        val store=ProjectStore(context)
+        val root=java.io.File(context.filesDir,"studio-projects")
+        val folder=java.io.File(root,"legacy-test").apply{mkdirs()}
+        val assets=java.io.File(folder,"assets").apply{mkdirs()}
+        val image=Bitmap.createBitmap(2,2,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.MAGENTA)}
+        java.io.File(assets,"canvas.png").outputStream().use{image.compress(Bitmap.CompressFormat.PNG,100,it)}
+        java.io.File(folder,"project.json").writeText(org.json.JSONObject().put("schemaVersion",1).put("name","Legacy Snapshot").put("canvasWidth",2).put("canvasHeight",2).put("snapshotAsset","assets/canvas.png").toString())
+        val loaded=store.loadEditableProject(folder)
+        assertNotNull(loaded)
+        assertEquals("Legacy Snapshot",loaded!!.name)
+        assertEquals(1,loaded.layers.size)
+        assertEquals(Color.MAGENTA,loaded.layers.single().bitmap.getPixel(0,0))
+        store.deleteProject(folder.name)
+    }
 }
