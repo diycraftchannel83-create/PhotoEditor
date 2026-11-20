@@ -253,3 +253,6 @@
 
 ### Recovery transaction hardening
 - Snapshot replacement now includes rollback for both snapshot and manifest failures. Added successive-save and 24 MP guard regression tests. Restoring a recovered session now sets dirty state to prevent accidental loss when leaving without saving. Verification deferred.
+
+### Named operation states UI and persistence
+- Named states are now available in the Operation Stack panel: save current stack, restore, and delete. States persist per layer in app-private JSON, with path checks, collision-resistant file names, operation validation and a 50-state cap. Tests authored; verification deferred.
