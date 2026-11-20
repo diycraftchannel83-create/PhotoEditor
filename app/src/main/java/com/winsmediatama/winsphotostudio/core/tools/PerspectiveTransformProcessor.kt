@@ -22,6 +22,7 @@ object PerspectiveTransformProcessor {
         require(quad.isValid()){"Perspective quadrilateral must be valid and convex"}
         val w=outputWidth.coerceIn(1,8192);val h=outputHeight.coerceIn(1,8192)
         require(w.toLong()*h.toLong()<=24_000_000L){"Perspective output exceeds 24 MP safety limit"}
+        if(quad==PerspectiveQuad.IDENTITY&&w==source.width&&h==source.height)return source.copy(Bitmap.Config.ARGB_8888,true)
         val src=floatArrayOf(quad.topLeft.first*source.width,quad.topLeft.second*source.height,quad.topRight.first*source.width,quad.topRight.second*source.height,quad.bottomRight.first*source.width,quad.bottomRight.second*source.height,quad.bottomLeft.first*source.width,quad.bottomLeft.second*source.height)
         val dst=floatArrayOf(0f,0f,w.toFloat(),0f,w.toFloat(),h.toFloat(),0f,h.toFloat())
         val matrix=Matrix();require(matrix.setPolyToPoly(src,0,dst,0,4) ){"Unable to compute perspective transform"}
