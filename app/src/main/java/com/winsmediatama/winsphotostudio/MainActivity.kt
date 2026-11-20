@@ -294,7 +294,7 @@ private fun WinsPhotoApp() {
                             replaySource.width==currentBitmap.width && replaySource.height==currentBitmap.height &&
                             TiledOperationReplayProcessor.supportsHalo(replayLayer.operations) && replayLayer.operations.isNotEmpty()
                         val supportsStreaming=currentLayers.isNotEmpty() &&
-                            currentLayers.none { it.groupId != null || it.clipToBelow || it.operations.isNotEmpty() || it.blendMode == EditorBlendMode.DIFFERENCE } &&
+                            currentLayers.none { it.groupId != null || it.clipToBelow || it.operations.isNotEmpty() } &&
                             currentLayers.all { it.bitmap.width == currentBitmap.width && it.bitmap.height == currentBitmap.height && (it.mask == null || (it.mask.width == currentBitmap.width && it.mask.height == currentBitmap.height)) }
                         val supportsGroupedReplay=currentLayers.any { it.groupId != null } && currentLayers.none { it.clipToBelow || it.blendMode == EditorBlendMode.DIFFERENCE || it.groupBlendMode == EditorBlendMode.DIFFERENCE } &&
                             currentLayers.all { it.bitmap.width == currentBitmap.width && it.bitmap.height == currentBitmap.height && (it.mask == null || (it.mask.width == currentBitmap.width && it.mask.height == currentBitmap.height)) } &&
@@ -302,7 +302,7 @@ private fun WinsPhotoApp() {
                         val supportsClippedReplay=currentLayers.any { it.clipToBelow } && currentLayers.none { it.groupId != null || it.blendMode == EditorBlendMode.DIFFERENCE } &&
                             currentLayers.all { it.bitmap.width == currentBitmap.width && it.bitmap.height == currentBitmap.height && (it.mask == null || (it.mask.width == currentBitmap.width && it.mask.height == currentBitmap.height)) } &&
                             currentLayers.filter { it.visible }.all { TiledOperationReplayProcessor.supportsHalo(it.operations) }
-                        val supportsMultiLayerReplay=currentLayers.any { it.operations.isNotEmpty() } && currentLayers.none { it.groupId != null || it.clipToBelow || it.blendMode == EditorBlendMode.DIFFERENCE } &&
+                        val supportsMultiLayerReplay=currentLayers.any { it.operations.isNotEmpty() } && currentLayers.none { it.groupId != null || it.clipToBelow } &&
                             currentLayers.all { it.bitmap.width == currentBitmap.width && it.bitmap.height == currentBitmap.height && (it.mask == null || (it.mask.width == currentBitmap.width && it.mask.height == currentBitmap.height)) } &&
                             currentLayers.filter { it.visible }.all { TiledOperationReplayProcessor.supportsHalo(it.operations) }
                         if(canReplayTiles) {
