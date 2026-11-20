@@ -43,4 +43,26 @@ class RecoveryStoreTest {
         assertEquals(Color.GREEN,recovered.layers.first().bitmap.getPixel(0,0))
         store.clear()
     }
+    @Test fun replacementSnapshotKeepsLatestStateAndClearsOldAssets() {
+        val context=org.robolectric.RuntimeEnvironment.getApplication()
+        val store=RecoveryStore(context)
+        val first=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.RED)}
+        val second=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.BLUE)}
+        store.save(listOf(EditorLayer(name="first",bitmap=first)),null,1,1)
+        store.save(listOf(EditorLayer(name="second",bitmap=second)),null,1,1)
+        val recovered=store.recover()
+        assertNotNull(recovered)
+        assertEquals("second",recovered!!.layers.single().name)
+        assertEquals(Color.BLUE,recovered.layers.single().bitmap.getPixel(0,0))
+        store.clear()
+    }
+
+    @Test fun oversizedRecoveryCanvasIsRejectedBeforeWritingSnapshot() {
+        val context=org.robolectric.RuntimeEnvironment.getApplication()
+        val store=RecoveryStore(context)
+        val tiny=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888)
+        val failure=runCatching{store.save(listOf(EditorLayer(name="tiny",bitmap=tiny)),null,6000,5000)}.exceptionOrNull()
+        assertTrue(failure is IllegalArgumentException)
+        store.clear()
+    }
 }
