@@ -30,7 +30,7 @@ object LayerCompositeRenderer {
                     val masked=layer.mask?.takeUnless{it.isRecycled}?.let{own(LayerMaskProcessor.apply(replayBitmap,it))}
                     val base=masked?:replayBitmap
                     val clipped=if(layer.clipToBelow&&previousAlpha!=null)own(ClipAlphaProcessor.apply(base,previousAlpha!!))else base
-                    drawPrepared(canvas,clipped,dest,layer.opacity,layer.blendMode)
+                    drawPrepared(canvas,output,clipped,dest,layer.opacity,layer.blendMode)
                     val alphaSource=if(layer.opacity<1f)own(applyAlphaOpacity(clipped,layer.opacity))else clipped
                     val nextOwned=alphaSource!==layer.bitmap
                     if(previousOwned&&previousAlpha!==alphaSource)previousAlpha?.takeUnless{it.isRecycled}?.recycle()
@@ -54,7 +54,7 @@ object LayerCompositeRenderer {
                 val masked=child.mask?.takeUnless{it.isRecycled}?.let{own(LayerMaskProcessor.apply(replayBitmap,it))}
                 val base=masked?:replayBitmap
                 val clipped=if(child.clipToBelow&&groupPrevious!=null)own(ClipAlphaProcessor.apply(base,groupPrevious!!))else base
-                drawPrepared(groupCanvas,clipped,dest,child.opacity,child.blendMode)
+                drawPrepared(groupCanvas,groupBitmap,clipped,dest,child.opacity,child.blendMode)
                 val alphaSource=if(child.opacity<1f)own(applyAlphaOpacity(clipped,child.opacity))else clipped
                 val nextOwned=alphaSource!==child.bitmap
                 if(groupPreviousOwned&&groupPrevious!==alphaSource)groupPrevious?.takeUnless{it.isRecycled}?.recycle()
@@ -67,7 +67,7 @@ object LayerCompositeRenderer {
             val groupOpacity=(group.firstOrNull()?.groupOpacity?:1f).coerceIn(0f,1f)
             val clippedGroup=if(layer.clipToBelow&&previousAlpha!=null)own(ClipAlphaProcessor.apply(groupBitmap,previousAlpha!!))else groupBitmap
             val groupAlphaSource=if(groupOpacity<1f)own(applyAlphaOpacity(clippedGroup,groupOpacity))else clippedGroup
-            drawPrepared(canvas,groupAlphaSource,dest,1f,layer.groupBlendMode?:EditorBlendMode.NORMAL)
+            drawPrepared(canvas,output,groupAlphaSource,dest,1f,layer.groupBlendMode?:EditorBlendMode.NORMAL)
             val nextOwned=true
             if(previousOwned&&previousAlpha!==groupAlphaSource)previousAlpha?.takeUnless{it.isRecycled}?.recycle()
             previousAlpha=groupAlphaSource;previousOwned=nextOwned
@@ -91,9 +91,9 @@ object LayerCompositeRenderer {
         try { output.setPixels(pixels,0,w,0,0,w,h);return output }
         catch(error:Throwable){if(!output.isRecycled)output.recycle();throw error}
     }
-    private fun drawPrepared(canvas:Canvas,source:Bitmap,dest:Rect,opacity:Float,blendMode:EditorBlendMode) {
+    private fun drawPrepared(canvas:Canvas,target:Bitmap,source:Bitmap,dest:Rect,opacity:Float,blendMode:EditorBlendMode) {
         val paint=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply{alpha=(opacity.coerceIn(0f,1f)*255).toInt()}
-        if(blendMode==EditorBlendMode.DIFFERENCE&&Build.VERSION.SDK_INT<29){drawDifference(canvas,source,dest,paint.alpha);return}
+        if(blendMode==EditorBlendMode.DIFFERENCE&&Build.VERSION.SDK_INT<29){drawDifference(target,source,dest,paint.alpha);return}
         if(blendMode==EditorBlendMode.DIFFERENCE&&Build.VERSION.SDK_INT>=29){paint.blendMode=BlendMode.DIFFERENCE}
         else paint.xfermode=PorterDuffXfermode(when(blendMode){
             EditorBlendMode.NORMAL->PorterDuff.Mode.SRC_OVER
@@ -107,17 +107,13 @@ object LayerCompositeRenderer {
         })
         canvas.drawBitmap(source,null,dest,paint)
     }
-    private fun drawDifference(canvas:Canvas,source:Bitmap,dest:Rect,opacity:Int) {
-        val target=canvas.bitmap?:return
+    private fun drawDifference(target:Bitmap,source:Bitmap,dest:Rect,opacity:Int) {
         val w=target.width;val h=target.height
         val base=IntArray(w*h);target.getPixels(base,0,w,0,0,w,h)
         val scaled=Bitmap.createScaledBitmap(source,w,h,true)
         val pixels=IntArray(w*h)
-        try {
-            scaled.getPixels(pixels,0,w,0,0,w,h)
-        } finally {
-            if(scaled!==source&&!scaled.isRecycled)scaled.recycle()
-        }
+        try { scaled.getPixels(pixels,0,w,0,0,w,h) }
+        finally { if(scaled!==source&&!scaled.isRecycled)scaled.recycle() }
         for(i in base.indices){
             val d=base[i];val s=pixels[i];val da=d ushr 24;val sa=((s ushr 24)*opacity/255);val outA=sa+da*(255-sa)/255
             if(outA<=0){base[i]=0;continue}
