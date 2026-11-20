@@ -844,7 +844,7 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
             Row(verticalAlignment=Alignment.CenterVertically) {
                 IconButton(onClick=onBack){Icon(Icons.Default.ArrowBack,contentDescription="Back",tint=Color.White)}
                 Column(Modifier.weight(1f)) {
-                    Text("WINS PHOTO STUDIO",fontWeight=FontWeight.Bold,letterSpacing=1.2f,color=StudioAccent,style=MaterialTheme.typography.titleSmall)
+                    Text("WINS PHOTO STUDIO",fontWeight=FontWeight.Bold,letterSpacing=1.2.sp,color=StudioAccent,style=MaterialTheme.typography.titleSmall)
                     Text("Creative workspace  •  ${bitmap.width} × ${bitmap.height}px",style=MaterialTheme.typography.labelSmall,color=Color(0xFF9DA5B0))
                 }
                 TextButton(onClick={zoom=1f;panX=0f;panY=0f}){Text("FIT")}
