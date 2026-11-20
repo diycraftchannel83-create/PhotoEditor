@@ -133,8 +133,8 @@ private fun WinsPhotoApp() {
     var sourceLayerId by remember { mutableStateOf<String?>(null) }
     var sourcePreviewWidth by remember { mutableIntStateOf(0) }
     var sourcePreviewHeight by remember { mutableIntStateOf(0) }
-    var exportStatus by remember { mutableStateOf<String?>(null)
-    var beforeAfterBitmap by remember { mutableStateOf<Bitmap?>(null)
+    var exportStatus by remember { mutableStateOf<String?>(null) }
+    var beforeAfterBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var beforeAfterLoading by remember { mutableStateOf(false) } }
     val scope = rememberCoroutineScope()
     LaunchedEffect(bitmap) { beforeAfterBitmap?.takeUnless{it.isRecycled}?.recycle();beforeAfterBitmap=null;beforeAfterLoading=false }
@@ -500,7 +500,7 @@ private fun WinsPhotoApp() {
                 onExport = { exportDialogOpen=true },
                 onHistory = { historyOpen=true },
                 onOperations = { operationsOpen=true },
-                onBeforeAfter = { prepareBeforeAfter() }, beforeAfterBitmap=beforeAfterBitmap, beforeAfterLoading=beforeAfterLoading,
+                onBeforeAfter = { prepareBeforeAfter() }, beforeAfterBitmap=beforeAfterBitmap, beforeAfterLoading=beforeAfterLoading, beforeAfterAvailable=layers.any{it.id==sourceLayerId&&it.originalBitmap!=null},
                 onUndo = { if (editHistory.isNotEmpty() && bitmap!=null) { redoHistory=(redoHistory+EditorSnapshot(layers.toList(),selectedLayerId,bitmap!!,"Redo state")).takeLast(MAX_HISTORY_STATES);val previous=editHistory.last();restoreSnapshot(previous);editHistory=editHistory.dropLast(1) } },
                 onRedo = { if (redoHistory.isNotEmpty() && bitmap!=null) { editHistory=(editHistory+EditorSnapshot(layers.toList(),selectedLayerId,bitmap!!,"Undo state")).takeLast(MAX_HISTORY_STATES);val next=redoHistory.last();restoreSnapshot(next);redoHistory=redoHistory.dropLast(1) } },
                 canUndo = editHistory.isNotEmpty(), canRedo = redoHistory.isNotEmpty(), undoLabel=editHistory.lastOrNull()?.label, redoLabel=redoHistory.lastOrNull()?.label, canOperations=layers.firstOrNull{it.id==selectedLayerId}?.operations?.isNotEmpty()==true
@@ -623,7 +623,7 @@ private fun HomeScreen(loading: Boolean, error: String?, onImport: () -> Unit) {
 }
 
 @Composable
-private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onLevels: () -> Unit, onCurves: () -> Unit, onLayers: () -> Unit, onProjects: () -> Unit, onBrush: () -> Unit, onSelection: () -> Unit, onTextShape: () -> Unit, onFilters: () -> Unit, onEffects: () -> Unit, onLut: () -> Unit, onCanvasSize: () -> Unit, onBackgroundReplace: () -> Unit, onPerspective: () -> Unit, onHsl: () -> Unit, onGradient: () -> Unit, onRetouch: () -> Unit, onBackgroundRemove: () -> Unit, onAiBackgroundRemove: () -> Unit, onExport: () -> Unit, onHistory:()->Unit, onOperations:()->Unit, onBeforeAfter:()->Unit, beforeAfterBitmap:Bitmap?, beforeAfterLoading:Boolean, onUndo: () -> Unit, onRedo: () -> Unit, canUndo: Boolean, canRedo: Boolean, undoLabel:String?, redoLabel:String?, canOperations:Boolean) {
+private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnother: () -> Unit, onCropTransform: () -> Unit, onAdjustments: () -> Unit, onLevels: () -> Unit, onCurves: () -> Unit, onLayers: () -> Unit, onProjects: () -> Unit, onBrush: () -> Unit, onSelection: () -> Unit, onTextShape: () -> Unit, onFilters: () -> Unit, onEffects: () -> Unit, onLut: () -> Unit, onCanvasSize: () -> Unit, onBackgroundReplace: () -> Unit, onPerspective: () -> Unit, onHsl: () -> Unit, onGradient: () -> Unit, onRetouch: () -> Unit, onBackgroundRemove: () -> Unit, onAiBackgroundRemove: () -> Unit, onExport: () -> Unit, onHistory:()->Unit, onOperations:()->Unit, onBeforeAfter:()->Unit, beforeAfterBitmap:Bitmap?, beforeAfterLoading:Boolean, beforeAfterAvailable:Boolean, onUndo: () -> Unit, onRedo: () -> Unit, canUndo: Boolean, canRedo: Boolean, undoLabel:String?, redoLabel:String?, canOperations:Boolean) {
     var beforeAfterVisible by remember(bitmap){mutableStateOf(false)}
     val displayedBitmap=if(beforeAfterVisible&&beforeAfterBitmap!=null)beforeAfterBitmap else bitmap
     var zoom by remember { mutableFloatStateOf(1f) }
@@ -640,7 +640,7 @@ private fun EditorPreviewScreen(bitmap: Bitmap, onBack: () -> Unit, onImportAnot
                 TextButton(onClick={zoom=1f;panX=0f;panY=0f}){Text("Fit")}
                 TextButton(onClick=onUndo,enabled=canUndo){Text(undoLabel?.let{"Undo: $it"}?:"Undo")}
                 TextButton(onClick=onRedo,enabled=canRedo){Text(redoLabel?.let{"Redo: $it"}?:"Redo")}
-                TextButton(onClick={beforeAfterVisible=!beforeAfterVisible; if(!beforeAfterVisible)onBeforeAfter()},enabled=beforeAfterBitmap!=null||beforeAfterLoading){Text(if(beforeAfterVisible)"After" else if(beforeAfterLoading)"Loading…" else "Before/After")}
+                TextButton(onClick={if(beforeAfterVisible)beforeAfterVisible=false else {onBeforeAfter();beforeAfterVisible=true}},enabled=beforeAfterAvailable){Text(if(beforeAfterVisible)"After" else if(beforeAfterLoading)"Loading…" else "Before/After")}
                 TextButton(onClick=onExport){Text("Export")}
                 TextButton(onClick=onHistory){Text("History")}
                 TextButton(onClick=onOperations,enabled=canOperations){Text("Ops")}
