@@ -75,14 +75,17 @@ object LayerTreeRenderer {
                 val adjustedPixels=IntArray(count)
                 target.getPixels(basePixels,0,w,0,top,w,rows)
                 adjusted.getPixels(adjustedPixels,0,w,0,top,w,rows)
-                val maskPixels=mask?.let { IntArray(it.width*rows).also { p->it.getPixels(p,0,it.width,0,top.coerceIn(0,it.height-rows.coerceAtMost(it.height)),it.width,rows.coerceAtMost(it.height)) } }
+                val maskTop=mask?.let { (top.toFloat()/h*it.height).toInt().coerceIn(0,it.height-1) } ?: 0
+                val maskBottom=mask?.let { ((top+rows).toFloat()/h*it.height).toInt().coerceAtLeast(maskTop+1).coerceAtMost(it.height) } ?: 0
+                val maskRows=(maskBottom-maskTop).coerceAtLeast(1)
+                val maskPixels=mask?.let { IntArray(it.width*maskRows).also { p->it.getPixels(p,0,it.width,0,maskTop,it.width,maskRows) } }
                 for(local in 0 until count) {
                     if(local and 0x3FFF==0) cancellation?.throwIfCanceled()
                     val x=local%w; val y=top+local/w
                     val maskValue=if(maskPixels==null) 1f else {
                         val mx=(x.toFloat()/w*mask.width).toInt().coerceIn(0,mask.width-1)
                         val my=(y.toFloat()/h*mask.height).toInt().coerceIn(0,mask.height-1)
-                        val maskRowOffset=(my-top).coerceIn(0,rows-1)
+                        val maskRowOffset=(my-maskTop).coerceIn(0,maskRows-1)
                         val m=maskPixels[maskRowOffset*mask.width+mx]
                         ((m ushr 16 and 255)/255f)*((m ushr 24 and 255)/255f)
                     }
