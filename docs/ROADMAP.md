@@ -274,3 +274,7 @@
 
 ### Categorized tool navigation
 - Editor toolbar now groups tools into Canvas, Color, Layers, Design and AI categories with horizontal scrolling for compact screens. Touch-target, localization and full accessibility audits remain open.
+
+### Project/recovery migration coverage
+- [x] Added authored regression tests for schema-one legacy snapshot project loading and legacy recovery metadata defaults; tests remain unexecuted.
+- [x] Added project/recovery corruption, unsupported-schema and path-traversal tests; verification deferred.
