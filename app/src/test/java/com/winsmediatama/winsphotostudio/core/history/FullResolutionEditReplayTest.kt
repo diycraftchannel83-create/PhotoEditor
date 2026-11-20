@@ -1,13 +1,14 @@
 package com.winsmediatama.winsphotostudio.core.history
 
 import android.graphics.Bitmap
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk=[28])
 class FullResolutionEditReplayTest {
     @Test
     fun dimensionBoundOperationsScaleAndNormalizedOperationsStaySame() {
@@ -46,7 +47,17 @@ class FullResolutionEditReplayTest {
     }
 
     @Test
-    fun rejectsSourceAndOperationDimensionsOverPixelBudget() {\n        assertTrue(runCatching {\n            FullResolutionEditReplay.ReplayDimensions(100,100,5000,5000)\n        }.isFailure)\n        val dimensions=FullResolutionEditReplay.ReplayDimensions(100,100,400,400)\n        val oversized=EditOperation.CanvasSize(width=10000,height=10000)\n        assertTrue(runCatching { FullResolutionEditReplay.scaleOperations(listOf(oversized),dimensions) }.isFailure)\n    }\n\n    @Test\n    fun replayReturnsNewBitmapAndPreservesSource() {
+    fun rejectsSourceAndOperationDimensionsOverPixelBudget() {
+        assertTrue(runCatching {
+            FullResolutionEditReplay.ReplayDimensions(100,100,5000,5000)
+        }.isFailure)
+        val dimensions=FullResolutionEditReplay.ReplayDimensions(100,100,400,400)
+        val oversized=EditOperation.CanvasSize(width=10000,height=10000)
+        assertTrue(runCatching { FullResolutionEditReplay.scaleOperations(listOf(oversized),dimensions) }.isFailure)
+    }
+
+    @Test
+    fun replayReturnsNewBitmapAndPreservesSource() {
         val source=Bitmap.createBitmap(8,6,Bitmap.Config.ARGB_8888)
         source.eraseColor(android.graphics.Color.GREEN)
         val rendered=FullResolutionEditReplay.render(source, emptyList(),4,3)
