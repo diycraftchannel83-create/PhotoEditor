@@ -65,6 +65,8 @@ import com.winsmediatama.winsphotostudio.core.editor.AlphaLockProcessor
 import com.winsmediatama.winsphotostudio.core.storage.RecoveryStore
 import com.winsmediatama.winsphotostudio.core.export.FullResolutionExport
 import com.winsmediatama.winsphotostudio.core.export.NativeSourceLayerExport
+import com.winsmediatama.winsphotostudio.core.render.TiledLayerCompositeRenderer
+import com.winsmediatama.winsphotostudio.core.render.TiledPngEncoder
 import com.winsmediatama.winsphotostudio.core.importer.PreviewImageDecoder
 import com.winsmediatama.winsphotostudio.core.importer.OriginalSourceCache
 import com.winsmediatama.winsphotostudio.core.importer.RegionPreviewAssembler
