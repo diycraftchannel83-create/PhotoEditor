@@ -52,7 +52,7 @@ fun OperationStackScreen(layer:EditorLayer,onCancel:()->Unit,onApply:(EditorLaye
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(8.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)){Text("Original source retained",color=Color.LightGray,modifier=Modifier.weight(1f));TextButton(onClick={changeOperations(emptyList())}){Text("Reset")}}
         LazyColumn(Modifier.weight(1f),contentPadding=PaddingValues(8.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
             itemsIndexed(operations,key={_,op->op.id}){index,op->
-                Card(colors=CardDefaults.cardColors(containerColor=Color(0xFF20242A))){Row(Modifier.fillMaxWidth().padding(8.dp),verticalAlignment=Alignment.CenterVertically){
+                Card(colors=CardDefaults.cardColors(containerColor=Color(0xFF20242A))){Row(Modifier.fillMaxWidth().padding(8.dp).horizontalScroll(rememberScrollState()),verticalAlignment=Alignment.CenterVertically){
                     Checkbox(checked=op.enabled,onCheckedChange={v->changeOperations(operations.toMutableList().also{it[index]=toggle(it[index],v)})})
                     Text(op.label,color=Color.White)
                     if(op is EditOperation.BasicAdjust)TextButton(onClick={editingBasicId=op.id}){Text("Edit")}
