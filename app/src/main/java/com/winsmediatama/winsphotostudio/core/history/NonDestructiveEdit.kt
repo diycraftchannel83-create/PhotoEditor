@@ -153,6 +153,27 @@ sealed interface EditOperation {
             .put("blx",quad.bottomLeft.first).put("bly",quad.bottomLeft.second)
             .put("outputWidth",outputWidth).put("outputHeight",outputHeight)
     }
+    data class SelectionMask(
+        override val id:String=java.util.UUID.randomUUID().toString(),
+        override val enabled:Boolean=true,
+        val maskBase64:String,
+        val maskWidth:Int,
+        val maskHeight:Int
+    ):EditOperation {
+        override val label="Selection mask"
+        fun valid():Boolean=maskWidth in 1..16384&&maskHeight in 1..16384&&maskBase64.length in 1..24_000_000&&runCatching{Base64.decode(maskBase64,Base64.DEFAULT)}.isSuccess
+        override fun toJson()=JSONObject().put("id",id).put("type","selectionMask").put("enabled",enabled).put("maskBase64",maskBase64).put("maskWidth",maskWidth).put("maskHeight",maskHeight)
+        companion object {
+            fun fromBitmap(mask:Bitmap):SelectionMask {
+                val output=java.io.ByteArrayOutputStream()
+                require(mask.compress(Bitmap.CompressFormat.PNG,100,output)){"Unable to encode selection mask"}
+                val encoded=Base64.encodeToString(output.toByteArray(),Base64.NO_WRAP)
+                val operation=SelectionMask(maskBase64=encoded,maskWidth=mask.width,maskHeight=mask.height)
+                require(operation.valid()){"Selection mask exceeds operation storage limit"}
+                return operation
+            }
+        }
+    }
     data class Retouch(
         override val id: String = java.util.UUID.randomUUID().toString(),
         override val enabled: Boolean = true,
@@ -197,6 +218,7 @@ class NonDestructiveEditStack(
             is EditOperation.Perspective -> operation.copy(id=id)
             is EditOperation.CanvasSize -> operation.copy(id=id)
             is EditOperation.BackgroundReplace -> operation.copy(id=id)
+            is EditOperation.SelectionMask -> operation.copy(id=id)
         }
         return true
     }
@@ -216,6 +238,7 @@ class NonDestructiveEditStack(
             is EditOperation.Perspective -> old.copy(enabled=enabled)
             is EditOperation.CanvasSize -> old.copy(enabled=enabled)
             is EditOperation.BackgroundReplace -> old.copy(enabled=enabled)
+            is EditOperation.SelectionMask -> old.copy(enabled=enabled)
         }
         return true
     }
@@ -239,6 +262,7 @@ class NonDestructiveEditStack(
                 is EditOperation.Perspective -> PerspectiveTransformProcessor.warp(current,operation.quad,operation.outputWidth.takeIf{it>0}?:current.width,operation.outputHeight.takeIf{it>0}?:current.height)
                 is EditOperation.CanvasSize -> CanvasResizeProcessor.resize(current,operation.width,operation.height,operation.anchor,operation.backgroundColor)
                 is EditOperation.BackgroundReplace -> BackgroundReplacementProcessor.apply(current,operation.mode,operation.startColor,operation.endColor,operation.photoPngBase64)
+                is EditOperation.SelectionMask -> applySelectionMask(current,operation)
             }
             if (next !== current && !current.isRecycled) current.recycle()
             current = next
