@@ -358,3 +358,6 @@ Build verification and release readiness must be tracked honestly. Check the lat
 
 
 - Background-removal safety pass: AI person segmentation and color-key removal now preserve existing source alpha, enforce a 24 MP processing ceiling and clean generated bitmaps on failures (verification pending).
+
+
+- Export safety: JPEG/PNG intermediates now use exception-safe cleanup; JPEG flattening and layer-fit allocations have 24 MP bounds and failure cleanup. Verification pending.
