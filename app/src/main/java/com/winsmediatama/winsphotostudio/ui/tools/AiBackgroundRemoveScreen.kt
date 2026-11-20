@@ -71,17 +71,25 @@ fun AiBackgroundRemoveScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap)->U
 }
 
 private fun applyAiMask(source:Bitmap,result:SegmentationResult,threshold:Float,softness:Float):Bitmap {
+    require(source.width>0&&source.height>0&&source.width.toLong()*source.height<=24_000_000L){"AI mask output exceeds 24 MP safety limit"}
+    require(result.width>0&&result.height>0&&result.mask.size==result.width*result.height){"Invalid segmentation mask"}
     val output=source.copy(Bitmap.Config.ARGB_8888,true)
-    val pixels=IntArray(source.width*source.height);output.getPixels(pixels,0,source.width,0,0,source.width,source.height)
-    for(y in 0 until source.height)for(x in 0 until source.width) {
-        val mx=(x.toFloat()/source.width*result.width).toInt().coerceIn(0,result.width-1)
-        val my=(y.toFloat()/source.height*result.height).toInt().coerceIn(0,result.height-1)
-        val confidence=result.mask[my*result.width+mx]
-        val alpha=if(softness<=0f)if(confidence>=threshold)1f else 0f else smoothstep(threshold-softness,threshold+softness,confidence)
-        val i=y*source.width+x;pixels[i]=(pixels[i] and 0x00FFFFFF) or (alpha*255f).toInt().coerceIn(0,255).shl(24)
+    try {
+        val pixels=IntArray(source.width*source.height);output.getPixels(pixels,0,source.width,0,0,source.width,source.height)
+        for(y in 0 until source.height)for(x in 0 until source.width) {
+            val mx=(x.toFloat()/source.width*result.width).toInt().coerceIn(0,result.width-1)
+            val my=(y.toFloat()/source.height*result.height).toInt().coerceIn(0,result.height-1)
+            val confidence=result.mask[my*result.width+mx]
+            val maskAlpha=if(softness<=0f)if(confidence>=threshold)1f else 0f else smoothstep(threshold-softness,threshold+softness,confidence)
+            val i=y*source.width+x;val sourceAlpha=pixels[i] ushr 24;val alpha=(sourceAlpha*maskAlpha).toInt().coerceIn(0,255)
+            pixels[i]=(pixels[i] and 0x00FFFFFF) or (alpha shl 24)
+        }
+        output.setPixels(pixels,0,source.width,0,0,source.width,source.height)
+        return output
+    } catch(error:Throwable) {
+        if(!output.isRecycled)output.recycle()
+        throw error
     }
-    output.setPixels(pixels,0,source.width,0,0,source.width,source.height)
-    return output
 }
 private fun smoothstep(edge0:Float,edge1:Float,x:Float):Float {
     if(edge1<=edge0)return if(x>=edge1)1f else 0f
