@@ -24,4 +24,13 @@ class EffectProcessorTest {
         val b=Bitmap.createBitmap(2,2,Bitmap.Config.ARGB_8888);b.eraseColor(Color.GRAY)
         assertEquals(EffectProcessor.grain(b,.5f,42).getPixel(0,0),EffectProcessor.grain(b,.5f,42).getPixel(0,0))
     }
+    @Test fun cancelledEffectRenderStopsAndKeepsSourceBitmap() {
+        val source=Bitmap.createBitmap(2,2,Bitmap.Config.ARGB_8888);source.eraseColor(Color.CYAN)
+        val signal=android.os.CancellationSignal().apply{cancel()}
+        assertThrows(android.os.OperationCanceledException::class.java){EffectProcessor.gaussianBlur(source,4,signal)}
+        assertThrows(android.os.OperationCanceledException::class.java){EffectProcessor.motionBlur(source,4,45f,signal)}
+        assertThrows(android.os.OperationCanceledException::class.java){EffectProcessor.vignette(source,.8f,signal)}
+        assertThrows(android.os.OperationCanceledException::class.java){EffectProcessor.grain(source,.4f,12,signal)}
+        assertEquals(Color.CYAN,source.getPixel(0,0))
+    }
 }
