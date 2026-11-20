@@ -22,6 +22,10 @@ import androidx.compose.ui.unit.dp
 import com.winsmediatama.winsphotostudio.core.history.EditOperation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CancellationException
+import com.winsmediatama.winsphotostudio.core.render.BitmapRenderScheduler
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
 
 private enum class CropPreset(val title:String,val ratio:Float?) {
@@ -43,8 +47,17 @@ fun CropTransformScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,EditOper
     var widthText by remember { mutableStateOf(source.width.toString()) }
     var heightText by remember { mutableStateOf(source.height.toString()) }
     var showResize by remember { mutableStateOf(false) }
-    val preview by produceState<Bitmap?>(null,source,settings) { value?.takeIf { it !== source }?.recycle(); value=null; value=withContext(Dispatchers.IO){renderCropTransform(source,settings)} }
-    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==source}?.recycle()}}
+    val renderScheduler=remember{BitmapRenderScheduler(48L*1024L*1024L,"WinsPhoto-CropPreview")}
+    DisposableEffect(renderScheduler){onDispose{renderScheduler.close()}}
+    val preview by produceState<Bitmap?>(null,source,settings,renderScheduler) {
+        value?.takeIf{it!==source&&!it.isRecycled}?.recycle();value=null
+        val key="crop:"+System.identityHashCode(source)+":"+source.width+"x"+source.height+":"+settings.hashCode()
+        var request:Future<Bitmap>?=null
+        try{value=withContext(Dispatchers.IO){request=renderScheduler.request(key){signal->signal.throwIfCanceled();renderCropTransform(source,settings).also{signal.throwIfCanceled()}};request!!.get(60,TimeUnit.SECONDS)}}
+        catch(cancelled:CancellationException){request?.cancel(true);throw cancelled}
+        catch(_:Exception){request?.cancel(true);value=null}
+    }
+    DisposableEffect(preview){onDispose{preview?.takeIf{it!==source&&!it.isRecycled}?.recycle()}}
     val sourceRatio=source.width.toFloat()/source.height.coerceAtLeast(1)
 
     fun updateCrop(l:Float,t:Float,r:Float,b:Float,markFree:Boolean=true) {
