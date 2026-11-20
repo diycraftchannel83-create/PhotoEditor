@@ -2,6 +2,9 @@ package com.winsmediatama.winsphotostudio.core.editor
 
 import android.graphics.Bitmap
 import android.graphics.Color
+import com.winsmediatama.winsphotostudio.core.history.EditOperation
+import com.winsmediatama.winsphotostudio.core.adjustments.LevelsChannel
+import com.winsmediatama.winsphotostudio.core.adjustments.LevelsValues
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
@@ -23,6 +26,33 @@ class LayerTreeRendererTest {
         val node=LayerNode.GroupNode(children=listOf(LayerNode.BitmapNode(EditorLayer(name="Layer",bitmap=bitmap))),opacity=.5f)
         assertEquals(127,Color.alpha(LayerTreeRenderer.render(listOf(node),1,1).getPixel(0,0)))
     }
+    @Test fun adjustmentLayerChangesLayersBelowWithoutMutatingSource() {
+        val source=Bitmap.createBitmap(2,2,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.RED)}
+        val operation=EditOperation.Levels(values=LevelsValues(composite=LevelsChannel(outputBlack=.5f,outputWhite=.5f)))
+        val tree=listOf(
+            LayerNode.BitmapNode(EditorLayer(name="Base",bitmap=source)),
+            LayerNode.AdjustmentNode(name="Levels",operation=operation,opacity=1f)
+        )
+        val output=LayerTreeRenderer.render(tree,2,2)
+        assertEquals(Color.RED,source.getPixel(0,0))
+        assertEquals(false,output.getPixel(0,0)==Color.RED)
+        output.recycle()
+        source.recycle()
+    }
+
+    @Test fun blackAdjustmentMaskLeavesUnderlyingImageUnchanged() {
+        val source=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.RED)}
+        val blackMask=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.BLACK)}
+        val operation=EditOperation.Levels(values=LevelsValues(composite=LevelsChannel(outputBlack=.5f,outputWhite=.5f)))
+        val tree=listOf(
+            LayerNode.BitmapNode(EditorLayer(name="Base",bitmap=source)),
+            LayerNode.AdjustmentNode(name="Masked Levels",operation=operation,mask=blackMask)
+        )
+        val output=LayerTreeRenderer.render(tree,1,1)
+        assertEquals(Color.RED,output.getPixel(0,0))
+        output.recycle();source.recycle();blackMask.recycle()
+    }
+
     @Test fun rejectsOversizedLayerTreeCanvasBeforeAllocation() {
         val error=assertThrows(IllegalArgumentException::class.java) {
             LayerTreeRenderer.render(emptyList(),6000,5000)
