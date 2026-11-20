@@ -45,6 +45,11 @@ class LayerCompositeRendererTest {
         assertEquals(127,Color.alpha(result.getPixel(0,0)))
         assertEquals(255,Color.blue(result.getPixel(0,0)))
     }
+    @Test fun oversizedCanvasFailsBeforeBitmapAllocation() {
+        val failure=runCatching{LayerCompositeRenderer.render(emptyList(),6000,5000)}.exceptionOrNull()
+        assertNotNull(failure)
+        assertTrue(failure?.message?.contains("24 MP safety limit")==true)
+    }
     @Test fun maskedLayerCompositesTransparentOutsideMask() {
         val red=Bitmap.createBitmap(2,1,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.RED)}
         val mask=Bitmap.createBitmap(2,1,Bitmap.Config.ARGB_8888).apply{setPixel(0,0,Color.WHITE);setPixel(1,0,Color.BLACK)}
