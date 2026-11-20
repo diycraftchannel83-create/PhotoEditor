@@ -21,6 +21,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CancellationException
+import com.winsmediatama.winsphotostudio.core.render.BitmapRenderScheduler
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 import com.winsmediatama.winsphotostudio.core.tools.RetouchMode
 import com.winsmediatama.winsphotostudio.core.tools.RetouchPoint
 import com.winsmediatama.winsphotostudio.core.tools.RetouchStroke
@@ -35,11 +39,18 @@ fun RetouchScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,List<RetouchSt
     var strength by remember { mutableFloatStateOf(.6f) }
     var offsetX by remember { mutableFloatStateOf(100f) }
     var offsetY by remember { mutableFloatStateOf(100f) }
-    val preview by produceState<Bitmap?>(null,source,strokes,active,mode,brushSize,strength,offsetX,offsetY) {
-        value?.takeIf{it!==source}?.recycle();value=null
-        value=withContext(Dispatchers.IO){renderRetouch(source,strokes+listOfNotNull(active),strength,offsetX,offsetY)}
+    val renderScheduler=remember{BitmapRenderScheduler(48L*1024L*1024L,"WinsPhoto-RetouchPreview")}
+    DisposableEffect(renderScheduler){onDispose{renderScheduler.close()}}
+    val preview by produceState<Bitmap?>(null,source,strokes,active,mode,brushSize,strength,offsetX,offsetY,renderScheduler) {
+        value?.takeIf{it!==source&&!it.isRecycled}?.recycle();value=null
+        val allStrokes=strokes+listOfNotNull(active)
+        val key="retouch:"+System.identityHashCode(source)+":"+source.width+"x"+source.height+":"+allStrokes.hashCode()+":"+strength+":"+offsetX+":"+offsetY
+        var request:Future<Bitmap>?=null
+        try{value=withContext(Dispatchers.IO){request=renderScheduler.request(key){signal->signal.throwIfCanceled();renderRetouch(source,allStrokes,strength,offsetX,offsetY).also{signal.throwIfCanceled()}};request!!.get(60,TimeUnit.SECONDS)}}
+        catch(cancelled:CancellationException){request?.cancel(true);throw cancelled}
+        catch(_:Exception){request?.cancel(true);value=null}
     }
-    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==source}?.recycle()}}
+    DisposableEffect(preview){onDispose{preview?.takeIf{it!==source&&!it.isRecycled}?.recycle()}}
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(10.dp)) {
             Text("Retouch",Modifier.weight(1f),color=Color.White)
