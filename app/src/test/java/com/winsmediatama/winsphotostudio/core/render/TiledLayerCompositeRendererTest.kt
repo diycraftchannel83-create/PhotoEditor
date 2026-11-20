@@ -58,6 +58,28 @@ class TiledLayerCompositeRendererTest {
         decoded.recycle(); reference.recycle(); base.recycle(); overlay.recycle()
     }
 
+    @Test fun streamedDifferenceBlendMatchesFullComposite() {
+        val base=Bitmap.createBitmap(17,9,Bitmap.Config.ARGB_8888).apply{
+            for(y in 0 until height)for(x in 0 until width)setPixel(x,y,Color.rgb((x*11)%255,(y*23)%255,120))
+        }
+        val overlay=Bitmap.createBitmap(17,9,Bitmap.Config.ARGB_8888).apply{
+            for(y in 0 until height)for(x in 0 until width)setPixel(x,y,Color.argb(if(x<9)220 else 100,180,40,(x*9)%255))
+        }
+        val layers=listOf(
+            EditorLayer(name="Base",bitmap=base),
+            EditorLayer(name="Difference",bitmap=overlay,opacity=.63f,blendMode=com.winsmediatama.winsphotostudio.core.editor.EditorBlendMode.DIFFERENCE)
+        )
+        val reference=com.winsmediatama.winsphotostudio.core.editor.LayerCompositeRenderer.render(layers,17,9)
+        val stream=java.io.ByteArrayOutputStream()
+        try{
+            TiledLayerCompositeRenderer.encodeStreamingPng(layers,17,9,stream,tileWidth=5)
+            val decoded=requireNotNull(android.graphics.BitmapFactory.decodeByteArray(stream.toByteArray(),0,stream.size()))
+            for(y in 0 until 9)for(x in 0 until 17)
+                assertEquals("difference pixel ($x,$y)",reference.getPixel(x,y),decoded.getPixel(x,y))
+            decoded.recycle()
+        }finally{reference.recycle();base.recycle();overlay.recycle()}
+    }
+
     @Test fun streamedClippingAlphaMatchesFullComposite() {
         val base=Bitmap.createBitmap(39,33,Bitmap.Config.ARGB_8888).apply{
             eraseColor(Color.TRANSPARENT)
