@@ -247,3 +247,6 @@
 
 ### Opacity intermediate hardening
 - Added exception-safe cleanup for opacity-generated bitmaps and regression coverage that mask combine/invert preserve caller-owned inputs. No build or tests executed.
+
+### Global command history hardening
+- Command history now fails safely: failed undo/redo retains the command for retry, execute failures do not enter history, and invalid capacity is rejected. Regression tests added but not executed.
