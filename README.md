@@ -316,3 +316,8 @@ Build verification and release readiness must be tracked honestly. Check the lat
 - [x] LayerTreeRenderer now caps canvas allocation at 24 MP and recursion depth at 32 groups.
 - [x] Child render bitmaps recycle in `finally`; output bitmap recycles if a render branch throws.
 - [x] Oversized canvas and excessive nesting regression tests authored (not executed).
+
+## Compositor exception cleanup update
+- [x] LayerCompositeRenderer now tracks renderer-owned replay, mask, clip, opacity and group bitmaps by identity.
+- [x] Owned temporaries are cleaned in outer `finally`, including renderer exceptions; output bitmap is recycled on failure.
+- [ ] Processor-internal exception cleanup and comprehensive tests remain pending; verification not run.
