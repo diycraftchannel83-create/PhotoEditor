@@ -12,6 +12,7 @@ import android.graphics.Rect
 object LayerCompositeRenderer {
     fun render(layers:List<EditorLayer>,width:Int,height:Int):Bitmap {
         val w=width.coerceAtLeast(1);val h=height.coerceAtLeast(1)
+        require(w.toLong()*h.toLong()<=24_000_000L){"Composite exceeds 24 MP safety limit (${w}x${h})"}
         val output=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888)
         val canvas=Canvas(output);val dest=Rect(0,0,w,h)
         var index=0
