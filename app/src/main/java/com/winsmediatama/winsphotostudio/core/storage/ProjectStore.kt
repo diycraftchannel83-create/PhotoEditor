@@ -184,16 +184,22 @@ class ProjectStore(context: Context) {
     fun readManifest(projectFolder: File): JSONObject = JSONObject(File(projectFolder, "project.json").readText())
 
     fun renameProject(projectFolder:File,newName:String):Boolean {
-        val trimmed=newName.trim();if(trimmed.isBlank())return false
-        return runCatching{val manifest=readManifest(projectFolder);manifest.put("name",trimmed).put("updatedAt",System.currentTimeMillis());writeManifestAtomically(projectFolder,manifest);true}.getOrDefault(false)
+        val trimmed=newName.trim();if(trimmed.isBlank()||trimmed.length>120)return false
+        return runCatching{requireSupportedProjectFolder(projectFolder);val manifest=readManifest(projectFolder);manifest.put("name",trimmed).put("updatedAt",System.currentTimeMillis());writeManifestAtomically(projectFolder,manifest);true}.getOrDefault(false)
     }
     fun duplicateProject(projectFolder:File,newName:String?=null):File? {
         return runCatching{
+            requireSupportedProjectFolder(projectFolder)
             val sourceManifest=readManifest(projectFolder);val id=UUID.randomUUID().toString();val target=File(root,id)
             projectFolder.copyRecursively(target,overwrite=false)
             val manifest=readManifest(target);manifest.put("projectId",id).put("name",newName?.trim()?.takeIf{it.isNotBlank()}?:("${sourceManifest.optString("name","Project")} Copy")).put("createdAt",System.currentTimeMillis()).put("updatedAt",System.currentTimeMillis())
             writeManifestAtomically(target,manifest);target
         }.getOrNull()
     }
-    fun deleteProject(projectId: String): Boolean = File(root, projectId).deleteRecursively()
+    fun deleteProject(projectId: String): Boolean {
+        if(projectId.isBlank())return false
+        val target=File(root,projectId).canonicalFile
+        require(target.path.startsWith(root.canonicalPath+File.separator)){"Invalid project ID"}
+        return target.deleteRecursively()
+    }
 }
