@@ -173,7 +173,7 @@
 - [ ] Benchmark low-RAM devices and large images
 
 ## Phase 12 — UX, accessibility and localization
-- [ ] Categorized tool navigation, responsive panels and touch target audit
+- [x] Categorized tool navigation (Canvas/Color/Layers/Design/AI); responsive panels and touch target audit remain
 - [ ] Before/after, tool reset, consistent apply/cancel, progress/error states
 - [ ] Accessibility labels, focus order, contrast and scalable text
 - [ ] Indonesian and English localization; audit all UI strings
@@ -271,3 +271,6 @@
 
 ### Named operation states UI and persistence
 - Named states are now available in the Operation Stack panel: save current stack, restore, and delete. States persist per layer in app-private JSON, with path checks, collision-resistant file names, operation validation and a 50-state cap. Tests authored; verification deferred.
+
+### Categorized tool navigation
+- Editor toolbar now groups tools into Canvas, Color, Layers, Design and AI categories with horizontal scrolling for compact screens. Touch-target, localization and full accessibility audits remain open.
