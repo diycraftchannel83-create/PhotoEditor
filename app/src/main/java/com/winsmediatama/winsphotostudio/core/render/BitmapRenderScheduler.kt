@@ -2,6 +2,8 @@ package com.winsmediatama.winsphotostudio.core.render
 
 import android.graphics.Bitmap
 import android.os.CancellationSignal
+import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
+import com.winsmediatama.winsphotostudio.core.editor.LayerCompositeRenderer
 import java.io.Closeable
 import java.util.LinkedHashMap
 import java.util.concurrent.Callable
@@ -80,6 +82,16 @@ class BitmapRenderScheduler(
                 return task.cancel(mayInterruptIfRunning)
             }
         }
+    }
+
+    /** Cache-keyed composite request for the editor's flat layer stack. */
+    fun requestLayerStackComposite(
+        layers: List<EditorLayer>,
+        width: Int,
+        height: Int
+    ): Future<Bitmap> {
+        val key = LayerRenderCacheKey.create(layers, width, height)
+        return request(key) { cancellation -> LayerCompositeRenderer.render(layers, width, height, cancellation) }
     }
 
     /** Cancels queued and running work. Render callbacks should check signal periodically. */
