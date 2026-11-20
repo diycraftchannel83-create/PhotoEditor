@@ -74,6 +74,19 @@ DOMAIN_MAX 1 1 1
         assertTrue(restored.operations.first() is EditOperation.Transform)
         assertEquals(stack.toJson().toString(),restored.toJson().toString())
     }
+    @Test fun selectionCropTransformUsesNormalizedBoundingBoxAndReplay() {
+        val source=Bitmap.createBitmap(8,6,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.BLUE)}
+        val operation=EditOperation.Transform(left=.25f,top=1f/6f,right=.75f,bottom=5f/6f)
+        val rendered=NonDestructiveEditStack(source).apply{append(operation)}.render()
+        assertEquals(4,rendered.width)
+        assertEquals(4,rendered.height)
+        val restored=NonDestructiveEditStack.fromJson(source,NonDestructiveEditStack(source).apply{append(operation)}.toJson())
+        val replay=restored.render()
+        assertEquals(rendered.width,replay.width)
+        assertEquals(rendered.height,replay.height)
+        assertEquals(Color.BLUE,replay.getPixel(0,0))
+    }
+
     @Test fun hslOperationReplaysAndRoundTripsJson() {
         val src=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{setPixel(0,0,Color.RED)}
         val values=HslAdjustments(mapOf(HslColorRange.RED to HslRangeAdjustment(saturation=-1f)))
