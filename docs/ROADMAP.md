@@ -447,3 +447,11 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] LUT import preview integrated with serialized scheduler and cache keyed by source/LUT text.
 - [ ] CI compile/test verification for these four integrations remains pending.
 - [ ] Add cancellation checkpoints inside processors' per-pixel loops; currently scheduler cancellation is checked before/after processor calls, so in-progress pixel loops may not stop immediately.
+
+
+## Continuation — geometry and retouch previews scheduled
+- [x] Crop/Transform preview uses render scheduler and parameter cache key.
+- [x] Perspective preview uses render scheduler and cache key from normalized quad parameters.
+- [x] Retouch preview uses scheduler; active and committed stroke snapshots are keyed to preview settings.
+- [ ] CI verification pending.
+- [ ] Canvas-size tool still applies directly without a visual preview; next follow-up should add an async preview and safe output-size guard.
