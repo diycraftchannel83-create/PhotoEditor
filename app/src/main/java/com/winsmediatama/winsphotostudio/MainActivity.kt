@@ -209,7 +209,7 @@ private fun WinsPhotoApp() {
             val finalEdited=if(selected.alphaLocked)AlphaLockProcessor.apply(selected.bitmap,edited) else edited
             val updated=layers.map{if(it.id==selected.id)it.copy(bitmap=finalEdited,originalBitmap=null,operations=emptyList()) else it}
             scope.launch {
-                val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,previousComposite.width,previousComposite.height)}
+                val composite=withContext(Dispatchers.IO){renderCompositeCached(updated,previousComposite.width,previousComposite.height)}
                 layers=updated;selectedLayerId=selected.id;bitmap=composite
             }
         } else {
@@ -229,7 +229,7 @@ private fun WinsPhotoApp() {
                 val backup=EditorLayer(name="Previous composite (hidden)",bitmap=previousComposite,visible=false)
                 val result=EditorLayer(name=operation.label,bitmap=rendered,originalBitmap=original,operations=stack.operations)
                 val updated=listOf(backup,result)
-                val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,rendered.width,rendered.height)}
+                val composite=withContext(Dispatchers.IO){renderCompositeCached(updated,rendered.width,rendered.height)}
                 layers=updated;selectedLayerId=result.id;bitmap=composite
             }
             return
@@ -244,7 +244,7 @@ private fun WinsPhotoApp() {
         scope.launch{
             val rendered=withContext(Dispatchers.IO){stack.render()}
             val updated=layers.map{if(it.id==selected.id)it.copy(bitmap=rendered,originalBitmap=original,operations=stack.operations)else it}
-            val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,previousComposite.width,previousComposite.height)}
+            val composite=withContext(Dispatchers.IO){renderCompositeCached(updated,previousComposite.width,previousComposite.height)}
             layers=updated;selectedLayerId=selected.id;bitmap=composite
         }
     }
@@ -370,7 +370,7 @@ private fun WinsPhotoApp() {
                 decoded.recycle()
                 recordUndo(canvasBitmap,"Add layer")
                 val updated=layers+EditorLayer(name="Photo Layer ${layers.size+1}",bitmap=fitted)
-                val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,canvasBitmap.width,canvasBitmap.height)}
+                val composite=withContext(Dispatchers.IO){renderCompositeCached(updated,canvasBitmap.width,canvasBitmap.height)}
                 layers=updated;bitmap=composite
             }
         }
@@ -383,7 +383,7 @@ private fun WinsPhotoApp() {
         when(action){
             PendingEditorAction.BACK_TO_HOME->{bitmap=null;imageUri=null;editHistory=emptyList();redoHistory=emptyList();layers=emptyList();selectedLayerId=null;editorDirty=false;scope.launch(Dispatchers.IO){RecoveryStore(context).clear()}}
             PendingEditorAction.IMPORT_ANOTHER->{imagePicker.launch(arrayOf("image/*"))}
-            PendingEditorAction.OPEN_PROJECT->{if(project!=null)scope.launch{val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(project.layers,project.canvasWidth,project.canvasHeight)};bitmap=composite;layers=project.layers;selectedLayerId=project.selectedLayerId?:project.layers.lastOrNull()?.id;editHistory=emptyList();redoHistory=emptyList();editorDirty=false}}
+            PendingEditorAction.OPEN_PROJECT->{if(project!=null)scope.launch{val composite=withContext(Dispatchers.IO){renderCompositeCached(project.layers,project.canvasWidth,project.canvasHeight)};bitmap=composite;layers=project.layers;selectedLayerId=project.selectedLayerId?:project.layers.lastOrNull()?.id;editHistory=emptyList();redoHistory=emptyList();editorDirty=false}}
             null->Unit
         }
     }
@@ -450,7 +450,7 @@ private fun WinsPhotoApp() {
                 onApply={gradientBitmap -> recordUndo(current,"Gradient layer");scope.launch {
                     val layer=EditorLayer(name="Gradient Layer",bitmap=gradientBitmap)
                     val updated=layers+layer
-                    val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,current.width,current.height)}
+                    val composite=withContext(Dispatchers.IO){renderCompositeCached(updated,current.width,current.height)}
                     layers=updated;selectedLayerId=layer.id;bitmap=composite;gradientOpen=false
                 }}
             )
@@ -467,7 +467,7 @@ private fun WinsPhotoApp() {
                 if(activeMask!=null) LayerMaskPaintScreen(mask=activeMask,onCancel={maskPaintOpen=false},onApply={editedMask->
                     recordUndo(current,"Paint mask")
                     val updated=layers.map{if(it.id==maskPaintLayerId)it.copy(mask=editedMask) else it}
-                    layers=updated;maskPaintOpen=false;scope.launch{bitmap=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,current.width,current.height)}}
+                    layers=updated;maskPaintOpen=false;scope.launch{bitmap=withContext(Dispatchers.IO){renderCompositeCached(updated,current.width,current.height)}}
                 }) else { Text("Mask not available",color=Color.White);TextButton(onClick={maskPaintOpen=false}){Text("Back")} }
             }
             else if (canvasSizeOpen) CanvasSizeScreen(
@@ -519,7 +519,7 @@ private fun WinsPhotoApp() {
                                 mask?.takeUnless { it.isRecycled }?.recycle()
                                 val updated = layers + newLayer
                                 val composite = withContext(Dispatchers.IO) {
-                                    LayerCompositeRenderer.render(updated, current.width, current.height)
+                                    renderCompositeCached(updated, current.width, current.height)
                                 }
                                 layers = updated; selectedLayerId = newLayer.id; bitmap = composite; selectionOpen = false
                             }
@@ -544,7 +544,7 @@ private fun WinsPhotoApp() {
                                     scope.launch {
                                         val rendered = withContext(Dispatchers.IO) { NonDestructiveEditStack(original, updatedLayer.operations).render() }
                                         val updated = layers.map { if (it.id == selected.id) updatedLayer.copy(bitmap = rendered) else it }
-                                        val composite = withContext(Dispatchers.IO) { LayerCompositeRenderer.render(updated, current.width, current.height) }
+                                        val composite = withContext(Dispatchers.IO) { renderCompositeCached(updated, current.width, current.height) }
                                         layers = updated; bitmap = composite; selectionOpen = false
                                     }
                                 }
@@ -571,7 +571,7 @@ private fun WinsPhotoApp() {
                                     scope.launch {
                                         val rendered = withContext(Dispatchers.IO) { NonDestructiveEditStack(original, updatedLayer.operations).render() }
                                         val updated = layers.map { if (it.id == selected.id) updatedLayer.copy(bitmap = rendered) else it }
-                                        val composite = withContext(Dispatchers.IO) { LayerCompositeRenderer.render(updated, current.width, current.height) }
+                                        val composite = withContext(Dispatchers.IO) { renderCompositeCached(updated, current.width, current.height) }
                                         layers = updated; bitmap = composite
                                     }
                                 }
@@ -603,7 +603,7 @@ private fun WinsPhotoApp() {
                                     ) else EditorLayer(name = "Cut Selection", bitmap = copied)
                                     mask.takeUnless { it.isRecycled }?.recycle()
                                     val updated = listOf(baseLayer, topLayer)
-                                    val composite = withContext(Dispatchers.IO) { LayerCompositeRenderer.render(updated, current.width, current.height) }
+                                    val composite = withContext(Dispatchers.IO) { renderCompositeCached(updated, current.width, current.height) }
                                     layers = updated; selectedLayerId = topLayer.id; bitmap = composite; selectionOpen = false
                                 }
                             }
@@ -653,7 +653,7 @@ private fun WinsPhotoApp() {
                 onCancel={layersOpen=false},
                 onAddImage={layerImagePicker.launch(arrayOf("image/*"))},
                 onEditMask={layerId,maskBitmap->maskPaintLayerId=layerId;maskPaintOpen=true},
-                onApply={newLayers,newSelected -> recordUndo(current,"Layer stack");layersOpen=false;selectedLayerId=newSelected; scope.launch { val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(newLayers,current.width,current.height)}; layers=newLayers; bitmap=composite }}
+                onApply={newLayers,newSelected -> recordUndo(current,"Layer stack");layersOpen=false;selectedLayerId=newSelected; scope.launch { val composite=withContext(Dispatchers.IO){renderCompositeCached(newLayers,current.width,current.height)}; layers=newLayers; bitmap=composite }}
             )
             else if (curvesOpen) CurvesScreen(
                 source=selectedBitmap,
@@ -678,7 +678,7 @@ private fun WinsPhotoApp() {
                     cropTransformOpen = false
                 }
             )
-            else if(operationsOpen) {val target=layers.firstOrNull{it.id==selectedLayerId};if(target!=null)OperationStackScreen(layer=target,onCancel={operationsOpen=false},onApply={updatedLayer->recordUndo(current,operationStackHistoryLabel(target.operations,updatedLayer.operations));scope.launch{val updated=layers.map{if(it.id==updatedLayer.id)updatedLayer else it};val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(updated,current.width,current.height)};layers=updated;selectedLayerId=updatedLayer.id;bitmap=composite;operationsOpen=false}}) else Text("No selected layer",color=Color.White)}
+            else if(operationsOpen) {val target=layers.firstOrNull{it.id==selectedLayerId};if(target!=null)OperationStackScreen(layer=target,onCancel={operationsOpen=false},onApply={updatedLayer->recordUndo(current,operationStackHistoryLabel(target.operations,updatedLayer.operations));scope.launch{val updated=layers.map{if(it.id==updatedLayer.id)updatedLayer else it};val composite=withContext(Dispatchers.IO){renderCompositeCached(updated,current.width,current.height)};layers=updated;selectedLayerId=updatedLayer.id;bitmap=composite;operationsOpen=false}}) else Text("No selected layer",color=Color.White)}
             else if(historyOpen) HistoryPanel(history=editHistory,onCancel={historyOpen=false},onRestore={index->val target=editHistory[index];restoreSnapshot(target);editHistory=editHistory.take(index);redoHistory=emptyList();historyOpen=false})
             else EditorPreviewScreen(
                 current,
@@ -766,7 +766,7 @@ private fun WinsPhotoApp() {
                         recoveryCandidate=null
                         scope.launch {
                             val restored=recovered.layers
-                            val composite=withContext(Dispatchers.IO){LayerCompositeRenderer.render(restored,recovered.canvasWidth,recovered.canvasHeight)}
+                            val composite=withContext(Dispatchers.IO){renderCompositeCached(restored,recovered.canvasWidth,recovered.canvasHeight)}
                             bitmap=composite;layers=restored;selectedLayerId=recovered.selectedLayerId ?: restored.lastOrNull()?.id;editHistory=emptyList();redoHistory=emptyList();editorDirty=true
                         }
                     }){Text("Restore")}},
