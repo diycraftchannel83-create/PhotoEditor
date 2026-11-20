@@ -37,6 +37,27 @@ class TiledLayerCompositeRendererTest {
         } finally { bitmap.recycle() }
     }
 
+    @Test fun streamingScanlinePngMatchesFullCompositeWithoutRetainingTileGrid() {
+        val base = Bitmap.createBitmap(7, 5, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.rgb(35, 80, 130)) }
+        val overlay = Bitmap.createBitmap(7, 5, Bitmap.Config.ARGB_8888).apply {
+            eraseColor(Color.TRANSPARENT)
+            for (y in 0..3) for (x in 1..5) setPixel(x, y, Color.rgb(180, 30, 70))
+        }
+        val layers = listOf(
+            EditorLayer(name = "Base", bitmap = base),
+            EditorLayer(name = "Overlay", bitmap = overlay, opacity = .72f)
+        )
+        val reference = com.winsmediatama.winsphotostudio.core.editor.LayerCompositeRenderer.render(layers, 7, 5)
+        val stream = java.io.ByteArrayOutputStream()
+        TiledLayerCompositeRenderer.encodeStreamingPng(layers, 7, 5, stream, tileWidth = 3)
+        val bytes = stream.toByteArray()
+        val decoded = requireNotNull(android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size))
+        for (y in 0 until 5) for (x in 0 until 7) {
+            assertEquals("stream pixel ($x,$y)", reference.getPixel(x,y), decoded.getPixel(x,y))
+        }
+        decoded.recycle(); reference.recycle(); base.recycle(); overlay.recycle()
+    }
+
     @Test fun partialLayerBoundsAreTransparentOutsideSource() {
         val small = Bitmap.createBitmap(2, 2, Bitmap.Config.ARGB_8888).apply { eraseColor(Color.RED) }
         val tiles = TiledLayerCompositeRenderer.renderTiles(listOf(EditorLayer(name = "Small", bitmap = small)), 4, 4, tileSize = 3)
