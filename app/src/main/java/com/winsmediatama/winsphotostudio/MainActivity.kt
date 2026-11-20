@@ -70,6 +70,7 @@ import com.winsmediatama.winsphotostudio.core.export.NativeSourceLayerExport
 import com.winsmediatama.winsphotostudio.core.render.TiledLayerCompositeRenderer
 import com.winsmediatama.winsphotostudio.core.render.TiledPngEncoder
 import com.winsmediatama.winsphotostudio.core.render.TiledOperationReplayProcessor
+import com.winsmediatama.winsphotostudio.core.render.BitmapRenderScheduler
 import com.winsmediatama.winsphotostudio.core.importer.PreviewImageDecoder
 import com.winsmediatama.winsphotostudio.core.importer.OriginalSourceCache
 import com.winsmediatama.winsphotostudio.core.importer.RegionPreviewAssembler
@@ -148,6 +149,13 @@ private fun WinsPhotoApp() {
     var beforeAfterLoading by remember { mutableStateOf(false) }
     var beforeAfterError by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+    val compositeScheduler=remember{BitmapRenderScheduler(96L*1024L*1024L,"WinsPhoto-LayerComposite")}
+    DisposableEffect(compositeScheduler){onDispose{compositeScheduler.close()}}
+    suspend fun renderCompositeCached(renderLayers:List<EditorLayer>,width:Int,height:Int):Bitmap {
+        val future=compositeScheduler.requestLayerStackComposite(renderLayers,width,height)
+        return try { withContext(Dispatchers.IO){future.get()} }
+        catch(error:Throwable){future.cancel(true);throw error}
+    }
     LaunchedEffect(bitmap) { beforeAfterBitmap?.takeUnless{it.isRecycled}?.recycle();beforeAfterBitmap=null;beforeAfterLoading=false;beforeAfterError=null }
     val context = androidx.compose.ui.platform.LocalContext.current
     var editHistory by remember { mutableStateOf<List<EditorSnapshot>>(emptyList()) }
@@ -167,7 +175,7 @@ private fun WinsPhotoApp() {
         scope.launch {
             val baseline=runCatching { withContext(Dispatchers.IO) {
                 val baselineLayers=layerSnapshot.map{layer->if(layer.id==sourceId)layer.copy(bitmap=original,originalBitmap=null,operations=emptyList(),mask=null,clipToBelow=false)else layer}
-                LayerCompositeRenderer.render(baselineLayers,current.width,current.height)
+                renderCompositeCached(baselineLayers,current.width,current.height)
             } }.getOrNull()
             if(bitmap!==current||sourceLayerId!=sourceId) {
                 baseline?.takeUnless{it.isRecycled}?.recycle()
