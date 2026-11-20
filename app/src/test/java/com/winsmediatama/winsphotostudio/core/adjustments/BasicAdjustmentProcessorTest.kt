@@ -20,10 +20,13 @@ class BasicAdjustmentProcessorTest {
     }
     @Test fun sourceRemainsUnmodifiedAndAlphaIsPreserved() {
         val source=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888);source.setPixel(0,0,Color.argb(80,100,100,100))
+        val sourcePixelBefore=source.getPixel(0,0)
+        val sourceRedBefore=Color.red(sourcePixelBefore)
         val output=BasicAdjustmentProcessor.apply(source,BasicAdjustmentValues(exposure=1f))
-        assertEquals(80,Color.alpha(output.getPixel(0,0)))
-        assertEquals(100,Color.red(source.getPixel(0,0)))
-        assertTrue(Color.red(output.getPixel(0,0))>100)
+        assertEquals(Color.alpha(sourcePixelBefore),Color.alpha(output.getPixel(0,0)))
+        assertEquals(sourcePixelBefore,source.getPixel(0,0))
+        assertEquals(sourceRedBefore,Color.red(source.getPixel(0,0)))
+        assertTrue(Color.red(output.getPixel(0,0))>sourceRedBefore)
     }
     @Test fun canceledRenderStopsBeforeProcessingAndPreservesSource() {
         val source=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888);source.setPixel(0,0,Color.RED)
