@@ -101,6 +101,34 @@ class BitmapRenderScheduler(
         activeTasks.clear()
     }
 
+    /** Remove one exact render key and cancel in-flight work for that key. */
+    @Synchronized
+    fun invalidate(key:String):Boolean {
+        require(key.isNotBlank())
+        var removed=false
+        cache.remove(key)?.let { bitmap ->
+            cacheBytes-=bitmap.allocationByteCount.toLong()
+            if(!bitmap.isRecycled) bitmap.recycle()
+            removed=true
+        }
+        val iterator=activeTasks.entries.iterator()
+        while(iterator.hasNext()) {
+            val entry=iterator.next()
+            val active=entry.value
+            if(active.first==key) {
+                active.second.cancel(true)
+                active.third.cancel()
+                iterator.remove()
+                removed=true
+            }
+        }
+        return removed
+    }
+
+    /** Invalidate a composite cache entry using its deterministic layer-stack key. */
+    fun invalidateLayerStackComposite(layers:List<EditorLayer>,width:Int,height:Int):Boolean =
+        invalidate(LayerRenderCacheKey.create(layers,width,height))
+
     @Synchronized
     fun cachedBytes(): Long = cacheBytes
 
@@ -140,7 +168,7 @@ class BitmapRenderScheduler(
     override fun close() {
         if (closed) return
         closed = true
-        activeTasks.values.forEach { (task, signal) -> signal.cancel(); task.cancel(true) }
+        activeTasks.values.forEach { (_, task, signal) -> signal.cancel(); task.cancel(true) }
         activeTasks.clear()
         executor.shutdownNow()
         clearCache()
