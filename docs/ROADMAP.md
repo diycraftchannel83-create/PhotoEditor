@@ -563,3 +563,12 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Add decode round-trip test and missing-coverage test (authored; not executed).
 - [ ] Connect the encoder to the Android export UI/SAF output flow and provide tile-row streaming rather than retaining all rendered tiles in memory.
 - [ ] Build/test/device verification remains deferred.
+
+
+## PNG export integration — 20 November 2026
+
+- [x] Integrate tiled flat-layer compositing into normal-size PNG export path in MainActivity when the current layer stack is within supported flat/unclipped/no-operation scope.
+- [x] Stream tile output through `TiledPngEncoder` directly to the SAF output stream; recycle tile bitmaps afterward.
+- [x] Keep existing PNG export path as fallback for unsupported layer stacks and keep source-dimension/native replay branch unchanged.
+- [ ] Native full-resolution source export remains limited to the existing renderer; large-source region/tile replay is not yet integrated.
+- [ ] Build, tests, UI/device verification remain deferred.
