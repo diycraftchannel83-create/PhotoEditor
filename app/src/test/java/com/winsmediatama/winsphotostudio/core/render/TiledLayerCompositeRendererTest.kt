@@ -161,7 +161,7 @@ class TiledLayerCompositeRendererTest {
         val operation=com.winsmediatama.winsphotostudio.core.history.EditOperation.BasicAdjust(values=adjustment)
         val layers=listOf(
             EditorLayer(name="Base",bitmap=base),
-            EditorLayer(name="Edited Overlay",bitmap=overlay,opacity=.8f,mask=mask,operations=listOf(operation))
+            EditorLayer(name="Edited Overlay",bitmap=overlay,originalBitmap=overlay,opacity=.8f,mask=mask,operations=listOf(operation))
         )
         val reference=com.winsmediatama.winsphotostudio.core.editor.LayerCompositeRenderer.render(layers,45,37)
         val stream=java.io.ByteArrayOutputStream()
