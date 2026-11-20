@@ -16,7 +16,7 @@ class TiledOperationReplayProcessorTest {
     @Test fun tiledBasicAdjustmentReplayMatchesFullStack() {
         val source=Bitmap.createBitmap(13,9,Bitmap.Config.ARGB_8888)
         for(y in 0 until source.height) for(x in 0 until source.width)
-            source.setPixel(x,y,Color.argb(255,(x*17)%256,(y*29)%256,(x+y)*11%256)
+            source.setPixel(x,y,Color.argb(255,(x*17)%256,(y*29)%256,(x+y)*11%256))
         val operation=EditOperation.BasicAdjust(values=BasicAdjustmentValues(brightness=.12f,contrast=.08f,saturation=.2f))
         val reference=NonDestructiveEditStack(source,listOf(operation)).render()
         val tiles=TiledOperationReplayProcessor.renderTiles(source,listOf(operation),tileSize=5)
