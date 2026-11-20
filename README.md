@@ -373,3 +373,8 @@ Build verification and release readiness must be tracked honestly. Check the lat
 
 
 - Project duplication now validates its source folder/name and cleans partially copied projects on failure (test authored; verification pending).
+
+
+## Source repair update — 20 November 2026
+
+The latest CI log exposed a selection-dispatch syntax/exhaustiveness issue and compile errors across LUT/effects, compositing, project decoding, retouch, selection, Brush, Gradient and Operation Stack sources. Source-only repairs for those areas have been committed to `main`. GitHub Actions is triggered automatically by pushes; CI is not marked green here, and build/test verification remains pending. Continue from the detailed [roadmap](docs/ROADMAP.md), especially the remaining architecture, rendering, advanced tools, AI, localization/accessibility, privacy/licensing and release work.
