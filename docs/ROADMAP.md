@@ -56,7 +56,7 @@
 - [x] Effects screen commits effect kind, strength and angle as replayable Effect operation (source implementation; verification deferred)
 - [x] Effect operation can be enabled/disabled from operation stack and replays from retained source
 - [x] Imported .cube LUT text is retained in a replayable LUT operation, with parse validation and stack toggle
-- [x] Selection-mask output now commits as a replayable, serialized per-layer Selection Mask and inverted Selection Cut operations with enable/disable and in-place invert editing, PNG payload/dimension validation and 24 MP safety limit; regression tests authored (verification deferred)\n- [ ] Integrate other selection actions (copy/cut/crop) into operation-based workflows and add remaining tool operations to stack
+- [x] Selection-mask output now commits as a replayable, serialized per-layer Selection Mask and inverted Selection Cut operations with enable/disable and in-place invert editing, PNG payload/dimension validation and 24 MP safety limit; regression tests authored (verification deferred)\n- [x] Copy Layer and Cut-to-Layer selection actions now create source-retaining layers with replayable keep/invert masks (tests authored; verification deferred)\n- [ ] Selection Crop and remaining tool operations integration
 - [x] Retouch operation model added to NonDestructiveEditStack with normalized stroke JSON, strength/offset parameters, enable/disable/replay and source-preserving render path (test authored; verification pending)
 - [x] Retouch UI returns stroke parameters and MainActivity commits it as a replayable per-layer operation (build/device verification pending)
 - [x] Core retouch mode/stroke model with normalized points, validation and JSON codec
