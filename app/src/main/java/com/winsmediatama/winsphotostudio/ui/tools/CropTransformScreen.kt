@@ -47,7 +47,7 @@ fun CropTransformScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,EditOper
     var widthText by remember { mutableStateOf(source.width.toString()) }
     var heightText by remember { mutableStateOf(source.height.toString()) }
     var showResize by remember { mutableStateOf(false) }
-    val renderScheduler=remember{BitmapRenderScheduler(48L*1024L*1024L,"WinsPhoto-CropPreview")}
+    val renderScheduler=remember{BitmapRenderScheduler(0L,"WinsPhoto-CropPreview")}
     DisposableEffect(renderScheduler){onDispose{renderScheduler.close()}}
     val preview by produceState<Bitmap?>(null,source,settings,renderScheduler) {
         value?.takeIf{it!==source&&!it.isRecycled}?.recycle();value=null
