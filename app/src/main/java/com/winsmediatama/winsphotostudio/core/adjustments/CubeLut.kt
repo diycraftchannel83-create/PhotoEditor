@@ -12,6 +12,7 @@ class CubeLut private constructor(
     val is3d:Boolean
 ) {
     fun apply(source:Bitmap):Bitmap {
+        require(source.width.toLong()*source.height<=24_000_000L) { "LUT processing exceeds 24 MP safety limit" }
         val w=source.width;val h=source.height;val pixels=IntArray(w*h);source.getPixels(pixels,0,w,0,0,w,h)
         for(i in pixels.indices){val p=pixels[i];val r=normalize((p shr 16 and 255)/255f,0);val g=normalize((p shr 8 and 255)/255f,1);val b=normalize((p and 255)/255f,2)
             val out=if(is3d)sample3d(r,g,b) else sample1d(r,g,b)
@@ -21,14 +22,14 @@ class CubeLut private constructor(
     }
     private fun normalize(v:Float,channel:Int)=((v-domainMin[channel])/(domainMax[channel]-domainMin[channel]).coerceAtLeast(0.00001f)).coerceIn(0f,1f)
     private fun sample1d(r:Float,g:Float,b:Float):FloatArray {
-        fun sample(v:Float,channel:Int):Float{val pos=v*(size-1);val low=pos.toInt().coerceIn(0,size-1);val high=(low+1).coerceIn(0,size-1);val t=pos-low;return values[low*3+channel]*(1-t)+values[high*3+channel]*t}
+        fun sample(v:Float,channel:Int):Float{val pos=v*(size-1);val low=pos.toInt().coerceIn(0,size-1);val high=(low+1).coerceIn(0,size-1);val t=pos-low.toFloat();return values[low*3+channel]*(1-t)+values[high*3+channel]*t}
         return floatArrayOf(sample(r,0),sample(g,1),sample(b,2))
     }
     private fun sample3d(r:Float,g:Float,b:Float):FloatArray {
         val x=r*(size-1);val y=g*(size-1);val z=b*(size-1)
         val x0=x.toInt().coerceIn(0,size-1);val y0=y.toInt().coerceIn(0,size-1);val z0=z.toInt().coerceIn(0,size-1)
         val x1=(x0+1).coerceAtMost(size-1);val y1=(y0+1).coerceAtMost(size-1);val z1=(z0+1).coerceAtMost(size-1)
-        val tx=x-x0;val ty=y-y0;val tz=z-z0
+        val tx=x-x0.toFloat();val ty=y-y0.toFloat();val tz=z-z0.toFloat()
         fun at(ix:Int,iy:Int,iz:Int,c:Int)=values[((iz*size+iy)*size+ix)*3+c]
         return FloatArray(3){c->
             val c00=at(x0,y0,z0,c)*(1-tx)+at(x1,y0,z0,c)*tx
@@ -40,6 +41,7 @@ class CubeLut private constructor(
     }
     companion object {
         fun parse(text:String):CubeLut {
+            require(text.length<=2_000_000) { "LUT text exceeds 2 MB" }
             var title:String?=null;var oneSize:Int?=null;var threeSize:Int?=null
             var min=floatArrayOf(0f,0f,0f);var max=floatArrayOf(1f,1f,1f)
             val table=mutableListOf<FloatArray>()
