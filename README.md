@@ -80,7 +80,7 @@ The roadmap below is the source of truth for continuing development. Update chec
 - [x] Layer-preserving bounded undo/redo snapshots and History panel
 - [ ] Parameter-level operation history
 - [x] History panel restore and redo support
-- [ ] Named states
+- [x] Persistent named operation states (save/restore/delete in Operation Stack panel)
 - [ ] Define rendering pipeline and cache invalidation strategy
 - [ ] Ensure original imported asset remains untouched throughout editing
 - [ ] Add tests for operation serialization, ordering and replay
@@ -336,3 +336,6 @@ Build verification and release readiness must be tracked honestly. Check the lat
 
 ### Recovery transaction and restored-session dirty state
 - Recovery snapshot/manifest replacement now rolls back the previous snapshot and manifest if installation fails, stages the manifest before swapping, cleans temporary files, and rejects canvases over 24 MP. Restored recovery sessions are marked dirty so unsaved state is protected by navigation guards. Tests added but not run.
+
+### Persistent named operation states
+- Added per-layer named operation state storage with validated JSON replay, path-safe layer IDs, SHA-256 file names, 50-state cap and save/restore/delete controls in the Operation Stack panel. Added persistence/bounds regression tests (not run).
