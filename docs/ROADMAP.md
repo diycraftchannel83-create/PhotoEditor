@@ -250,3 +250,6 @@
 
 ### Global command history hardening
 - Command history now fails safely: failed undo/redo retains the command for retry, execute failures do not enter history, and invalid capacity is rejected. Regression tests added but not executed.
+
+### Recovery transaction hardening
+- Snapshot replacement now includes rollback for both snapshot and manifest failures. Added successive-save and 24 MP guard regression tests. Restoring a recovered session now sets dirty state to prevent accidental loss when leaving without saving. Verification deferred.
