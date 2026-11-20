@@ -30,4 +30,14 @@ class LayerMaskProcessorTest {
         val mask=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888);mask.setPixel(0,0,Color.WHITE)
         assertEquals(Color.BLACK,LayerMaskProcessor.invert(mask).getPixel(0,0))
     }
+    @Test fun combineAndInvertPreserveCallerOwnedMaskBitmaps() {
+        val a=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{setPixel(0,0,Color.WHITE)}
+        val b=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{setPixel(0,0,Color.BLACK)}
+        val combined=LayerMaskProcessor.combineMultiply(a,b)
+        val inverted=LayerMaskProcessor.invert(a)
+        assertEquals(Color.BLACK,combined.getPixel(0,0))
+        assertEquals(Color.BLACK,inverted.getPixel(0,0))
+        assertFalse(a.isRecycled);assertFalse(b.isRecycled)
+        assertEquals(Color.WHITE,a.getPixel(0,0));assertEquals(Color.BLACK,b.getPixel(0,0))
+    }
 }
