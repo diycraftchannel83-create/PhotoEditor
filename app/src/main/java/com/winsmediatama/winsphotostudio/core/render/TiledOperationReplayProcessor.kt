@@ -25,7 +25,7 @@ object TiledOperationReplayProcessor {
         var radius = 0
         operations.filter { it.enabled }.forEach { operation ->
             when (operation) {
-                is EditOperation.BasicAdjust -> if (operation.values.sharpen > 0f) radius += 1
+                is EditOperation.BasicAdjust -> {\n                    if (operation.values.clarity != 0f) return null\n                    if (operation.values.sharpen > 0f) radius += 1\n                }
                 is EditOperation.Effect -> when (operation.settings.kind) {
                     PhotoEffectKind.BLUR -> radius += (operation.settings.strength * 24).toInt().coerceIn(0,24)
                     PhotoEffectKind.MOTION -> radius += if (operation.settings.strength <= 0f) 0 else (operation.settings.strength * 24).toInt().coerceIn(1,24)
@@ -74,7 +74,7 @@ object TiledOperationReplayProcessor {
                     is EditOperation.Hsl -> HslProcessor.apply(input, operation.values)
                     is EditOperation.Lut -> CubeLut.parse(operation.cubeText).apply(input)
                     is EditOperation.Effect -> when (operation.settings.kind) {
-                        PhotoEffectKind.BLUR -> EffectProcessor.gaussianBlur(input, (operation.settings.strength * 24).toInt(), cancellation)
+                        PhotoEffectKind.BLUR -> if (operation.settings.strength <= 0f) input.copy(Bitmap.Config.ARGB_8888, true) else EffectProcessor.gaussianBlur(input, (operation.settings.strength * 24).toInt().coerceAtLeast(1), cancellation)
                         PhotoEffectKind.MOTION -> if (operation.settings.strength <= 0f) input.copy(Bitmap.Config.ARGB_8888, true)
                             else EffectProcessor.motionBlur(input, (operation.settings.strength * 24).toInt().coerceAtLeast(1), operation.settings.angleDegrees, cancellation)
                         else -> error("Unsupported effect in halo replay")
