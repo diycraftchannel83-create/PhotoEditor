@@ -46,3 +46,9 @@
 ## Network/privacy note
 
 The current Android manifest contains no explicit Internet permission. The app's stated design is offline-first; however, this must be verified against the resolved dependency graph, Android runtime behavior and release build before making a definitive privacy claim.
+
+
+
+## 20 November 2026 — release audit remains open
+
+No resolved dependency graph, SBOM, license scan or vulnerability scan has been executed. The source-level list above is not sufficient for production approval. ML Kit Selfie Segmentation remains a beta dependency that requires terms and suitability review. Privacy claims must remain limited until runtime, packaged permissions and third-party behavior are checked against the release artifact.
