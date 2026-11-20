@@ -333,3 +333,6 @@ Build verification and release readiness must be tracked honestly. Check the lat
 
 ### Command history failure safety
 - Bounded `CommandHistory` now validates positive capacity and keeps commands on their original stack until undo/redo actions succeed. Regression tests for failing undo/redo and invalid capacities are authored (not run).
+
+### Recovery transaction and restored-session dirty state
+- Recovery snapshot/manifest replacement now rolls back the previous snapshot and manifest if installation fails, stages the manifest before swapping, cleans temporary files, and rejects canvases over 24 MP. Restored recovery sessions are marked dirty so unsaved state is protected by navigation guards. Tests added but not run.
