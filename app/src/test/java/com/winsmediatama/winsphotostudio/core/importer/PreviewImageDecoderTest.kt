@@ -10,7 +10,7 @@ class PreviewImageDecoderTest {
 
     @Test fun sampleSizeCapsLargestDimensionAtPreviewLimit() {
         assertEquals(2, PreviewImageDecoder.calculateSampleSize(4096, 2160))
-        assertEquals(4, PreviewImageDecoder.calculateSampleSize(12000, 8000))
+        assertEquals(8, PreviewImageDecoder.calculateSampleSize(12000, 8000))
     }
 
     @Test fun sampleSizeHandlesInvalidBoundsWithoutThrowing() {
