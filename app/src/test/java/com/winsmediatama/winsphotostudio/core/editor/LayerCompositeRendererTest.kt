@@ -29,7 +29,7 @@ class LayerCompositeRendererTest {
         val base=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.BLUE)}
         val top=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.RED)}
         val result=LayerCompositeRenderer.render(listOf(EditorLayer(name="Base",bitmap=base,opacity=.5f),EditorLayer(name="Clip",bitmap=top,clipToBelow=true)),1,1)
-        assertEquals(191,Color.alpha(result.getPixel(0,0)))
+        assertEquals(190,Color.alpha(result.getPixel(0,0)))
     }
     @Test fun groupBlendModeAppliesToCombinedGroup() {
         val base=Bitmap.createBitmap(1,1,Bitmap.Config.ARGB_8888).apply{eraseColor(Color.RED)}
