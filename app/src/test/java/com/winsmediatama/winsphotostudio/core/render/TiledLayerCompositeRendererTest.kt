@@ -58,6 +58,37 @@ class TiledLayerCompositeRendererTest {
         decoded.recycle(); reference.recycle(); base.recycle(); overlay.recycle()
     }
 
+    @Test fun streamedGroupCompositingMatchesFullRenderer() {
+        val base=Bitmap.createBitmap(40,35,Bitmap.Config.ARGB_8888).apply {
+            for(y in 0 until height)for(x in 0 until width)setPixel(x,y,Color.rgb((x*3)%255,(y*6)%255,80))
+        }
+        val child1=Bitmap.createBitmap(40,35,Bitmap.Config.ARGB_8888).apply {
+            eraseColor(Color.TRANSPARENT)
+            for(y in 3 until 31)for(x in 4 until 36)setPixel(x,y,Color.rgb(180,50,40))
+        }
+        val child2=Bitmap.createBitmap(40,35,Bitmap.Config.ARGB_8888).apply {
+            eraseColor(Color.TRANSPARENT)
+            for(y in 8 until 29)for(x in 10 until 30)setPixel(x,y,Color.rgb(35,160,210))
+        }
+        val mask=Bitmap.createBitmap(40,35,Bitmap.Config.ARGB_8888).apply {
+            for(y in 0 until height)for(x in 0 until width){val v=if(x<20)255 else 128;setPixel(x,y,Color.argb(255,v,v,v))}
+        }
+        val layers=listOf(
+            EditorLayer(name="Background",bitmap=base),
+            EditorLayer(name="Group Red",bitmap=child1,groupId="g1",groupName="Effects",opacity=.72f,groupOpacity=.58f,groupBlendMode=com.winsmediatama.winsphotostudio.core.editor.EditorBlendMode.SCREEN),
+            EditorLayer(name="Group Blue",bitmap=child2,groupId="g1",groupName="Effects",opacity=.83f,mask=mask,groupOpacity=.58f,groupBlendMode=com.winsmediatama.winsphotostudio.core.editor.EditorBlendMode.SCREEN)
+        )
+        val reference=com.winsmediatama.winsphotostudio.core.editor.LayerCompositeRenderer.render(layers,40,35)
+        val stream=java.io.ByteArrayOutputStream()
+        try{
+            TiledLayerCompositeRenderer.encodeStreamingGroupedOperationLayers(layers,40,35,stream,tileSize=32)
+            val decoded=requireNotNull(android.graphics.BitmapFactory.decodeByteArray(stream.toByteArray(),0,stream.size()))
+            for(y in 0 until 35)for(x in 0 until 40)
+                assertEquals("group streaming pixel ($x,$y)",reference.getPixel(x,y),decoded.getPixel(x,y))
+            decoded.recycle()
+        }finally{reference.recycle();base.recycle();child1.recycle();child2.recycle();mask.recycle()}
+    }
+
     @Test fun streamedMultiLayerOperationReplayMatchesFullComposite() {
         val base = Bitmap.createBitmap(45, 37, Bitmap.Config.ARGB_8888).apply {
             for(y in 0 until height) for(x in 0 until width) setPixel(x,y,Color.rgb((x*5)%256,(y*7)%256,90))
