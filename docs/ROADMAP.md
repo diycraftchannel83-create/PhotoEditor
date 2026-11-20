@@ -239,3 +239,8 @@
 - [x] Outer `finally` disposes tracked intermediates on success and failure; output is recycled on exception.
 - [ ] Inspect processor-internal allocation exception cleanup and add failure-injection tests.
 - [ ] Build/test/CI remain deferred.
+
+
+### Processor failure-safety follow-up
+- Hardened mask and clip-alpha processors against allocation/pixel-transfer failures, including owned bitmap cleanup and preserving caller-owned mask inputs.
+- Next implementation focus: failure-path tests and renderer/group ownership cases. Build/test/CI remain deferred.
