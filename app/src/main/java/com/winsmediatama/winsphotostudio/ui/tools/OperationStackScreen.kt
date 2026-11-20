@@ -50,11 +50,12 @@ fun OperationStackScreen(layer:EditorLayer,onCancel:()->Unit,onApply:(EditorLaye
     var redoOperations by remember(layer.id,layer.operations){mutableStateOf<List<List<EditOperation>>>(emptyList())}
     fun changeOperations(next:List<EditOperation>){undoOperations=(undoOperations+listOf(operations)).takeLast(8);redoOperations=emptyList();operations=next}
     var editingOperationId by remember { mutableStateOf<String?>(null) }
+    val previewBitmaps=remember(layer.id){mutableListOf<Bitmap>()}
+    androidx.compose.runtime.DisposableEffect(layer.id){onDispose{previewBitmaps.toList().forEach{if(!it.isRecycled)it.recycle()};previewBitmaps.clear()}}
     val preview by produceState<Bitmap?>(null,original,operations){
-        value?.takeIf{it!==original}?.recycle();value=null
-        value=withContext(Dispatchers.IO){NonDestructiveEditStack(original,operations).render()}
+        value=null
+        value=withContext(Dispatchers.IO){NonDestructiveEditStack(original,operations).render()}.also{previewBitmaps.add(it)}
     }
-    androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeIf{it!==original}?.recycle()}}
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))){
         Row(Modifier.fillMaxWidth().background(Color(0xFF1B1E24)).padding(10.dp),verticalAlignment=Alignment.CenterVertically){Text("Non-destructive stack",Modifier.weight(1f),color=Color.White);TextButton(onClick={saveNamedStateOpen=true}){Text("Save state")};TextButton(onClick={namedStateNames=namedStateStore.names(layer.id);manageNamedStatesOpen=true}){Text("States")};TextButton(enabled=undoOperations.isNotEmpty(),onClick={val previous=undoOperations.last();redoOperations=(redoOperations+listOf(operations)).takeLast(8);undoOperations=undoOperations.dropLast(1);operations=previous}){Text("Undo")};TextButton(enabled=redoOperations.isNotEmpty(),onClick={val next=redoOperations.last();undoOperations=(undoOperations+listOf(operations)).takeLast(8);redoOperations=redoOperations.dropLast(1);operations=next}){Text("Redo")};TextButton(onClick=onCancel){Text("Cancel")};Button(enabled=preview!=null,onClick={preview?.let{onApply(layer.copy(bitmap=it.copy(Bitmap.Config.ARGB_8888,true),originalBitmap=original,operations=operations))}}){Text("Apply")}}
         Box(Modifier.weight(1f).fillMaxWidth().padding(12.dp).background(Color(0xFF25282D)),contentAlignment=Alignment.Center){preview?.let{Image(it.asImageBitmap(),null,Modifier.fillMaxSize().padding(8.dp),contentScale=ContentScale.Fit)}?:CircularProgressIndicator()}
