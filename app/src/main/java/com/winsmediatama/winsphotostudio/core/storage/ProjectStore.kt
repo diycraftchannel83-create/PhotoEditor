@@ -199,7 +199,7 @@ class ProjectStore(context: Context) {
     fun deleteProject(projectId: String): Boolean {
         if(projectId.isBlank())return false
         val target=File(root,projectId).canonicalFile
-        require(target.path.startsWith(root.canonicalPath+File.separator)){"Invalid project ID"}
+        if(!target.path.startsWith(root.canonicalPath+File.separator))return false
         return target.deleteRecursively()
     }
 }
