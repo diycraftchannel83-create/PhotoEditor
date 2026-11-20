@@ -407,3 +407,5 @@ Normal-size PNG export now attempts streaming tile compositing for supported fla
 ## Scanline streaming PNG
 
 Supported normal-size flat layer stacks now export by composing horizontal segments per scanline and encoding directly to PNG; temporary segment bitmaps are recycled immediately, without retaining a complete tile grid or flattened canvas. Operation stacks/groups/clipping and source-resolution replay remain outside this path. Not build-verified yet.
+
+Streaming eligibility is intentionally strict: layer/mask bitmaps must be canvas-sized, and Difference blend or operation/group/clipping layers fall back to the prior export path.
