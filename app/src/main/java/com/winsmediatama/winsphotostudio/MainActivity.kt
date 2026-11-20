@@ -150,12 +150,18 @@ private fun WinsPhotoApp() {
         val sourceId=sourceLayerId?:return
         val sourceLayer=layers.firstOrNull{it.id==sourceId}?:return
         val original=sourceLayer.originalBitmap?:return
+        val layerSnapshot=layers.toList()
         beforeAfterLoading=true
         scope.launch {
             val baseline=runCatching { withContext(Dispatchers.IO) {
-                val baselineLayers=layers.map{layer->if(layer.id==sourceId)layer.copy(bitmap=original,originalBitmap=null,operations=emptyList(),mask=null,clipToBelow=false)else layer}
+                val baselineLayers=layerSnapshot.map{layer->if(layer.id==sourceId)layer.copy(bitmap=original,originalBitmap=null,operations=emptyList(),mask=null,clipToBelow=false)else layer}
                 LayerCompositeRenderer.render(baselineLayers,current.width,current.height)
             } }.getOrNull()
+            if(bitmap!==current||sourceLayerId!=sourceId) {
+                baseline?.takeUnless{it.isRecycled}?.recycle()
+                beforeAfterLoading=false
+                return@launch
+            }
             beforeAfterBitmap?.takeUnless{it.isRecycled}?.recycle()
             beforeAfterBitmap=baseline
             beforeAfterLoading=false
