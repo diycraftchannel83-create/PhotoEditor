@@ -6,7 +6,12 @@
 
 Build a mobile image editor with a unified workflow: canvas editing, non-destructive operations, layers and masks, selections, retouching, color correction, compositing, typography, effects, AI tools, project recovery, and high-quality export.
 
-The roadmap below is the source of truth for continuing development. Update checkboxes only after implementation is committed and verified. Do not mark build, tests, device testing, or release tasks complete without evidence.
+The roadmap below is the source of truth for continuing development. Implementation status is tracked separately from verification. Do not mark build, tests, device testing, or release tasks complete without evidence.
+
+- Detailed roadmap: [`docs/ROADMAP.md`](docs/ROADMAP.md)
+- Architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- Compositor ownership audit: [`docs/COMPOSITOR_AUDIT.md`](docs/COMPOSITOR_AUDIT.md)
+- Dependency/license source inventory (not yet scanned): [`docs/DEPENDENCIES.md`](docs/DEPENDENCIES.md)
 
 ## Current implemented tools (not all production-verified)
 
