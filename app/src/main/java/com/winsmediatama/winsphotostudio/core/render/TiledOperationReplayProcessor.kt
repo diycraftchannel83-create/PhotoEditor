@@ -21,7 +21,26 @@ import com.winsmediatama.winsphotostudio.core.importer.BitmapTilePlanner
 object TiledOperationReplayProcessor {
     data class OutputTile(val rect: android.graphics.Rect, val bitmap: Bitmap)
 
-    fun haloRadius(operations: List<EditOperation>): Int? {\n        var radius = 0\n        operations.filter { it.enabled }.forEach { operation ->\n            when (operation) {\n                is EditOperation.BasicAdjust -> if (operation.values.sharpen > 0f) radius += 1\n                is EditOperation.Effect -> when (operation.settings.kind) {\n                    PhotoEffectKind.BLUR -> radius += (operation.settings.strength * 24).toInt().coerceIn(0,24)\n                    PhotoEffectKind.MOTION -> radius += (operation.settings.strength * 24).toInt().coerceIn(0,24)\n                    PhotoEffectKind.VIGNETTE, PhotoEffectKind.GRAIN -> return null\n                }\n                is EditOperation.Levels, is EditOperation.Curves, is EditOperation.Hsl, is EditOperation.Lut -> Unit\n                else -> return null\n            }\n        }\n        return radius\n    }\n\n    fun supportsHalo(operations: List<EditOperation>): Boolean = haloRadius(operations) != null\n\n    fun supports(operations: List<EditOperation>): Boolean = operations.filter { it.enabled }.all {
+    fun haloRadius(operations: List<EditOperation>): Int? {
+        var radius = 0
+        operations.filter { it.enabled }.forEach { operation ->
+            when (operation) {
+                is EditOperation.BasicAdjust -> if (operation.values.sharpen > 0f) radius += 1
+                is EditOperation.Effect -> when (operation.settings.kind) {
+                    PhotoEffectKind.BLUR -> radius += (operation.settings.strength * 24).toInt().coerceIn(0,24)
+                    PhotoEffectKind.MOTION -> radius += (operation.settings.strength * 24).toInt().coerceIn(0,24)
+                    PhotoEffectKind.VIGNETTE, PhotoEffectKind.GRAIN -> return null
+                }
+                is EditOperation.Levels, is EditOperation.Curves, is EditOperation.Hsl, is EditOperation.Lut -> Unit
+                else -> return null
+            }
+        }
+        return radius
+    }
+
+    fun supportsHalo(operations: List<EditOperation>): Boolean = haloRadius(operations) != null
+
+    fun supports(operations: List<EditOperation>): Boolean = operations.filter { it.enabled }.all {
         (it is EditOperation.BasicAdjust && it.values.clarity == 0f && it.values.sharpen == 0f) ||
             it is EditOperation.Levels || it is EditOperation.Curves || it is EditOperation.Hsl ||
             it is EditOperation.Lut
