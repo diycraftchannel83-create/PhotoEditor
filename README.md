@@ -367,3 +367,6 @@ Build verification and release readiness must be tracked honestly. Check the lat
 
 
 - Before/After preview render is performed on demand with a stale-render guard and an error/retry path; editor tools and history are disabled while comparing.
+
+
+- Export metadata policy: edited JPEG/PNG are generated from bitmap content and source EXIF/location metadata is not copied; the export dialog communicates this privacy behavior.
