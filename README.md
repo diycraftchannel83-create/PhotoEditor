@@ -378,3 +378,9 @@ Build verification and release readiness must be tracked honestly. Check the lat
 ## Source repair update — 20 November 2026
 
 The latest CI log exposed a selection-dispatch syntax/exhaustiveness issue and compile errors across LUT/effects, compositing, project decoding, retouch, selection, Brush, Gradient and Operation Stack sources. Source-only repairs for those areas have been committed to `main`. GitHub Actions is triggered automatically by pushes; CI is not marked green here, and build/test verification remains pending. Continue from the detailed [roadmap](docs/ROADMAP.md), especially the remaining architecture, rendering, advanced tools, AI, localization/accessibility, privacy/licensing and release work.
+
+
+
+## WinsPhoto Studio continuation status — 20 November 2026
+
+Recent source-only integration fixes and the ordered remaining feature plan are documented in [docs/ROADMAP.md](docs/ROADMAP.md). The work committed in the latest continuation includes Selection action integration, compile-source corrections for LUT/effects/masks/retouch, Difference compositor target handling, project asset decode bounds, selection/brush/preview lifecycle fixes and documentation. CI/device verification and all remaining production roadmap gates are explicitly pending; source commits must not be interpreted as a verified release.
