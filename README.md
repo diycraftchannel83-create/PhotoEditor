@@ -392,3 +392,8 @@ Recent source-only integration fixes and the ordered remaining feature plan are 
 - Halo-aware tile processing supports neighborhood filters by processing expanded regions and retaining only each non-overlapping core tile; seam regression tests are authored but not executed yet.
 - Basic Adjust has a tile-backed processor that retains core tile outputs and uses a 1-pixel halo for sharpen; the flattened output helper remains bounded by the 24 MP guard.
 - These primitives are not yet wired into full-resolution filter, retouch or export replay. See [Roadmap](docs/ROADMAP.md) for implementation vs verification status.
+
+
+## Tiled compositor foundation
+
+A bounded tiled compositor is available for canvas-aligned flat bitmap layers, including opacity, visibility and masks. It explicitly rejects unsupported group/clipping/operation-stack cases to avoid silently changing image appearance. Export integration and full-resolution operation replay are still roadmap work; verification has not been run.
