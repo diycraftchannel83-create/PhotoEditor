@@ -506,3 +506,12 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Tile/output sizing is factored into a safety-checked helper; regression tests cover sampling, custom dimensions and invalid input.
 - [ ] Region-preview seam/orientation tests, cancellation UI propagation and device profiling remain pending.
 - [ ] Tile-aware editing/effect/export replay remains separate work; the import fallback does not imply full tiled editing.
+
+
+## Cancellable tile-processing primitive — 20 November 2026
+
+- [x] Add bounded per-tile processor: creates a temporary source tile, passes region geometry and cancellation to processor, enforces identical output dimensions, and transfers ownership of output tiles.
+- [x] Exception/cancellation cleanup recycles input tiles and any untransferred output; previously completed output tiles are cleaned if the batch fails.
+- [x] Add safe stitching helper with caller-configurable pixel limit and cancellation checkpoints.
+- [x] Add regression tests for geometry edge tiles, source preservation, stitching, oversize rejection and pre-cancelled work (execution deferred).
+- [ ] Integrate this primitive into selected CPU effects/retouch and full-resolution export replay. Current utility is a foundation; no existing editor tool is tile-backed yet.
