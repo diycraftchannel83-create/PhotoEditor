@@ -38,7 +38,7 @@ fun OperationStackScreen(layer:EditorLayer,onCancel:()->Unit,onApply:(EditorLaye
     var operations by remember(layer.id,layer.operations){mutableStateOf(layer.operations)}
     var editingBasicId by remember { mutableStateOf<String?>(null) }
     var undoOperations by remember(layer.id,layer.operations){mutableStateOf<List<List<EditOperation>>>(emptyList())}
-    var redoOperations by remember(layer.id,layer.operations){mutableStateOf<List<List<EditOperation>>>(emptyList()}
+    var redoOperations by remember(layer.id,layer.operations){mutableStateOf<List<List<EditOperation>>>(emptyList())}
     fun changeOperations(next:List<EditOperation>){undoOperations=(undoOperations+listOf(operations)).takeLast(8);redoOperations=emptyList();operations=next}
     var editingOperationId by remember { mutableStateOf<String?>(null) }
     val preview by produceState<Bitmap?>(null,original,operations){
