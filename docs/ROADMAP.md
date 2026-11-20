@@ -483,3 +483,12 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Added cancellation regression tests for effects, retouch processors and perspective transform safety.
 - [ ] CI/build/test verification remains pending; no successful build is claimed for these commits.
 - [ ] Remaining render optimization: reduce temporary arrays and add tiled/region rendering, especially for full-resolution edits.
+
+
+## Selection preview rendering continuation — 20 November 2026
+- [x] Selection preview now uses the serialized render scheduler with parameter-complete cache keys, cancellation, timeout handling and bitmap disposal.
+- [x] Magic Wand, color range, polygon, rectangle, ellipse, invert, expand/contract and feather mask operations accept cancellation signals and check during expensive traversal/row loops.
+- [x] Selection overlay preview passes cancellation into mask construction and refinement; empty polygon/freehand selections skip preview rendering.
+- [x] Added cancellation regression coverage for selection mask operations.
+- [ ] CI/build/test execution remains pending; changes are not yet verified by an Android build.
+- [ ] Continue cancellation and memory profiling for selection apply/export paths, not only preview.
