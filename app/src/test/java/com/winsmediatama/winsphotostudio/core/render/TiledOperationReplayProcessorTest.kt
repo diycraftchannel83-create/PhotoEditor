@@ -34,6 +34,23 @@ class TiledOperationReplayProcessorTest {
         }
     }
 
+    @Test fun streamedOperationReplayPngMatchesFullStack() {
+        val source=Bitmap.createBitmap(19,13,Bitmap.Config.ARGB_8888)
+        for(y in 0 until source.height) for(x in 0 until source.width)
+            source.setPixel(x,y,Color.argb(255,(x*13)%256,(y*19)%256,(x*y*7)%256))
+        val operation=EditOperation.BasicAdjust(values=BasicAdjustmentValues(brightness=.1f,contrast=.05f,saturation=.12f))
+        val reference=NonDestructiveEditStack(source,listOf(operation)).render()
+        val bytes=java.io.ByteArrayOutputStream()
+        try {
+            TiledPngEncoder.encodeOperationReplayStreaming(source,listOf(operation),bytes,tileSize=5)
+            val decoded=BitmapFactory.decodeByteArray(bytes.toByteArray(),0,bytes.size())
+            assertEquals(source.width,decoded.width);assertEquals(source.height,decoded.height)
+            for(y in 0 until source.height) for(x in 0 until source.width)
+                assertEquals("pixel $x,$y",reference.getPixel(x,y),decoded.getPixel(x,y))
+            decoded.recycle()
+        } finally { source.recycle();reference.recycle() }
+    }
+
     @Test fun unsupportedSpatialOperationsAreRejectedBeforeProcessing() {
         val source=Bitmap.createBitmap(4,4,Bitmap.Config.ARGB_8888)
         val crop=EditOperation.Crop(left=0f,top=0f,right=.5f,bottom=.5f)
