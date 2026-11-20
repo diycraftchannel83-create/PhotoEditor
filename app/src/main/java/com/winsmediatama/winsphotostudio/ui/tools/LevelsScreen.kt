@@ -32,7 +32,7 @@ fun LevelsScreen(source: Bitmap, onCancel:()->Unit, onApply:(Bitmap,LevelsValues
     var green by remember { mutableStateOf(LevelsChannel()) }
     var blue by remember { mutableStateOf(LevelsChannel()) }
     val values=LevelsValues(composite,red,green,blue)
-    val renderScheduler=remember{BitmapRenderScheduler(48L*1024L*1024L,"WinsPhoto-LevelsPreview")}
+    val renderScheduler=remember{BitmapRenderScheduler(0L,"WinsPhoto-LevelsPreview")}
     DisposableEffect(renderScheduler){onDispose{renderScheduler.close()}}
     val preview by produceState<Bitmap?>(null,source,values,renderScheduler) {
         value?.takeIf{it!==source&&!it.isRecycled}?.recycle();value=null
