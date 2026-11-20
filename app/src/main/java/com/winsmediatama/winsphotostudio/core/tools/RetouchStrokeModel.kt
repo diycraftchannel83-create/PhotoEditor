@@ -27,7 +27,7 @@ data class RetouchStroke(
 
     fun toJson(): JSONObject = JSONObject().put("schema", 1).put("id", id)
         .put("mode", mode.name).put("size", size)
-        .put("points", JSONArray().also { array -> points.forEach { array.put(JSONObject().put("x", it.x).put("y", it.y)) } })
+        .put("points", JSONArray().also { array -> points.forEach { array.put(JSONObject().put("x", it.x.toDouble()).put("y", it.y.toDouble())) } })
 
     companion object {
         fun fromJson(json: JSONObject): RetouchStroke? = runCatching {
