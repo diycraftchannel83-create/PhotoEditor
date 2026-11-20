@@ -34,3 +34,9 @@ Source audit is in progress. This checklist defines explicit ownership expectati
 
 ## Next implementation pass
 Once the current renderer source is available for fresh inspection, apply ownership fixes branch-by-branch, add tests, then update this audit with exact code paths. Do not mark this checklist complete until source inspection and verification have evidence.
+
+
+## Implemented ownership safeguards (source-level, not verified)
+- Difference blend scaled temporary is recycled in a `finally` block, including pixel-read failure paths.
+- Test added for repeated compositing preserving caller-owned source and mask bitmaps and their pixel data.
+- Remaining: output/group/intermediate exception-path ownership across every branch; run tests only after feature pass.
