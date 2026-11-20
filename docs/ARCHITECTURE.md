@@ -89,3 +89,9 @@ A branch-specific bitmap ownership/recycling checklist is tracked in `docs/COMPO
 
 ### Named operation state persistence
 - `NamedOperationStateStore` persists replayable operation arrays per layer ID in app-private storage. It validates schema and layer identity, bounds names/operations/state count, uses collision-resistant SHA-256-derived filenames and supports save/list/load/remove. Operation Stack panel exposes Save state, States, Restore and Delete.
+
+### Persistence and editor-history safeguards
+- Main editor snapshot undo/redo is bounded consistently to 8 states.
+- Editable project creation enforces 1–100 layers, 24 MP canvas, and project-name length limits; partial project folders are deleted if save fails.
+- Project rename/duplicate/delete lifecycle APIs validate project folders/IDs against app-private canonical root.
+- Corrupt manifests, unsupported schemas, and asset traversal tests are authored but not executed.
