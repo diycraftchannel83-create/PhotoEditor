@@ -161,7 +161,15 @@ sealed interface EditOperation {
         val maskHeight:Int
     ):EditOperation {
         override val label="Selection mask"
-        fun valid():Boolean=maskWidth in 1..16384&&maskHeight in 1..16384&&maskBase64.length in 1..24_000_000&&runCatching{Base64.decode(maskBase64,Base64.DEFAULT)}.isSuccess
+        fun valid():Boolean {
+            if(maskWidth !in 1..16384||maskHeight !in 1..16384||maskWidth.toLong()*maskHeight>24_000_000L||maskBase64.length !in 1..24_000_000)return false
+            return runCatching {
+                val bytes=Base64.decode(maskBase64,Base64.DEFAULT)
+                val options=android.graphics.BitmapFactory.Options().apply{inJustDecodeBounds=true}
+                android.graphics.BitmapFactory.decodeByteArray(bytes,0,bytes.size,options)
+                options.outWidth==maskWidth&&options.outHeight==maskHeight&&options.outWidth>0&&options.outHeight>0
+            }.getOrDefault(false)
+        }
         override fun toJson()=JSONObject().put("id",id).put("type","selectionMask").put("enabled",enabled).put("maskBase64",maskBase64).put("maskWidth",maskWidth).put("maskHeight",maskHeight)
         companion object {
             fun fromBitmap(mask:Bitmap):SelectionMask {
