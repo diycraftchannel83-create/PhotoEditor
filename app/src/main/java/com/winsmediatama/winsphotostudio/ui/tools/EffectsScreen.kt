@@ -17,6 +17,10 @@ import com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectKind
 import com.winsmediatama.winsphotostudio.core.adjustments.PhotoEffectSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CancellationException
+import com.winsmediatama.winsphotostudio.core.render.BitmapRenderScheduler
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 
 
 
@@ -25,14 +29,29 @@ fun EffectsScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,PhotoEffectSet
     var kind by remember{mutableStateOf(PhotoEffectKind.VIGNETTE)}
     var strength by remember{mutableFloatStateOf(.5f)}
     var angle by remember{mutableFloatStateOf(45f)}
-    val preview by produceState<Bitmap?>(null,source,kind,strength,angle) {
-        value?.takeIf{it!==source}?.recycle();value=null
-        value=withContext(Dispatchers.Default){when(kind){
-            PhotoEffectKind.BLUR->EffectProcessor.gaussianBlur(source,(strength*24).toInt())
-            PhotoEffectKind.MOTION->if(strength<=0f)source.copy(Bitmap.Config.ARGB_8888,true) else EffectProcessor.motionBlur(source,(strength*24).toInt().coerceAtLeast(1),angle)
-            PhotoEffectKind.VIGNETTE->EffectProcessor.vignette(source,strength)
-            PhotoEffectKind.GRAIN->EffectProcessor.grain(source,strength,seed=101)
-        }}
+    val renderScheduler=remember{BitmapRenderScheduler(48L*1024L*1024L,"WinsPhoto-EffectsPreview")}
+    DisposableEffect(renderScheduler){onDispose{renderScheduler.close()}}
+    val preview by produceState<Bitmap?>(null,source,kind,strength,angle,renderScheduler) {
+        value?.takeIf{it!==source&&!it.isRecycled}?.recycle();value=null
+        val key="effect:"+System.identityHashCode(source)+":"+source.width+"x"+source.height+":"+kind.name+":"+strength+":"+angle
+        var request:Future<Bitmap>?=null
+        try {
+            value=withContext(Dispatchers.IO) {
+                request=renderScheduler.request(key){ cancellation ->
+                    cancellation.throwIfCanceled()
+                    val result=when(kind){
+                        PhotoEffectKind.BLUR->EffectProcessor.gaussianBlur(source,(strength*24).toInt())
+                        PhotoEffectKind.MOTION->if(strength<=0f)source.copy(Bitmap.Config.ARGB_8888,true) else EffectProcessor.motionBlur(source,(strength*24).toInt().coerceAtLeast(1),angle)
+                        PhotoEffectKind.VIGNETTE->EffectProcessor.vignette(source,strength)
+                        PhotoEffectKind.GRAIN->EffectProcessor.grain(source,strength,seed=101)
+                    }
+                    cancellation.throwIfCanceled()
+                    result
+                }
+                request!!.get(60,TimeUnit.SECONDS)
+            }
+        } catch(cancelled:CancellationException){request?.cancel(true);throw cancelled}
+        catch(_:Exception){request?.cancel(true);value=null}
     }
     androidx.compose.runtime.DisposableEffect(preview){onDispose{preview?.takeUnless{it===source||it.isRecycled}?.recycle()}}
     Column(Modifier.fillMaxSize().background(Color(0xFF101216))) {
