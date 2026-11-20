@@ -16,7 +16,7 @@ class NamedOperationStateStore(context:Context) {
         require(layerId.isNotBlank()&&layerId.length<=256){"Invalid layer ID"}
         val safe=layerId.map{if(it.isLetterOrDigit()||it=='-'||it=='_')it else '_'}
             .joinToString("").take(80)
-        val file=File(root,"${safe}-${layerId.hashCode().toUInt().toString(16)}.json").canonicalFile
+        val file=File(root,"${safe}-${java.lang.Integer.toHexString(layerId.hashCode())}.json").canonicalFile
         require(file.path.startsWith(root.canonicalPath+File.separator)){"Unsafe state path"}
         return file
     }
@@ -24,7 +24,7 @@ class NamedOperationStateStore(context:Context) {
         val key=name.trim()
         if(key.isBlank()||key.length>80||operations.size>200)return false
         val file=fileFor(layerId)
-        val existing=read(file)
+        val existing=read(file,layerId)
         if(existing.length()>=maxStates&&!existing.has(key))return false
         existing.put(key,JSONArray().also{array->operations.forEach{array.put(it.toJson())}})
         val document=JSONObject().put("schemaVersion",1).put("layerId",layerId).put("states",existing)
@@ -41,13 +41,13 @@ class NamedOperationStateStore(context:Context) {
             return true
         } finally { temp.delete() }
     }
-    @Synchronized fun names(layerId:String):List<String> = read(fileFor(layerId)).keys().asSequence().toList().sorted()
+    @Synchronized fun names(layerId:String):List<String> = read(fileFor(layerId),layerId).keys().asSequence().toList().sorted()
     @Synchronized fun load(layerId:String,name:String,source:Bitmap):List<EditOperation>? {
-        val array=read(fileFor(layerId)).optJSONArray(name)?:return null
+        val array=read(fileFor(layerId),layerId).optJSONArray(name)?:return null
         return runCatching{NonDestructiveEditStack.fromJson(source,array).operations}.getOrNull()
     }
     @Synchronized fun remove(layerId:String,name:String):Boolean {
-        val file=fileFor(layerId);val states=read(file)
+        val file=fileFor(layerId);val states=read(file,layerId)
         if(!states.has(name))return false
         states.remove(name)
         if(states.length()==0){file.delete();return true}
@@ -55,12 +55,12 @@ class NamedOperationStateStore(context:Context) {
         try {temp.writeText(JSONObject().put("schemaVersion",1).put("layerId",layerId).put("states",states).toString(2));if(!temp.renameTo(file)){temp.delete();return false};return true}
         finally{temp.delete()}
     }
-    private fun read(file:File):JSONObject {
+    private fun read(file:File,expectedLayerId:String):JSONObject {
         if(!file.isFile)return JSONObject()
         return runCatching{
             val document=JSONObject(file.readText())
             require(document.optInt("schemaVersion")==1)
-            require(document.optString("layerId")==file.name.substringBeforeLast('-') || document.optString("layerId").isNotBlank())
+            require(document.optString("layerId")==expectedLayerId)
             val states=document.optJSONObject("states")?:JSONObject()
             require(states.length()<=maxStates)
             states
