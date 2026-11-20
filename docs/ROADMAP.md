@@ -524,3 +524,12 @@ Latest observed automatic workflow run: #664 (`26866feeea5b`) is `in_progress` w
 - [x] Add seam regression test comparing a radius-1 horizontal neighborhood processor across tile boundaries against whole-image output; test edge-clamped expanded geometry and pre-cancellation (execution deferred).
 - [ ] Integrate halo tiles into selected neighborhood-dependent effects and full-resolution export replay; choose halo from each filter's kernel/radius and verify seams/performance on device.
 - [ ] CI compilation/unit-test verification remains deferred.
+
+
+## Tiled Basic Adjust processing foundation — 20 November 2026
+
+- [x] Add `TiledBasicAdjustmentProcessor.applyTiles` to run Basic Adjust per halo-aware core tile, retaining tile outputs for downstream consumers rather than allocating a full flattened output immediately.
+- [x] Use a 1-pixel halo when Sharpen is enabled (the current sharpen reference neighborhood is radius 1); other Basic Adjust operations use pointwise processing and no halo.
+- [x] Add equivalence regression test comparing tiled output with whole-image Basic Adjust, including sharpen at tile boundaries (test authored; execution deferred).
+- [ ] Connect tile-list outputs to editor preview/full-resolution export consumers; current `flatten` helper remains subject to the 24 MP output ceiling.
+- [ ] CI/test verification and large-image profiling remain deferred.
