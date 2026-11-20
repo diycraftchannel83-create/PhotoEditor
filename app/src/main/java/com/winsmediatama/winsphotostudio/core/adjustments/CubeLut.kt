@@ -16,7 +16,7 @@ class CubeLut private constructor(
         val w=source.width;val h=source.height;val pixels=IntArray(w*h);source.getPixels(pixels,0,w,0,0,w,h)
         for(i in pixels.indices){val p=pixels[i];val r=normalize((p shr 16 and 255)/255f,0);val g=normalize((p shr 8 and 255)/255f,1);val b=normalize((p and 255)/255f,2)
             val out=if(is3d)sample3d(r,g,b) else sample1d(r,g,b)
-            val rr=(out[0].coerceIn(0f,1f)*255).toInt().coerceIn(0,255);val gg=(out[1].coerceIn(0f,1f)*255).toInt().coerceIn(0,255);val bb=(out[2].coerceIn(0f,1f)*255).toInt().coerceIn(0,255);pixels[i]=(p and 0xFF000000) or (rr shl 16) or (gg shl 8) or bb
+            val rr=(out[0].coerceIn(0f,1f)*255).toInt().coerceIn(0,255);val gg=(out[1].coerceIn(0f,1f)*255).toInt().coerceIn(0,255);val bb=(out[2].coerceIn(0f,1f)*255).toInt().coerceIn(0,255);pixels[i]=(p and -0x1000000) or (rr shl 16) or (gg shl 8) or bb
         }
         return Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888).apply{setPixels(pixels,0,w,0,0,w,h)}
     }
