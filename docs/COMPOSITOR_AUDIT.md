@@ -69,3 +69,6 @@ LayerMaskProcessor now checks source/mask/combined dimensions using Long pixel-c
 - `ClipAlphaProcessor` recycles its output on failure and guarantees scaled base cleanup.
 - Caller-owned input bitmaps are not recycled by these processors.
 - Verification remains pending (no build, tests, or CI run).
+
+### Opacity failure path
+- The compositor's generated opacity bitmap now recycles on pixel-transfer failure. Added a regression test verifying combine/invert preserve caller-owned masks. Tests not executed.
