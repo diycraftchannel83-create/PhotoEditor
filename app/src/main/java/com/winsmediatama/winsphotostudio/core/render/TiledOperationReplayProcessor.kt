@@ -28,7 +28,7 @@ object TiledOperationReplayProcessor {
                 is EditOperation.BasicAdjust -> if (operation.values.sharpen > 0f) radius += 1
                 is EditOperation.Effect -> when (operation.settings.kind) {
                     PhotoEffectKind.BLUR -> radius += (operation.settings.strength * 24).toInt().coerceIn(0,24)
-                    PhotoEffectKind.MOTION -> radius += (operation.settings.strength * 24).toInt().coerceIn(0,24)
+                    PhotoEffectKind.MOTION -> radius += if (operation.settings.strength <= 0f) 0 else (operation.settings.strength * 24).toInt().coerceIn(1,24)
                     PhotoEffectKind.VIGNETTE, PhotoEffectKind.GRAIN -> return null
                 }
                 is EditOperation.Levels, is EditOperation.Curves, is EditOperation.Hsl, is EditOperation.Lut -> Unit
