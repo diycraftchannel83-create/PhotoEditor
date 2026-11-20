@@ -61,7 +61,7 @@ object TiledOperationReplayProcessor {
             (coreRect.bottom + halo).coerceAtMost(source.height)
         )
         cancellation?.throwIfCanceled()
-        var current: Bitmap? = Bitmap.createBitmap(source, expanded.left, expanded.top, expanded.width(), expanded.height())
+        var current: Bitmap? = if (expanded.left == 0 && expanded.top == 0 && expanded.right == source.width && expanded.bottom == source.height) source.copy(Bitmap.Config.ARGB_8888, true) else Bitmap.createBitmap(source, expanded.left, expanded.top, expanded.width(), expanded.height())
         var cropped: Bitmap? = null
         try {
             operations.filter { it.enabled }.forEach { operation ->
@@ -110,7 +110,7 @@ object TiledOperationReplayProcessor {
         require(rect.left >= 0 && rect.top >= 0 && rect.right <= source.width && rect.bottom <= source.height && !rect.isEmpty)
         require(supports(operations)) { "Operation stack contains spatial/geometric operations not yet tile-replayable" }
         cancellation?.throwIfCanceled()
-        var current: Bitmap? = Bitmap.createBitmap(source, rect.left, rect.top, rect.width(), rect.height())
+        var current: Bitmap? = if (rect.left == 0 && rect.top == 0 && rect.right == source.width && rect.bottom == source.height) source.copy(Bitmap.Config.ARGB_8888, true) else Bitmap.createBitmap(source, rect.left, rect.top, rect.width(), rect.height())
         try {
             operations.filter { it.enabled }.forEach { operation ->
                 cancellation?.throwIfCanceled()
