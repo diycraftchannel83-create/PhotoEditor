@@ -60,7 +60,7 @@ object SelectionMaskProcessor {
     }
     fun invert(mask:Bitmap,cancellation:CancellationSignal?=null):Bitmap {
         checkSize(mask.width,mask.height);val w=mask.width;val h=mask.height;val pixels=IntArray(w*h);mask.getPixels(pixels,0,w,0,0,w,h)
-        for(y in 0 until h){cancellation?.throwIfCanceled();for(x in 0 until w){val i=y*w+x;val v=Color.red(pixels[i]);pixels[i]=Color.argb(Color.alpha(pixels[i]),255-v,255-v,255-v)}}
+        for(y in 0 until h){cancellation?.throwIfCanceled();for(x in 0 until w){val i=y*w+x;val v=Color.red(pixels[i]);pixels[i]=Color.rgb(255-v,255-v,255-v)}}
         return bitmap(w,h,pixels,cancellation)
     }
     fun expandContract(mask:Bitmap,radius:Int,cancellation:CancellationSignal?=null):Bitmap {
