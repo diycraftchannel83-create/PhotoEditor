@@ -62,3 +62,10 @@ LayerMaskProcessor now checks source/mask/combined dimensions using Long pixel-c
 - Tracked intermediates are disposed in outer `finally`, even when an operation throws.
 - Output is recycled on failure and transferred to caller on success.
 - Still open: allocations created inside a processor before it returns, failure injection coverage, and verification.
+
+
+## Processor exception-safety additions
+- `LayerMaskProcessor` recycles output on failure for apply/invert/combine/white-mask creation and cleans scaled intermediates in `finally`.
+- `ClipAlphaProcessor` recycles its output on failure and guarantees scaled base cleanup.
+- Caller-owned input bitmaps are not recycled by these processors.
+- Verification remains pending (no build, tests, or CI run).
