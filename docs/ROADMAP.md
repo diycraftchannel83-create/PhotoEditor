@@ -221,3 +221,9 @@
 - [ ] Audit exception cleanup of output, group and intermediate bitmaps; verification deferred.
 
 - [x] LayerMaskProcessor now validates source, mask and combined-mask pixel counts against 24 MP before pixel-array allocations (verification deferred).
+
+## Allocation/ownership audit continuation
+- [x] Mask inversion and white-mask creation now enforce 24 MP safety ceiling before allocations.
+- [x] Clip-to-below processor validates both input dimensions and cleans up scaled temporary in `finally`.
+- [x] Clip-alpha input-ownership regression test added; tests/build remain deferred.
+- [ ] Continue renderer exception-path cleanup and layer-tree recursion/allocation audit.
