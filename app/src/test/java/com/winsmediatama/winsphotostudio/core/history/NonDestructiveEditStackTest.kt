@@ -173,7 +173,14 @@ DOMAIN_MAX 1 1 1
         assertTrue(restored.toggle(op.id,false))
         val disabled=restored.render()
         assertEquals(255,Color.alpha(disabled.getPixel(1,0)))
-        output.recycle();disabled.recycle();mask.recycle();source.recycle()
+        val cut=EditOperation.SelectionMask.fromBitmap(mask).copy(invertSelection=true)
+        val cutStack=NonDestructiveEditStack(source).apply{append(cut)}
+        val cutOutput=cutStack.render()
+        assertEquals(0,Color.alpha(cutOutput.getPixel(0,0)))
+        assertEquals(255,Color.alpha(cutOutput.getPixel(1,0)))
+        val cutReload=NonDestructiveEditStack.fromJson(source,cutStack.toJson())
+        assertEquals(true,(cutReload.operations.first() as EditOperation.SelectionMask).invertSelection)
+        cutOutput.recycle();output.recycle();disabled.recycle();mask.recycle();source.recycle()
     }
     @Test fun selectionMaskRejectsMalformedPngPayload() {
         val invalid=EditOperation.SelectionMask(maskBase64="not-a-png",maskWidth=2,maskHeight=2)
