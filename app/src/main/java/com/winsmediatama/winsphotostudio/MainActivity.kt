@@ -69,6 +69,7 @@ import com.winsmediatama.winsphotostudio.core.export.FullResolutionExport
 import com.winsmediatama.winsphotostudio.core.export.NativeSourceLayerExport
 import com.winsmediatama.winsphotostudio.core.render.TiledLayerCompositeRenderer
 import com.winsmediatama.winsphotostudio.core.render.TiledPngEncoder
+import com.winsmediatama.winsphotostudio.core.render.TiledOperationReplayProcessor
 import com.winsmediatama.winsphotostudio.core.importer.PreviewImageDecoder
 import com.winsmediatama.winsphotostudio.core.importer.OriginalSourceCache
 import com.winsmediatama.winsphotostudio.core.importer.RegionPreviewAssembler
@@ -285,10 +286,26 @@ private fun WinsPhotoApp() {
             val ok=withContext(Dispatchers.IO) { val ioContext=currentCoroutineContext(); runCatching {
                 context.contentResolver.openOutputStream(uri)?.use { stream ->
                     if(!exportOriginalDimensions) {
+                        val replayLayer=currentLayers.singleOrNull()
+                        val replaySource=replayLayer?.originalBitmap?.takeUnless { it.isRecycled }
+                        val canReplayTiles=replayLayer!=null && replaySource!=null &&
+                            replayLayer.visible && replayLayer.opacity>=0.999f && replayLayer.mask==null &&
+                            replayLayer.blendMode==EditorBlendMode.NORMAL && replayLayer.groupId==null && !replayLayer.clipToBelow &&
+                            replaySource.width==currentBitmap.width && replaySource.height==currentBitmap.height &&
+                            TiledOperationReplayProcessor.supports(replayLayer.operations) && replayLayer.operations.isNotEmpty()
                         val supportsStreaming=currentLayers.isNotEmpty() &&
                             currentLayers.none { it.groupId != null || it.clipToBelow || it.operations.isNotEmpty() || it.blendMode == EditorBlendMode.DIFFERENCE } &&
                             currentLayers.all { it.bitmap.width == currentBitmap.width && it.bitmap.height == currentBitmap.height && (it.mask == null || (it.mask.width == currentBitmap.width && it.mask.height == currentBitmap.height)) }
-                        if(supportsStreaming) {
+                        if(canReplayTiles) {
+                            val replayTiles=TiledOperationReplayProcessor.renderTiles(
+                                requireNotNull(replaySource),replayLayer!!.operations,tileSize=512,cancellation=exportCancellation
+                            )
+                            try {
+                                TiledPngEncoder.encodeOperationTiles(replayTiles,currentBitmap.width,currentBitmap.height,stream,exportCancellation)
+                                tiledExportUsed=true
+                                true
+                            } finally { TiledOperationReplayProcessor.recycleTiles(replayTiles) }
+                        } else if(supportsStreaming) {
                             TiledLayerCompositeRenderer.encodeStreamingPng(
                                 currentLayers,currentBitmap.width,currentBitmap.height,stream,tileWidth=512,cancellation=exportCancellation,cancelCheck={ ioContext.ensureActive() }
                             )
