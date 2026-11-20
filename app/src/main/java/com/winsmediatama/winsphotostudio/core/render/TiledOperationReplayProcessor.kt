@@ -146,7 +146,8 @@ object TiledOperationReplayProcessor {
         val planned = BitmapTilePlanner.plan(source.width, source.height, tileSize)
         val output = mutableListOf<OutputTile>()
         try {
-            planned.forEach { rect ->
+            planned.forEach { plannedTile ->
+                val rect = plannedTile.sourceRect
                 cancellation?.throwIfCanceled()
                 output += renderTile(source, rect, operations, cancellation)
             }
