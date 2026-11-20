@@ -276,7 +276,7 @@ private fun WinsPhotoApp() {
                 context.contentResolver.openOutputStream(uri)?.use { stream ->
                     if(!exportOriginalDimensions) {
                         val supportsStreaming=currentLayers.isNotEmpty() &&
-                            currentLayers.none { it.groupId != null || it.clipToBelow || it.operations.isNotEmpty() }
+                            currentLayers.none { it.groupId != null || it.clipToBelow || it.operations.isNotEmpty() || it.blendMode == EditorBlendMode.DIFFERENCE }
                         if(supportsStreaming) {
                             TiledLayerCompositeRenderer.encodeStreamingPng(
                                 currentLayers,currentBitmap.width,currentBitmap.height,stream,tileWidth=512
