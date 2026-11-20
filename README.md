@@ -287,3 +287,5 @@ Build verification and release readiness must be tracked honestly. Check the lat
 - Export dialog reports whether the original is retained and its cached file size. Import remains usable when cache copy fails.
 - Added a bounded source-cache decode foundation with a 24 MP pixel budget and tests for sampling calculations (authored, not run).
 - Full-resolution replay is not yet wired into export: normalized operation parameters still require per-operation dimension audit and source-resolution replay integration.
+
+- Selection Tool: crop ratio presets (Free, 1:1, 4:3, 16:9, 3:2); selection crop now commits a replayable normalized Transform bounding-box operation rather than a one-off flattened bitmap (test authored, verification deferred).
