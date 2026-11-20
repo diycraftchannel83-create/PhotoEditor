@@ -78,3 +78,6 @@ LayerMaskProcessor now checks source/mask/combined dimensions using Long pixel-c
 
 ### Recovery safety audit updates
 - Recovery snapshot and manifest replacement now have rollback paths; snapshot size guard and successive-save tests were added. Restored session state is considered unsaved so the user is prompted before navigation away. Tests/build remain unexecuted.
+
+### Named operation-state implementation
+- Persistent named operation stacks are now exposed through the Operation Stack panel, with save/restore/delete and per-layer app-private storage. Bounds and persistence tests were authored but not executed.
