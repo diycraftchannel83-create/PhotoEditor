@@ -3,14 +3,15 @@ package com.winsmediatama.winsphotostudio.core.export
 import android.graphics.Bitmap
 import android.graphics.Color
 import com.winsmediatama.winsphotostudio.core.editor.EditorLayer
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
-import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk=[28])
 class NativeSourceLayerExportTest {
     @Test
     fun sourceLayerIsCompositedAtNativeSizeWhenRetainedSourceExists() {
