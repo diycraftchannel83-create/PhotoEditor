@@ -364,3 +364,6 @@ Build verification and release readiness must be tracked honestly. Check the lat
 
 
 - Before/after comparison is implemented using the retained original source layer; comparison composite renders on demand and editor tools/history are gated while viewing the baseline (verification pending).
+
+
+- Before/After preview render is performed on demand with a stale-render guard and an error/retry path; editor tools and history are disabled while comparing.
