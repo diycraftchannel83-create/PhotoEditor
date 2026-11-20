@@ -87,9 +87,6 @@ private fun BasicSlider(label:String,value:Float,range:ClosedFloatingPointRange<
         Slider(value=value.coerceIn(range.start,range.endInclusive),onValueChange=onChange,valueRange=range)
     }
 }
-@Composable
-private fun ColumnScope.verticalScrollCompat():Modifier = androidx.compose.foundation.rememberScrollState().let { state -> Modifier.fillMaxWidth().then(androidx.compose.foundation.verticalScroll(state)) }
-
 private fun toggle(op:EditOperation,enabled:Boolean):EditOperation=when(op){
     is EditOperation.BasicAdjust->op.copy(enabled=enabled)
     is EditOperation.Levels->op.copy(enabled=enabled)
