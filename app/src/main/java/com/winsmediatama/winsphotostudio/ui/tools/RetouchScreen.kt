@@ -46,7 +46,7 @@ fun RetouchScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,List<RetouchSt
         val allStrokes=strokes+listOfNotNull(active)
         val key="retouch:"+System.identityHashCode(source)+":"+source.width+"x"+source.height+":"+allStrokes.hashCode()+":"+strength+":"+offsetX+":"+offsetY
         var request:Future<Bitmap>?=null
-        try{value=withContext(Dispatchers.IO){request=renderScheduler.request(key){signal->signal.throwIfCanceled();renderRetouch(source,allStrokes,strength,offsetX,offsetY).also{signal.throwIfCanceled()}};request!!.get(60,TimeUnit.SECONDS)}}
+        try{value=withContext(Dispatchers.IO){request=renderScheduler.request(key){signal->signal.throwIfCanceled();renderRetouch(source,allStrokes,strength,offsetX,offsetY,signal)};request!!.get(60,TimeUnit.SECONDS)}}
         catch(cancelled:CancellationException){request?.cancel(true);throw cancelled}
         catch(_:Exception){request?.cancel(true);value=null}
     }
@@ -96,5 +96,5 @@ fun RetouchScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,List<RetouchSt
     }
 }
 
-private fun renderRetouch(source:Bitmap,strokes:List<RetouchStroke>,strength:Float,offsetX:Float,offsetY:Float):Bitmap =
-    RetouchRenderer.render(source,strokes,strength,offsetX,offsetY)
+private fun renderRetouch(source:Bitmap,strokes:List<RetouchStroke>,strength:Float,offsetX:Float,offsetY:Float,cancellation:android.os.CancellationSignal):Bitmap =
+    RetouchRenderer.render(source,strokes,strength,offsetX,offsetY,cancellation)
