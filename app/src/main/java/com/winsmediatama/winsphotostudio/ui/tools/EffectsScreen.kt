@@ -40,10 +40,10 @@ fun EffectsScreen(source:Bitmap,onCancel:()->Unit,onApply:(Bitmap,PhotoEffectSet
                 request=renderScheduler.request(key){ cancellation ->
                     cancellation.throwIfCanceled()
                     val result=when(kind){
-                        PhotoEffectKind.BLUR->EffectProcessor.gaussianBlur(source,(strength*24).toInt())
-                        PhotoEffectKind.MOTION->if(strength<=0f)source.copy(Bitmap.Config.ARGB_8888,true) else EffectProcessor.motionBlur(source,(strength*24).toInt().coerceAtLeast(1),angle)
-                        PhotoEffectKind.VIGNETTE->EffectProcessor.vignette(source,strength)
-                        PhotoEffectKind.GRAIN->EffectProcessor.grain(source,strength,seed=101)
+                        PhotoEffectKind.BLUR->EffectProcessor.gaussianBlur(source,(strength*24).toInt(),cancellation)
+                        PhotoEffectKind.MOTION->if(strength<=0f)source.copy(Bitmap.Config.ARGB_8888,true) else EffectProcessor.motionBlur(source,(strength*24).toInt().coerceAtLeast(1),angle,cancellation)
+                        PhotoEffectKind.VIGNETTE->EffectProcessor.vignette(source,strength,cancellation)
+                        PhotoEffectKind.GRAIN->EffectProcessor.grain(source,strength,seed=101,cancellation=cancellation)
                     }
                     cancellation.throwIfCanceled()
                     result
