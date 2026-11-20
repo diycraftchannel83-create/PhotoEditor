@@ -102,3 +102,7 @@ A branch-specific bitmap ownership/recycling checklist is tracked in `docs/COMPO
 
 ### Legacy persistence compatibility
 - Authored tests cover schema-one legacy snapshot projects and recovery snapshots with missing optional fields, alongside corrupt manifest/schema/path traversal cases. Test execution remains deferred.
+
+
+### Background removal processors
+- AI person segmentation and color-key processors now bound output to 24 MP, preserve source alpha by multiplying it with generated mask alpha, and recycle output bitmaps on pixel-transfer exceptions. Quality/performance verification remains pending.
