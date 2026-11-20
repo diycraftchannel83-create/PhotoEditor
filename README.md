@@ -416,3 +416,9 @@ Scanline export checks both Android cancellation signals and coroutine cancellat
 ### Tiled operation replay
 
 Normal-size PNG export can replay supported pointwise adjustment operations from a retained original bitmap in tiles (Basic Adjust, Levels, Curves, HSL, Effects and LUT), rather than relying on the preview bitmap. This path is currently restricted to one visible full-canvas normal layer with no mask/group/clipping; unsupported operation stacks fall back. Build and tests are not yet run.
+
+
+## Build test request — 20 November 2026
+
+- A full GitHub Actions validation run has been requested by this documentation update: unit tests, Android lint, debug APK, unsigned release APK and unsigned release AAB.
+- Results and downloadable artifacts must be checked from the Actions run before declaring the build successful. This status note does not itself imply a passing build.
